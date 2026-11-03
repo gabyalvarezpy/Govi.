@@ -278,5 +278,475 @@ document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=
 supabaseClient.auth.onAuthStateChange(()=>{setTimeout(refreshSession,0)});
 refreshSession();
 </script>
+<script>
+/* ==========================================
+   GOVI — PERFILES PÚBLICOS Y FOTOS DE PERFIL
+   ========================================== */
+
+let goviProfileId = null;
+let goviCurrentProfile = null;
+
+const goviOriginalLoadFeed = loadFeed;
+const goviOriginalApplyFilter = applyFilter;
+const goviOriginalFilterSection = filterSection;
+
+/* Estilos de los perfiles */
+const goviProfileStyles = document.createElement('style');
+goviProfileStyles.textContent = `
+.profile-view{margin-bottom:18px}
+.profile-cover{height:190px;background:linear-gradient(130deg,#34230c,#a87920,#21180b);border-radius:18px 18px 0 0;position:relative;overflow:hidden;background-size:cover;background-position:center}
+.profile-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.profile-info{padding:0 18px 18px;position:relative}
+.profile-avatar{width:112px;height:112px;border-radius:50%;border:5px solid #191919;background:#3b2b12;display:grid;place-items:center;color:#f4d27b;font-size:34px;font-weight:900;overflow:hidden;margin-top:-55px;position:relative}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+.profile-name{font-size:22px;font-weight:900;margin:10px 0 4px}
+.profile-description{font-size:12px;color:#aaa18d}
+.profile-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.profile-controls button{border:1px solid #80612b;background:#292116;color:#f0d17c;padding:9px 12px;border-radius:10px;font-size:12px;font-weight:800}
+.profile-controls button.danger{color:#ffaaaa;border-color:#704040}
+.profile-section-title{font-size:15px;font-weight:850;margin:18px 0 12px}
+.profile-empty{padding:20px;text-align:center;color:#aaa18d;font-size:13px}
+.post-author[data-user-id],.post-head .avatar[data-user-id]{cursor:pointer}
+.post-author[data-user-id]:hover{color:#e8c66a}
+.profile-hidden-input{display:none}
+@media(max-width:700px){.profile-cover{height:145px}.profile-avatar{width:92px;height:92px;margin-top:-45px}.profile-name{font-size:20px}}
+`;
+document.head.appendChild(goviProfileStyles);
+
+/* Zona del perfil */
+const goviProfileView = document.createElement('section');
+goviProfileView.id = 'goviProfileView';
+goviProfileView.className = 'profile-view';
+goviProfileView.style.display = 'none';
+goviProfileView.innerHTML = `
+  <div class="panel" style="overflow:hidden">
+    <div class="profile-cover" id="goviCover"></div>
+    <div class="profile-info">
+      <div class="profile-avatar" id="goviAvatar">G</div>
+      <div class="profile-name" id="goviProfileName">Perfil GOVI</div>
+      <div class="profile-description" id="goviProfileDescription">Tu mundo. Tu gente.</div>
+      <div class="profile-controls" id="goviProfileControls"></div>
+    </div>
+  </div>
+  <div class="profile-section-title">Publicaciones</div>
+`;
+$('feed').parentNode.insertBefore(goviProfileView, $('feed'));
+
+const goviAvatarInput = document.createElement('input');
+goviAvatarInput.type = 'file';
+goviAvatarInput.accept = 'image/jpeg,image/png,image/webp,image/gif';
+goviAvatarInput.className = 'profile-hidden-input';
+goviAvatarInput.id = 'goviAvatarInput';
+document.body.appendChild(goviAvatarInput);
+
+const goviCoverInput = document.createElement('input');
+goviCoverInput.type = 'file';
+goviCoverInput.accept = 'image/jpeg,image/png,image/webp,image/gif';
+goviCoverInput.className = 'profile-hidden-input';
+goviCoverInput.id = 'goviCoverInput';
+document.body.appendChild(goviCoverInput);
+
+/* Obtener perfil */
+async function goviGetProfile(userId) {
+  const {data,error} = await supabaseClient
+    .from('profiles')
+    .select('id,display_name,avatar_url,cover_url')
+    .eq('id',userId)
+    .maybeSingle();
+
+  if(error) throw error;
+  return data || {id:userId,display_name:'Usuario GOVI',avatar_url:null,cover_url:null};
+}
+
+/* Mostrar perfil público */
+async function openGoviProfile(userId) {
+  if(!userId) return;
+
+  goviProfileId = userId;
+  activeFilter = 'Perfil';
+
+  $('goviProfileView').style.display = 'block';
+  $('feed').style.display = 'block';
+  $('goviProfileName').textContent = 'Cargando perfil…';
+  $('goviProfileDescription').textContent = 'Tu mundo. Tu gente.';
+  $('goviProfileControls').innerHTML = '';
+  $('goviAvatar').textContent = 'G';
+  $('goviCover').innerHTML = '';
+  $('feed').innerHTML = '<p class="demo-note">Cargando publicaciones…</p>';
+
+  try {
+    goviCurrentProfile = await goviGetProfile(userId);
+
+    $('goviProfileName').textContent =
+      goviCurrentProfile.display_name || 'Usuario GOVI';
+
+    $('goviAvatar').innerHTML = goviCurrentProfile.avatar_url
+      ? `<img src="${escapeHTML(goviCurrentProfile.avatar_url)}" alt="Foto de perfil">`
+      : escapeHTML(initials(goviCurrentProfile.display_name || 'G'));
+
+    $('goviCover').innerHTML = goviCurrentProfile.cover_url
+      ? `<img src="${escapeHTML(goviCurrentProfile.cover_url)}" alt="Foto de portada">`
+      : '';
+
+    const isOwner = currentUser && currentUser.id === userId;
+
+    if(isOwner) {
+      $('goviProfileDescription').textContent = 'Este es tu perfil público de GOVI.';
+      $('goviProfileControls').innerHTML = `
+        <button onclick="$('goviAvatarInput').click()">📷 Cambiar foto</button>
+        <button onclick="$('goviCoverInput').click()">🖼️ Cambiar portada</button>
+        <button onclick="goviShareProfile()">↗ Compartir perfil</button>
+        ${goviCurrentProfile.avatar_url ? '<button class="danger" onclick="goviDeleteProfileImage(\'avatar\')">Eliminar foto</button>' : ''}
+        ${goviCurrentProfile.cover_url ? '<button class="danger" onclick="goviDeleteProfileImage(\'cover\')">Eliminar portada</button>' : ''}
+      `;
+    } else {
+      $('goviProfileDescription').textContent = 'Perfil público de GOVI · Tu mundo. Tu gente.';
+      $('goviProfileControls').innerHTML =
+        '<button onclick="goviShareProfile()">↗ Compartir perfil</button>';
+    }
+
+    history.replaceState(null,'','#profile-' + userId);
+    await goviLoadProfilePosts(userId);
+
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  } catch(error) {
+    console.error(error);
+    toast('No se pudo abrir el perfil: ' + error.message);
+  }
+}
+
+/* Cargar publicaciones del perfil */
+async function goviLoadProfilePosts(userId) {
+  const feed = $('feed');
+  feed.innerHTML = '<p class="demo-note">Cargando publicaciones…</p>';
+
+  const {data:posts,error} = await supabaseClient
+    .from('posts')
+    .select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at')
+    .eq('user_id',userId)
+    .order('created_at',{ascending:false})
+    .limit(100);
+
+  if(error) {
+    feed.innerHTML = '<p class="demo-note">No se pudieron cargar las publicaciones.</p>';
+    console.error(error);
+    return;
+  }
+
+  if(!posts || !posts.length) {
+    feed.innerHTML = '<div class="panel profile-empty">Todavía no hay publicaciones en este perfil.</div>';
+    return;
+  }
+
+  const ids = posts.map(p=>p.id);
+
+  const [{data:likes},{data:comments}] = await Promise.all([
+    supabaseClient.from('post_likes').select('post_id,user_id').in('post_id',ids),
+    supabaseClient.from('post_comments')
+      .select('id,post_id,user_id,content,created_at,updated_at')
+      .in('post_id',ids)
+      .order('created_at',{ascending:true})
+  ]);
+
+  const userIds = [...new Set([
+    ...posts.map(p=>p.user_id),
+    ...(likes||[]).map(x=>x.user_id),
+    ...(comments||[]).map(x=>x.user_id)
+  ])];
+
+  const profiles = {};
+  if(userIds.length) {
+    const {data} = await supabaseClient
+      .from('profiles')
+      .select('id,display_name')
+      .in('id',userIds);
+
+    (data||[]).forEach(p=>profiles[p.id]=p.display_name);
+  }
+
+  feed.replaceChildren();
+  posts.forEach(post=>feed.append(renderPost(post,likes||[],comments||[],profiles)));
+}
+
+/* Hacer clic en el autor de una publicación para abrir su perfil */
+const goviOriginalRenderPost = renderPost;
+
+renderPost = function(post,likes,comments,profiles) {
+  const article = goviOriginalRenderPost(post,likes,comments,profiles);
+  const avatar = article.querySelector('.post-head .avatar');
+  const author = article.querySelector('.post-author');
+
+  if(avatar) {
+    avatar.dataset.userId = post.user_id;
+    avatar.title = 'Ver perfil';
+  }
+
+  if(author) {
+    author.dataset.userId = post.user_id;
+    author.title = 'Ver perfil';
+  }
+
+  return article;
+};
+
+/* Clic en el nombre o la foto de un usuario */
+$('feed').addEventListener('click',function(e) {
+  const target = e.target.closest('[data-user-id]');
+  if(target) {
+    e.preventDefault();
+    e.stopPropagation();
+    openGoviProfile(target.dataset.userId);
+  }
+});
+
+/* Subir foto de perfil o portada */
+async function goviUploadProfileImage(file,type) {
+  if(!currentUser) {
+    toast('Inicia sesión para cambiar tu perfil');
+    openModal('authModal');
+    return;
+  }
+
+  if(!file || !file.type.startsWith('image/')) {
+    toast('Selecciona una imagen válida');
+    return;
+  }
+
+  if(file.size > 10*1024*1024) {
+    toast('La imagen no puede superar los 10 MB');
+    return;
+  }
+
+  toast('Subiendo imagen…');
+
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg')
+      .toLowerCase().replace(/[^a-z0-9]/g,'');
+
+    const path = `${currentUser.id}/profile/${type}-${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+    const {error:uploadError} = await supabaseClient.storage
+      .from(BUCKET)
+      .upload(path,file,{
+        cacheControl:'3600',
+        upsert:false,
+        contentType:file.type
+      });
+
+    if(uploadError) throw uploadError;
+
+    const {data:urlData} = supabaseClient.storage
+      .from(BUCKET)
+      .getPublicUrl(path);
+
+    const column = type === 'avatar' ? 'avatar_url' : 'cover_url';
+    const oldUrl = goviCurrentProfile?.[column];
+
+    const {error:updateError} = await supabaseClient
+      .from('profiles')
+      .update({[column]:urlData.publicUrl})
+      .eq('id',currentUser.id);
+
+    if(updateError) {
+      await supabaseClient.storage.from(BUCKET).remove([path]);
+      throw updateError;
+    }
+
+    if(oldUrl) {
+      const oldPath = goviStoragePath(oldUrl);
+      if(oldPath && oldPath.startsWith(currentUser.id + '/')) {
+        await supabaseClient.storage.from(BUCKET).remove([oldPath]);
+      }
+    }
+
+    toast(type === 'avatar' ? '¡Foto de perfil actualizada!' : '¡Portada actualizada!');
+    await openGoviProfile(currentUser.id);
+    await goviUpdateAccountAvatars();
+  } catch(error) {
+    console.error(error);
+    toast('No se pudo subir la imagen: ' + error.message);
+  }
+}
+
+/* Recuperar la ruta de una imagen almacenada */
+function goviStoragePath(url) {
+  if(!url) return null;
+  const marker = `/storage/v1/object/public/${BUCKET}/`;
+  const index = url.indexOf(marker);
+  if(index < 0) return null;
+
+  try {
+    return decodeURIComponent(url.slice(index + marker.length).split('?')[0]);
+  } catch(e) {
+    return null;
+  }
+}
+
+/* Eliminar foto o portada */
+async function goviDeleteProfileImage(type) {
+  if(!currentUser || !goviCurrentProfile) return;
+
+  const column = type === 'avatar' ? 'avatar_url' : 'cover_url';
+  const url = goviCurrentProfile[column];
+
+  if(!url) {
+    toast('No hay imagen para eliminar');
+    return;
+  }
+
+  const label = type === 'avatar' ? 'foto de perfil' : 'portada';
+  if(!confirm(`¿Seguro que quieres eliminar tu ${label}?`)) return;
+
+  try {
+    const {error} = await supabaseClient
+      .from('profiles')
+      .update({[column]:null})
+      .eq('id',currentUser.id);
+
+    if(error) throw error;
+
+    const path = goviStoragePath(url);
+    if(path && path.startsWith(currentUser.id + '/')) {
+      const {error:removeError} = await supabaseClient.storage
+        .from(BUCKET)
+        .remove([path]);
+
+      if(removeError) console.warn('No se pudo borrar el archivo antiguo:',removeError);
+    }
+
+    toast('Imagen eliminada');
+    await openGoviProfile(currentUser.id);
+    await goviUpdateAccountAvatars();
+  } catch(error) {
+    console.error(error);
+    toast('No se pudo eliminar: ' + error.message);
+  }
+}
+
+/* Actualizar los avatares de la barra superior y del compositor */
+async function goviUpdateAccountAvatars() {
+  if(!currentUser) return;
+
+  try {
+    const profile = await goviGetProfile(currentUser.id);
+    const name = profile.display_name ||
+      currentUser.user_metadata?.display_name ||
+      currentUser.email || 'G';
+
+    $('accountButton').innerHTML = profile.avatar_url
+      ? `<img src="${escapeHTML(profile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Mi perfil">`
+      : escapeHTML(initials(name));
+
+    $('composerAvatar').innerHTML = profile.avatar_url
+      ? `<img src="${escapeHTML(profile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Mi perfil">`
+      : escapeHTML(initials(name));
+  } catch(error) {
+    console.warn(error);
+  }
+}
+
+/* Compartir el enlace público del perfil */
+async function goviShareProfile() {
+  if(!goviProfileId) return;
+
+  const url = location.origin + location.pathname + '#profile-' + goviProfileId;
+
+  try {
+    if(navigator.share) {
+      await navigator.share({
+        title:'Perfil en GOVI',
+        text:'Mira este perfil en GOVI',
+        url
+      });
+    } else if(navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      toast('Enlace del perfil copiado');
+    } else {
+      prompt('Copia el enlace de tu perfil:',url);
+    }
+  } catch(error) {
+    if(error.name !== 'AbortError') toast('No se pudo compartir el perfil');
+  }
+}
+
+/* Acciones de los botones de imagen */
+goviAvatarInput.addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(file) goviUploadProfileImage(file,'avatar');
+  e.target.value='';
+});
+
+goviCoverInput.addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(file) goviUploadProfileImage(file,'cover');
+  e.target.value='';
+});
+
+/* Navegación */
+window.filterSection = function(section,el) {
+  if(section === 'Mi perfil') {
+    if(!currentUser) {
+      toast('Inicia sesión para ver tu perfil');
+      openModal('authModal');
+      return;
+    }
+    openGoviProfile(currentUser.id);
+    return;
+  }
+
+  goviProfileId = null;
+  $('goviProfileView').style.display = 'none';
+  $('feed').style.display = 'block';
+  history.replaceState(null,'',location.pathname);
+  goviOriginalFilterSection(section,el);
+};
+
+/* Filtro normal y filtro de perfil */
+window.applyFilter = function() {
+  if(goviProfileId) {
+    $('feed').querySelectorAll('.post').forEach(post=>{
+      const q = $('searchInput').value.toLowerCase();
+      post.style.display = post.dataset.search.includes(q) ? 'block' : 'none';
+    });
+    return;
+  }
+
+  goviOriginalApplyFilter();
+};
+
+/* Al iniciar sesión, actualizar las fotos */
+const goviPreviousRefreshSession = refreshSession;
+
+refreshSession = async function() {
+  await goviPreviousRefreshSession();
+
+  if(currentUser) {
+    await goviUpdateAccountAvatars();
+  } else {
+    goviProfileId = null;
+    $('goviProfileView').style.display = 'none';
+    $('feed').style.display = 'block';
+  }
+
+  if(location.hash.startsWith('#profile-')) {
+    const id = location.hash.replace('#profile-','');
+    if(id) await openGoviProfile(id);
+  }
+};
+
+/* Si se entra directamente con un enlace de perfil */
+window.addEventListener('load',()=>{
+  if(location.hash.startsWith('#profile-')) {
+    const id=location.hash.replace('#profile-','');
+    if(id) openGoviProfile(id);
+  }
+});
+
+/* Recuperar la sesión y mostrar el perfil actualizado */
+refreshSession();
+</script>
+</body>
+</html>
+
 </body>
 </html>
