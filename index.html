@@ -16,7 +16,23 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 .nav-item{padding:12px;border-radius:12px;margin:3px 0;color:#c9bea3;font-size:14px;font-weight:700;cursor:pointer}.nav-item.active,.nav-item:hover{background:#C99A3220;color:var(--gold2)}    
 .side-note{background:#211b10;color:#e8d6a7;padding:14px;border-radius:13px;font-size:12px;line-height:1.5;margin-top:18px}    
 .content{min-width:0}.welcome{display:flex;justify-content:space-between;align-items:center;margin:3px 0 17px;gap:10px}.eyebrow{font-size:10px;letter-spacing:1.5px;color:#D6AD50;font-weight:850}.welcome h1{font-size:25px;margin:5px 0}.welcome p{margin:0;color:var(--muted);font-size:13px}.live-pill{background:#3a1515;color:#ff9292;border-radius:20px;padding:8px 11px;font-size:10px;font-weight:800;white-space:nowrap}    
-.stories{display:flex;gap:13px;overflow:auto;padding:4px 0 16px}.story{flex:0 0 64px;text-align:center;font-size:11px;color:#c9bea3}.story-ring{width:58px;height:58px;margin:auto auto 5px;padding:3px;border-radius:50%;background:linear-gradient(140deg,#f3d47c,#9c6b1b)}.story-ring span{display:grid;place-items:center;width:100%;height:100%;border:3px solid var(--panel);border-radius:50%;background:#392d19;font-size:22px}    
+.stories{display:flex;gap:13px;overflow:auto;padding:4px 0 16px}.story{flex:0 0 64px;text-align:center;font-size:11px;color:#c9bea3}.story-ring{width:58px;height:58px;margin:auto auto 5px;padding:3px;border-radius:50%;background:linear-gradient(140deg,#f3d47c,#9c6b1b)}.story-ring span{display:grid;place-items:center;width:100%;height:100%;border:3px solid var(--panel);border-radius:50%;background:#392d19;font-size:22px}
+.story{display:block;border:0;background:transparent;padding:0;cursor:pointer;flex:0 0 68px}
+.story-ring img{width:100%;height:100%;object-fit:cover;border:3px solid var(--panel);border-radius:50%;display:block}
+.story-ring.has-story{background:linear-gradient(140deg,#f3d47c,#d34d8a,#7045d6);padding:3px}
+.story-name{display:block;max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story-loading{font-size:11px;color:#aaa18d;padding:18px 4px}
+#goviStoryViewer{display:none;position:fixed;inset:0;z-index:13000;background:#050505f5;align-items:center;justify-content:center;padding:12px}
+#goviStoryCard{position:relative;width:min(440px,100%);height:min(780px,92vh);background:#171717;border:1px solid #51452d;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#goviStoryMedia{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;background:#050505}
+#goviStoryTop{position:absolute;z-index:2;top:12px;left:12px;right:12px;display:flex;align-items:center;gap:8px;color:white;text-shadow:0 1px 4px #000}
+#goviStoryTop img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid #e8c66a}
+#goviStoryClose{margin-left:auto}
+#goviStoryTop button,#goviStoryDelete{background:#171717bb;color:white;border:1px solid #ffffff66;border-radius:9px;padding:8px 11px}
+#goviStoryPrev,#goviStoryNext{position:absolute;z-index:3;top:50%;transform:translateY(-50%);border:0;background:#0006;color:white;font-size:30px;width:42px;height:60px}
+#goviStoryPrev{left:0}#goviStoryNext{right:0}
+#goviStoryDelete{position:absolute;z-index:3;bottom:14px;right:14px;background:#4b2020}
+    
 .composer{padding:15px;margin-bottom:16px}.compose-top{display:flex;align-items:center;gap:10px}.compose-top input{flex:1;min-width:0;border:0;border-radius:25px;background:#26231d;padding:13px 15px;color:var(--text);outline:none}.compose-actions{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:13px;padding-top:11px}.compose-actions button,.post-buttons button{border:0;background:transparent;color:#c9bea3;font-size:12px;font-weight:750;padding:9px 11px;border-radius:9px}.compose-actions button:hover,.post-buttons button:hover{background:#ffffff0d}    
 .post{padding:15px;margin-bottom:15px}.post-head{display:flex;align-items:center;gap:10px}.post-head .avatar{flex:0 0 40px}.post-author{font-size:13px;font-weight:850}.post-meta{font-size:11px;color:#9e967f;margin-top:3px}.more{margin-left:auto;background:transparent;border:0;color:#c9bea3;font-size:22px}.post-text{font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:13px 0}.post-media{width:100%;max-height:600px;object-fit:contain;background:#080808;border-radius:13px;display:block}.post-media.video{max-height:520px}.post-stats{display:flex;justify-content:space-between;gap:8px;color:#aaa18d;font-size:11px;padding:11px 2px;border-bottom:1px solid var(--line)}.post-buttons{display:flex;justify-content:space-around;flex-wrap:wrap;padding-top:7px}.post-buttons button.liked{color:#E8C66A} .comment-reply{margin:9px 0 0 18px;padding-left:12px;border-left:2px solid #8f7138}.reply-composer:empty{display:none}.reply-form{display:flex;gap:7px;margin-top:8px}.reply-form input{flex:1;min-width:0;background:#26231d;border:1px solid var(--line);border-radius:18px;padding:9px 12px;color:var(--text)}.reply-form button,.comment-actions button{background:transparent;border:0;color:#d6ad50;font-size:11px;padding:5px 7px}.comments{display:none;padding-top:10px}.comments.open{display:block}.comment-list{display:grid;gap:8px;margin:8px 0}.comment{background:#242019;border-radius:11px;padding:9px 11px;font-size:12px;line-height:1.5}.comment b{color:#E8C66A;margin-right:5px}.comment-actions{display:flex;gap:10px;margin-top:5px}.comment-actions button{border:0;background:transparent;color:#E8C66A;font-size:11px;padding:3px 0}.comment-form{display:flex;gap:7px}.comment-form input{min-width:0;flex:1;border:1px solid #51452d;border-radius:20px;padding:10px 13px;background:transparent;color:var(--text)}.comment-form button{border:0;border-radius:20px;padding:0 14px;background:var(--gold2);color:#15110a;font-weight:800}    
 .rightcol{position:sticky;top:86px;display:grid;gap:15px}.right-card{padding:16px}.card-title{font-size:14px;font-weight:850;margin-bottom:12px}.creator-row{display:flex;align-items:center;gap:9px;margin:12px 0}.creator-row b{font-size:12px;display:block}.creator-row small{font-size:10px;color:#aaa18d}.follow{margin-left:auto;border:1px solid #9d7a35;color:#E8C66A;background:transparent;border-radius:9px;padding:6px 9px;font-size:10px;font-weight:800}    
@@ -41,7 +57,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}
   </aside>    
   <main class="content">    
     <div class="welcome"><div><div class="eyebrow">TU COMUNIDAD TE ESPERA</div><h1>¡Bienvenido a GOVI! 👋</h1><p>Comparte fotos, vídeos e ideas con tu comunidad.</p></div><div class="live-pill">● GOVI</div></div>    
-    <div class="stories"><div class="story" onclick="openModal('postModal')"><div class="story-ring"><span>＋</span></div>Tu historia</div><div class="story"><div class="story-ring"><span>🌍</span></div>Comunidad</div><div class="story"><div class="story-ring"><span>🎥</span></div>Creadores</div></div>    
+    <div class="stories" id="goviStories"><button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div>Tu historia</button><div class="story-loading">Cargando historias…</div></div>    
     <section class="composer panel">    
       <div class="compose-top"><div class="avatar" id="composerAvatar">G</div><input placeholder="¿Qué quieres compartir hoy?" onclick="openModal('postModal')" readonly></div>    
       <div class="compose-actions"><button onclick="openModal('postModal')">▧ Foto / vídeo</button><button onclick="openModal('postModal')">☷ Crear publicación</button></div>    
@@ -68,6 +84,8 @@ button,input,textarea{font:inherit}button{cursor:pointer}
   <button class="auth-switch" id="authSwitch" onclick="toggleAuthMode()">Ya tengo una cuenta · Iniciar sesión</button>    
   <p class="demo-note">En el registro, Supabase puede pedirte confirmar tu correo electrónico.</p>    
 </div></div>    
+<div id="goviStoryViewer" role="dialog" aria-label="Historias"><div id="goviStoryCard"><div id="goviStoryTop"><img id="goviStoryAvatar" alt=""><b id="goviStoryAuthor"></b><span id="goviStoryTime"></span><button id="goviStoryClose" type="button">×</button></div><img id="goviStoryMedia" alt="Historia" style="display:none"><video id="goviStoryVideo" controls playsinline style="display:none;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;background:#050505"></video><button id="goviStoryPrev" type="button">‹</button><button id="goviStoryNext" type="button">›</button><button id="goviStoryDelete" type="button" style="display:none">Eliminar historia</button></div></div>
+<input id="goviStoryInput" type="file" accept="image/*,video/*" style="display:none">
 <div class="toast" id="toast"></div>    
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>    
 <script>    
@@ -250,7 +268,9 @@ async function handleAuth(){
       const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,full_name:name}}});if(error)throw error;    
       if(data.user&&!data.session)toast('Registro enviado. Revisa tu correo para confirmar la cuenta.');else toast('¡Cuenta creada en GOVI!');    
     }else{const {error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;toast('¡Bienvenido a GOVI!')}    
-    closeModal('authModal');await refreshSession();    
+    closeModal('authModal');await refreshSession();
+goviLoadStories();
+supabaseClient.auth.onAuthStateChange(()=>{setTimeout(goviLoadStories,0)});    
   }catch(error){toast(error.message||'No se pudo completar la operación')}    
   finally{button.disabled=false;button.textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión'}    
 }    
@@ -309,6 +329,77 @@ goviProfileStyles.textContent = `
 @media(max-width:700px){.profile-cover{height:145px}.profile-avatar{width:92px;height:92px;margin-top:-45px}.profile-name{font-size:20px}}
 `;
 document.head.appendChild(goviProfileStyles);
+
+/* Historias GOVI: fotos y vídeos que duran 24 horas */
+let goviStoryGroups=[],goviStoryGroupIndex=0,goviStoryItemIndex=0;
+async function goviLoadStories(){
+  const bar=$('goviStories');if(!bar)return;
+  const {data:stories,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,media_path,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:true});
+  if(error){console.error('Historias:',error);bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div>Tu historia</button><div class="story-loading">No se pudieron cargar las historias</div>';goviBindAddStory();return}
+  const rows=stories||[],ids=[...new Set(rows.map(x=>x.user_id))];let profiles={};
+  if(ids.length){const {data:p,error:pe}=await supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',ids);if(pe)console.warn(pe);(p||[]).forEach(x=>profiles[x.id]=x)}
+  const groups=new Map();rows.forEach(s=>{if(!groups.has(s.user_id))groups.set(s.user_id,{userId:s.user_id,profile:profiles[s.user_id]||{},items:[]});groups.get(s.user_id).items.push(s)});
+  goviStoryGroups=[...groups.values()].sort((a,b)=>{if(currentUser&&a.userId===currentUser.id)return -1;if(currentUser&&b.userId===currentUser.id)return 1;return new Date(a.items[0].created_at)-new Date(b.items[0].created_at)});
+  bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button>'+goviStoryGroups.map(g=>{const name=g.profile.full_name||'Usuario GOVI',avatar=g.profile.avatar_url?'<img src="'+escapeHTML(g.profile.avatar_url)+'" alt="">':'<span>'+escapeHTML(initials(name))+'</span>';return '<button class="story" type="button" data-story-user="'+escapeHTML(g.userId)+'"><div class="story-ring has-story">'+avatar+'</div><span class="story-name">'+escapeHTML(currentUser&&g.userId===currentUser.id?'Tu historia':name)+'</span></button>'}).join('');
+  goviBindAddStory();
+  bar.querySelectorAll('[data-story-user]').forEach(btn=>btn.addEventListener('click',()=>{const i=goviStoryGroups.findIndex(x=>x.userId===btn.dataset.storyUser);if(i>=0)goviOpenStoryGroup(i,0)}));
+}
+function goviBindAddStory(){const b=$('goviAddStory');if(b)b.onclick=()=>{if(!currentUser){toast('Inicia sesión para publicar una historia');openModal('authModal');return}$('goviStoryInput').click()}}
+async function goviPublishStory(file){
+  if(!currentUser||!file)return;
+  if(!file.type.startsWith('image/')&&!file.type.startsWith('video/')){toast('Elige una foto o un vídeo');return}
+  if(file.size>50*1024*1024){toast('La historia no puede superar los 50 MB');return}
+  toast('Publicando tu historia…');
+  try{
+    const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'')||'bin';
+    const path=currentUser.id+'/stories/'+Date.now()+'-'+crypto.randomUUID()+'.'+ext;
+    const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(upError)throw upError;
+    const {data:urlData}=supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+    const {error:dbError}=await supabaseClient.from('stories').insert({user_id:currentUser.id,media_url:urlData.publicUrl,media_type:file.type.startsWith('video/')?'video':'image',media_path:path,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()});
+    if(dbError){await supabaseClient.storage.from(BUCKET).remove([path]);throw dbError}
+    toast('¡Tu historia ya está publicada!');await goviLoadStories();
+    const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1);
+  }catch(error){console.error(error);toast('No se pudo publicar: '+error.message)}
+}
+$('goviStoryInput').addEventListener('change',e=>{const file=e.target.files[0];if(file)goviPublishStory(file);e.target.value=''});
+function goviOpenStoryGroup(groupIndex,itemIndex){
+  goviStoryGroupIndex=groupIndex;goviStoryItemIndex=itemIndex;goviRenderStory();
+  $('goviStoryViewer').style.display='flex';
+}
+function goviRenderStory(){
+  const group=goviStoryGroups[goviStoryGroupIndex];if(!group)return;
+  const item=group.items[goviStoryItemIndex];if(!item)return;
+  const name=group.profile.full_name||'Usuario GOVI';
+  $('goviStoryAuthor').textContent=name;
+  $('goviStoryAvatar').src=group.profile.avatar_url||'';
+  $('goviStoryAvatar').style.visibility=group.profile.avatar_url?'visible':'hidden';
+  $('goviStoryTime').textContent=new Date(item.created_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  const img=$('goviStoryMedia'),video=$('goviStoryVideo');
+  video.pause();video.removeAttribute('src');video.load();
+  if(item.media_type==='video'){img.style.display='none';video.style.display='block';video.src=item.media_url;video.load()}
+  else{video.style.display='none';img.style.display='block';img.src=item.media_url}
+  $('goviStoryPrev').style.display=(goviStoryItemIndex>0||goviStoryGroupIndex>0)?'block':'none';
+  $('goviStoryNext').style.display=(goviStoryItemIndex<group.items.length-1||goviStoryGroupIndex<goviStoryGroups.length-1)?'block':'none';
+  $('goviStoryDelete').style.display=currentUser&&currentUser.id===group.userId?'block':'none';
+}
+function goviStoryStep(direction){
+  const group=goviStoryGroups[goviStoryGroupIndex];if(!group)return;
+  if(direction>0){if(goviStoryItemIndex<group.items.length-1)goviStoryItemIndex++;else if(goviStoryGroupIndex<goviStoryGroups.length-1){goviStoryGroupIndex++;goviStoryItemIndex=0}else{$('goviStoryViewer').style.display='none';return}}
+  else{if(goviStoryItemIndex>0)goviStoryItemIndex--;else if(goviStoryGroupIndex>0){goviStoryGroupIndex--;goviStoryItemIndex=goviStoryGroups[goviStoryGroupIndex].items.length-1}else return}
+  goviRenderStory();
+}
+$('goviStoryPrev').addEventListener('click',()=>goviStoryStep(-1));
+$('goviStoryNext').addEventListener('click',()=>goviStoryStep(1));
+$('goviStoryClose').addEventListener('click',()=>{$('goviStoryVideo').pause();$('goviStoryViewer').style.display='none'});
+$('goviStoryViewer').addEventListener('click',e=>{if(e.target===$('goviStoryViewer')){$('goviStoryVideo').pause();$('goviStoryViewer').style.display='none'}});
+$('goviStoryDelete').addEventListener('click',async()=>{
+  const group=goviStoryGroups[goviStoryGroupIndex],item=group?.items[goviStoryItemIndex];if(!currentUser||!group||group.userId!==currentUser.id||!item)return;
+  if(!confirm('¿Quieres eliminar esta historia?'))return;
+  try{const {error}=await supabaseClient.from('stories').delete().eq('id',item.id).eq('user_id',currentUser.id);if(error)throw error;if(item.media_path)await supabaseClient.storage.from(BUCKET).remove([item.media_path]);toast('Historia eliminada');await goviLoadStories();if(goviStoryGroups.length){goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}else $('goviStoryViewer').style.display='none'}catch(error){console.error(error);toast('No se pudo eliminar: '+error.message)}
+});
+let goviStoryTouchX=0;
+$('goviStoryCard').addEventListener('touchstart',e=>{goviStoryTouchX=e.changedTouches[0].screenX},{passive:true});
+$('goviStoryCard').addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-goviStoryTouchX;if(Math.abs(dx)>55)goviStoryStep(dx<0?1:-1)},{passive:true});
 
 /* Zona del perfil */
 const goviProfileView = document.createElement('section');
