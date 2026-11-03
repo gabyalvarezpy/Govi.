@@ -510,10 +510,19 @@ document.head.appendChild(goviProfileStyles);
 /* Historias GOVI: foto, vídeo, texto y enlaces con 24 horas de duración */
 let goviStoryGroups=[],goviStoryGroupIndex=0,goviStoryItemIndex=0;
 function goviOpenStoryComposer(){
+  const composer=$('goviStoryComposer');
+  if(!composer){toast('No se pudo abrir el editor. Recarga GOVI e inténtalo otra vez.');return}
   if(!currentUser){toast('Inicia sesión para publicar una historia');openModal('authModal');return}
-  $('goviStoryComposer').classList.add('open');
+  composer.classList.add('open');
+  composer.style.display='flex';
 }
-$('goviAddStory').addEventListener('click',goviOpenStoryComposer);
+/* Delegación global: también funciona cuando la barra de historias se vuelve a dibujar */
+document.addEventListener('click',function(event){
+  const addButton=event.target.closest('#goviAddStory');
+  if(!addButton)return;
+  event.preventDefault();event.stopPropagation();
+  goviOpenStoryComposer();
+},true);
 $('goviStoryComposeClose').addEventListener('click',()=>$('goviStoryComposer').classList.remove('open'));
 $('goviStoryComposer').addEventListener('click',e=>{if(e.target===$('goviStoryComposer'))$('goviStoryComposer').classList.remove('open')});
 let goviStoryPositions={text:{x:50,y:50},link:{x:50,y:82}},goviStoryObjectUrls=[];
