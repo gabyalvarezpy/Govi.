@@ -167,6 +167,21 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 .govi-story-canvas-style select,.govi-story-canvas-style input[type=range]{max-width:72px;accent-color:#b58af5}
 #goviStoryPreviewText,#goviStoryPreviewLink{touch-action:none!important;user-select:none!important;-webkit-user-select:none!important}
 
+
+/* Gesto táctil limitado al lienzo; evita zoom de página */
+#goviStoryPreview,#goviStoryPreviewText,#goviStoryPreviewLink{touch-action:none!important;-ms-touch-action:none!important}
+.govi-story-preview{overscroll-behavior:contain!important;touch-action:none!important}
+.govi-story-emoji-row{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-start}
+.govi-sticker-folder{position:relative;border:1px solid #ffffff28;border-radius:12px;background:#171827;color:#fff;padding:7px 10px;font-size:12px}
+.govi-sticker-folder summary{cursor:pointer;list-style:none;font-weight:800}
+.govi-sticker-folder summary::-webkit-details-marker{display:none}
+.govi-sticker-folder>div{display:flex;gap:5px;flex-wrap:wrap;padding-top:8px}
+.govi-sticker-folder button{font-size:23px;border:0;border-radius:8px;background:#ffffff12;padding:5px}
+.govi-extra-media-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.govi-extra-media-tools label{position:relative;overflow:hidden;border:1px solid #ffffff2b;border-radius:12px;padding:10px 12px;background:#ffffff10;color:#fff;font-size:12px;font-weight:800}
+.govi-extra-media-tools input{display:block;width:100%;max-width:190px;margin-top:6px;color:#dfe1ec;font-size:10px}
+.govi-extra-media-tools small{display:block;flex-basis:100%;color:#aeb2c4;font-size:10px;line-height:1.4}
+
 </style>    
 </head>    
 <body>    
@@ -231,7 +246,13 @@ button,input,textarea{font:inherit}button{cursor:pointer}
       <label>Contorno<select id="goviStoryOutline"><option value="1px 2px 5px #000">Sombra</option><option value="none">Sin contorno</option><option value="1px 1px 2px #000, -1px -1px 2px #000">Negro</option></select></label>
       <label class="govi-story-scale">Zoom de foto/vídeo<input id="goviStoryImageScale" type="range" min="50" max="140" value="100"></label>
     </div>
-    <div class="govi-story-emoji-row" aria-label="Añadir emojis"><span>Emojis rápidos</span><button type="button" data-story-emoji="❤️">❤️</button><button type="button" data-story-emoji="🔥">🔥</button><button type="button" data-story-emoji="😂">😂</button><button type="button" data-story-emoji="🙏">🙏</button><button type="button" data-story-emoji="✨">✨</button><button type="button" data-story-emoji="😍">😍</button><button type="button" data-story-emoji="🎉">🎉</button></div>
+    <div class="govi-story-emoji-row" aria-label="Biblioteca de emojis">
+      <details class="govi-sticker-folder"><summary>😀 Caritas</summary><div><button type="button" data-story-emoji="😂">😂</button><button type="button" data-story-emoji="😍">😍</button><button type="button" data-story-emoji="🥹">🥹</button><button type="button" data-story-emoji="😎">😎</button><button type="button" data-story-emoji="😭">😭</button></div></details>
+      <details class="govi-sticker-folder"><summary>❤️ Amor</summary><div><button type="button" data-story-emoji="❤️">❤️</button><button type="button" data-story-emoji="💕">💕</button><button type="button" data-story-emoji="😘">😘</button><button type="button" data-story-emoji="🥰">🥰</button></div></details>
+      <details class="govi-sticker-folder"><summary>🔥 Reacciones</summary><div><button type="button" data-story-emoji="🔥">🔥</button><button type="button" data-story-emoji="🙏">🙏</button><button type="button" data-story-emoji="👏">👏</button><button type="button" data-story-emoji="💪">💪</button><button type="button" data-story-emoji="✨">✨</button></div></details>
+      <details class="govi-sticker-folder"><summary>🎉 Fiesta</summary><div><button type="button" data-story-emoji="🎉">🎉</button><button type="button" data-story-emoji="🎂">🎂</button><button type="button" data-story-emoji="🥳">🥳</button><button type="button" data-story-emoji="🎁">🎁</button></div></details>
+    </div>
+    <div class="govi-extra-media-tools"><label>🎞️ GIF animado<input id="goviStoryGifFile" type="file" accept="image/gif,.gif"></label><label>🎵 Música sin copyright<input id="goviStoryAudioFile" type="file" accept="audio/*"></label><small>Usa música propia o con licencia libre de uso. GOVI no incluye canciones comerciales protegidas.</small></div>
     <p class="govi-story-hint">Toca y arrastra las letras o el enlace sobre la historia para ubicarlos donde quieras. También puedes añadir un GIF desde tus archivos.</p>
     <div id="goviStoryPreview" class="govi-story-preview" style="display:none"><div class="govi-story-preview-label">VISTA PREVIA</div><div class="govi-story-canvas-tools"><button type="button" data-canvas-action="text">Aa Texto</button><button type="button" data-canvas-action="link">🔗 Link</button><button type="button" data-canvas-action="media">＋ Foto</button><button type="button" data-canvas-action="emoji">😊 Emoji</button></div><div class="govi-story-canvas-style"><label>Color <input id="goviStoryColorCanvas" type="color" value="#ffffff"></label><label>Contorno <select id="goviStoryOutlineCanvas"><option value="1px 2px 5px #000">Sombra</option><option value="none">No</option><option value="1px 1px 2px #000, -1px -1px 2px #000">Negro</option></select></label><label>Tamaño <input id="goviStoryTextSize" type="range" min="12" max="64" value="30"></label></div><img id="goviStoryPreviewImage" alt="Vista previa" style="display:none"><video id="goviStoryPreviewVideo" controls playsinline style="display:none"></video><div id="goviStoryPreviewText" data-drag="text"></div><a id="goviStoryPreviewLink" data-drag="link" target="_blank" rel="noopener noreferrer" style="display:none"></a></div>
     <div id="goviStoryFileName">También puedes publicar solo texto o un enlace.</div>
@@ -519,6 +540,11 @@ function goviEnableStoryDrag(el,kind){
   el.addEventListener('pointermove',e=>{if(!active.has(e.pointerId))return;active.set(e.pointerId,{x:e.clientX,y:e.clientY});const r=$('goviStoryPreview').getBoundingClientRect();if(active.size>=2&&start?.pinch){const p=[...active.values()],d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),z=Math.max(12,Math.min(76,start.size*d/Math.max(1,start.distance)));el.style.fontSize=z+'px';el.dataset.size=z;$('goviStoryTextSize').value=Math.round(z);return}if(start&&!start.pinch){goviStoryPositions[kind]={x:Math.max(5,Math.min(95,start.px+(e.clientX-start.x)/r.width*100)),y:Math.max(8,Math.min(95,start.py+(e.clientY-start.y)/r.height*100))};goviApplyStoryEditorStyles()}});
   const end=e=>{active.delete(e.pointerId);if(active.size===0)start=null;else if(active.size===1){const p=[...active.values()][0];start={x:p.x,y:p.y,px:goviStoryPositions[kind].x,py:goviStoryPositions[kind].y}}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
 }
+$('goviStoryPreview').addEventListener('touchmove',e=>{if($('goviStoryComposer').classList.contains('open'))e.preventDefault()},{passive:false});
+$('goviStoryPreview').addEventListener('gesturestart',e=>e.preventDefault());
+$('goviStoryPreview').addEventListener('gesturechange',e=>e.preventDefault());
+$('goviStoryPreview').addEventListener('gestureend',e=>e.preventDefault());
+document.addEventListener('touchmove',e=>{if($('goviStoryComposer').classList.contains('open')&&e.touches.length>1)e.preventDefault()},{passive:false});
 goviEnableStoryDrag($('goviStoryPreviewText'),'text');goviEnableStoryDrag($('goviStoryPreviewLink'),'link');
 ['goviStoryFont','goviStoryColor','goviStoryLinkColor','goviStoryOutline','goviStoryImageScale'].forEach(id=>$(id).addEventListener('input',goviApplyStoryEditorStyles));
 $('goviStoryFile').addEventListener('change',e=>{$('goviStoryFileName').textContent=e.target.files[0]?.name||'También puedes publicar solo texto o un enlace.';goviUpdateStoryPreview()});
@@ -540,7 +566,7 @@ document.querySelectorAll('.govi-story-choice').forEach(button=>button.addEventL
 
 async function goviLoadStories(){
   const bar=$('goviStories');if(!bar)return;
-  const {data:stories,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,media_path,story_text,link_url,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:true});
+  const {data:stories,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,media_path,story_text,link_url,story_audio_url,story_audio_path,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:true});
   if(error){console.error('Historias:',error);bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button><span class="story-loading">No se pudieron cargar las historias</span>';const b=$('goviAddStory');if(b)b.onclick=goviOpenStoryComposer;return}
   const rows=stories||[],ids=[...new Set(rows.map(x=>x.user_id))];let profiles={};
   if(ids.length){const {data:p,error:pe}=await supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',ids);if(pe)console.warn(pe);(p||[]).forEach(x=>profiles[x.id]=x)}
@@ -566,7 +592,8 @@ async function goviPublishStory(){
       const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(upError)throw upError;
       mediaUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     }else if(link)mediaType='link';
-    const payload={user_id:currentUser.id,media_url:mediaUrl,media_type:mediaType,media_path:path,story_text:storyText||null,link_url:link||null,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()};
+    let audioPath=null,audioUrl=null;const audioFile=$('goviStoryAudioFile')?.files?.[0];if(audioFile){if(audioFile.size>15*1024*1024)throw new Error('La música no puede superar 15 MB');audioPath=currentUser.id+'/stories/audio-'+Date.now()+'-'+crypto.randomUUID()+'.'+(audioFile.name.split('.').pop()||'mp3').toLowerCase();const {error:audioError}=await supabaseClient.storage.from(BUCKET).upload(audioPath,audioFile,{cacheControl:'3600',upsert:false,contentType:audioFile.type});if(audioError)throw audioError;audioUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(audioPath).data.publicUrl}
+    const payload={user_id:currentUser.id,media_url:mediaUrl,media_type:mediaType,media_path:path,story_text:storyText||null,link_url:link||null,story_audio_url:audioUrl,story_audio_path:audioPath,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()};
     const {error}=await supabaseClient.from('stories').insert(payload);if(error)throw error;
     $('goviStoryText').value='';$('goviStoryLink').value='';$('goviStoryFile').value='';$('goviStoryFileName').textContent='Selecciona una foto o un vídeo.';goviUpdateStoryPreview();document.querySelectorAll('.govi-story-choice').forEach(b=>b.setAttribute('aria-pressed','false'));['goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>$(id).hidden=true);$('goviStoryComposer').classList.remove('open');
     status.textContent='¡Historia publicada correctamente!';toast('¡Historia publicada!');await goviLoadStories();
@@ -577,7 +604,7 @@ async function goviPublishStory(){
     status.style.display='block';
     status.textContent='ERROR AL PUBLICAR: '+detail+' · Código: '+(error?.code||'sin código');
     toast('No se pudo publicar: '+detail);
-    if(path){try{await supabaseClient.storage.from(BUCKET).remove([path]);}catch(cleanupError){console.error('ERROR AL LIMPIAR ARCHIVO:',cleanupError);}}
+    if(path||audioPath){try{await supabaseClient.storage.from(BUCKET).remove([path,audioPath].filter(Boolean));}catch(cleanupError){console.error('ERROR AL LIMPIAR ARCHIVO:',cleanupError);}}
   }
   finally{btn.disabled=false;btn.textContent='PUBLICAR HISTORIA'}
 }
@@ -588,12 +615,12 @@ function goviRenderStory(){
   const item=group.items[goviStoryItemIndex];if(!item)return;
   $('goviStoryAuthor').textContent=group.profile.full_name||'Usuario GOVI';$('goviStoryAvatar').src=group.profile.avatar_url||'';$('goviStoryAvatar').style.visibility=group.profile.avatar_url?'visible':'hidden';
   $('goviStoryTime').textContent=new Date(item.created_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-  const img=$('goviStoryMedia'),video=$('goviStoryVideo');video.pause();video.removeAttribute('src');video.load();
+  const img=$('goviStoryMedia'),video=$('goviStoryVideo');video.pause();video.removeAttribute('src');video.load();const audio=$('goviStoryAudio');if(audio){audio.pause();audio.removeAttribute('src');audio.load();}
   let content=$('goviStoryContent');if(!content){content=document.createElement('div');content.id='goviStoryContent';$('goviStoryCard').appendChild(content)}
   content.style.display='none';img.style.display='none';video.style.display='none';
   if(item.media_type==='video'&&item.media_url){video.style.display='block';video.src=item.media_url;video.muted=false;video.volume=1;video.load()}
   else if(item.media_type==='image'&&item.media_url){img.style.display='block';img.src=item.media_url}
-  if(item.story_text||item.link_url){
+  if(item.story_audio_url){let audio=$('goviStoryAudio');if(!audio){audio=document.createElement('audio');audio.id='goviStoryAudio';audio.controls=true;audio.style.cssText='position:absolute;z-index:8;bottom:64px;left:12px;width:calc(100% - 24px)';$('goviStoryCard').appendChild(audio)}audio.src=item.story_audio_url;audio.load()}\n  if(item.story_text||item.link_url){
     content.style.display='flex';
     content.innerHTML=(item.story_text?'<div>'+escapeHTML(item.story_text)+'</div>':'')+(item.link_url?'<a href="'+escapeHTML(item.link_url)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(item.link_url)+'</a>':'');
   }
@@ -611,7 +638,7 @@ $('goviStoryViewer').addEventListener('click',e=>{if(e.target===$('goviStoryView
 $('goviStoryDelete').addEventListener('click',async()=>{
   const group=goviStoryGroups[goviStoryGroupIndex],item=group?.items[goviStoryItemIndex];if(!currentUser||!group||group.userId!==currentUser.id||!item)return;
   if(!confirm('¿Quieres eliminar esta historia?'))return;
-  try{const {error}=await supabaseClient.from('stories').delete().eq('id',item.id).eq('user_id',currentUser.id);if(error)throw error;if(item.media_path)await supabaseClient.storage.from(BUCKET).remove([item.media_path]);toast('Historia eliminada');await goviLoadStories();if(goviStoryGroups.length){goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}else $('goviStoryViewer').style.display='none'}catch(error){console.error(error);toast('No se pudo eliminar: '+error.message)}
+  try{const {error}=await supabaseClient.from('stories').delete().eq('id',item.id).eq('user_id',currentUser.id);if(error)throw error;if(item.media_path||item.story_audio_path)await supabaseClient.storage.from(BUCKET).remove([item.media_path,item.story_audio_path].filter(Boolean));toast('Historia eliminada');await goviLoadStories();if(goviStoryGroups.length){goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}else $('goviStoryViewer').style.display='none'}catch(error){console.error(error);toast('No se pudo eliminar: '+error.message)}
 });
 let goviStoryTouchX=0;$('goviStoryCard').addEventListener('touchstart',e=>{goviStoryTouchX=e.changedTouches[0].screenX},{passive:true});$('goviStoryCard').addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-goviStoryTouchX;if(Math.abs(dx)>55)goviStoryStep(dx<0?1:-1)},{passive:true});
 
