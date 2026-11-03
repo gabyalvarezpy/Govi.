@@ -2503,5 +2503,43 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 #goviStoryCategoryBar{position:fixed!important;z-index:100!important;top:calc(env(safe-area-inset-top,8px) + 54px)!important;left:10px!important;right:10px!important;background:#171522aa!important;border-radius:20px!important;backdrop-filter:blur(14px)!important}
 #goviStoryControlTray{position:fixed!important;z-index:100!important;left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)!important;top:auto!important;max-height:27dvh!important;overflow:auto!important;background:#171522bb!important;border:1px solid #ffffff44!important;border-radius:18px!important;backdrop-filter:blur(14px)!important}
 </style>
+
+<!-- GOVI FINAL LAYOUT CLEANUP -->
+<style id="govi-final-clean-layout">
+#goviStoryComposer .govi-story-compose-card{display:flex!important;flex-direction:column!important;align-items:stretch!important;overflow-y:auto!important;overflow-x:hidden!important;padding:12px!important;gap:10px!important}
+#goviStoryComposer #goviStoryPreview{position:relative!important;inset:auto!important;order:3!important;align-self:center!important;flex:none!important;width:min(100%,340px)!important;aspect-ratio:9/16!important;height:auto!important;max-height:58dvh!important;margin:8px auto!important;overflow:hidden!important;z-index:1!important;transform:none!important}
+#goviStoryComposer #goviStoryControlTray{position:relative!important;inset:auto!important;order:4!important;width:100%!important;max-width:none!important;max-height:none!important;min-height:0!important;overflow:visible!important;display:flex!important;flex-direction:column!important;gap:9px!important;padding:10px!important;margin:0!important;background:#171522!important;border:1px solid #ffffff30!important;border-radius:16px!important;z-index:5!important}
+#goviStoryComposer #goviStoryCategoryBar{position:relative!important;inset:auto!important;order:2!important;width:100%!important;max-width:100%!important;overflow-x:auto!important}
+#goviStoryComposer .govi-story-canvas-tools,#goviStoryComposer .govi-story-canvas-style{position:relative!important;inset:auto!important;display:flex!important;flex-wrap:wrap!important;max-width:100%!important;margin:0!important;z-index:2!important}
+#goviStoryComposer #goviStoryDirectControls,#goviStoryComposer #goviStoryTextTools{display:none!important}
+#goviStoryComposer #goviStoryFinishTools{position:relative!important;inset:auto!important;width:100%!important;margin:0!important}
+#goviStoryComposer #goviStoryPreviewImage,#goviStoryComposer #goviStoryPreviewVideo{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+#goviStoryComposer .govi-story-compose-head{position:relative!important;inset:auto!important;order:1!important}
+#goviStoryComposer #goviStoryFileName{position:relative!important;inset:auto!important;order:5!important}
+#goviStoryComposer #goviStoryPublish{position:relative!important;inset:auto!important;order:6!important;width:100%!important}
+@media(max-width:700px){#goviStoryComposer .govi-story-compose-card{height:100dvh!important;max-height:100dvh!important}#goviStoryComposer #goviStoryPreview{width:min(100%,310px)!important;max-height:48dvh!important}}
+</style>
+<script id="govi-final-layout-cleanup-js">
+(function(){
+ const $=id=>document.getElementById(id),card=document.querySelector('#goviStoryComposer .govi-story-compose-card'),canvas=$('goviStoryPreview'),tray=$('goviStoryControlTray');
+ if(card&&canvas&&tray){
+  ['.govi-story-canvas-tools','.govi-story-canvas-style','.govi-story-emoji-row','.govi-extra-media-tools','.govi-story-hint','#goviStoryFinishTools'].forEach(sel=>{
+   const el=canvas.querySelector(sel)||document.querySelector(sel);
+   if(el&&el!==canvas&&!tray.contains(el))tray.appendChild(el);
+  });
+  if(tray.parentElement!==card)card.appendChild(tray);
+  if(canvas.parentElement!==card)card.appendChild(canvas);
+  const bar=$('goviStoryCategoryBar');if(bar&&bar.parentElement!==card)card.appendChild(bar);
+  const head=card.querySelector('.govi-story-compose-head');if(head&&head.parentElement===card)card.insertBefore(head,bar||canvas);
+  if(bar&&bar.parentElement===card)card.insertBefore(bar,canvas);
+  card.insertBefore(canvas,tray);
+ }
+ const avatar=$('goviAvatar');
+ if(avatar){
+  ['box-sizing','width','height','min-width','min-height','max-width','max-height','border-radius','overflow','clip-path','position'].forEach((k,i)=>avatar.style.setProperty(k,['border-box','112px','112px','112px','112px','112px','112px','50%','hidden','circle(50%)','relative'][i],'important'));
+  const img=avatar.querySelector('img');if(img){img.style.setProperty('position','absolute','important');img.style.setProperty('inset','0','important');img.style.setProperty('width','100%','important');img.style.setProperty('height','100%','important');img.style.setProperty('object-fit','cover','important');img.style.setProperty('border-radius','50%','important');}
+ }
+})();
+</script>
 </body>
 </html>
