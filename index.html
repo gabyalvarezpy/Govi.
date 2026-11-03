@@ -723,7 +723,7 @@ body{background:radial-gradient(ellipse at 48% -15%,rgba(166,119,42,.14),transpa
             const original=toolbar.querySelector('[data-canvas-action="'+action+'"]');
             if(!original)return;
             const b=document.createElement('button');b.type='button';b.className='govi-story-tool';b.setAttribute('aria-label',label);b.title=label;b.innerHTML='<i aria-hidden="true">'+symbol+'</i><span>'+label+'</span>';
-            b.addEventListener('click',()=>original.click());row.appendChild(b);
+            b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(action==='media'){const input=document.getElementById('goviStoryFile');if(input){input.removeAttribute('disabled');input.value='';input.click();}return;}if(action==='gif'){const input=document.getElementById('goviStoryGifFile');if(input){input.removeAttribute('disabled');input.value='';input.click();}return;}original.click();});row.appendChild(b);
           });
           toolbar.remove();
         }
@@ -3284,4 +3284,29 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 #goviStoryComposer.open #goviStoryPublish{min-height:50px!important;margin-top:0!important;border-radius:15px!important;background:linear-gradient(100deg,#a77a2d,#f0d38a 50%,#b18538)!important;color:#211708!important;font-size:13px!important;font-weight:850!important;letter-spacing:1px!important;box-shadow:0 8px 25px #d6b15a22!important}
 #goviStoryComposer.open #goviStoryFileName{padding:3px 5px!important;color:#aaa!important;font-size:11px!important}
 @media(max-width:480px){#goviStoryComposer.open .govi-story-compose-card{width:100%!important;max-height:97dvh!important;border-radius:22px!important;padding:10px!important}#goviStoryComposer.open #goviStoryPreview{height:min(51dvh,540px)!important;min-height:240px!important;width:min(100%,340px)!important}#goviStoryStoryToolbar{gap:1px!important;padding:8px 3px!important}#goviStoryStoryToolbar .govi-story-tool{gap:4px!important}#goviStoryStoryToolbar .govi-story-tool i{width:31px!important;height:31px!important;font-size:15px!important}#goviStoryStoryToolbar .govi-story-tool span{font-size:9px!important}}
+</style>
+
+<style id="govi-story-gallery-android-final">
+/* Selector de archivos accesible para el navegador móvil: oculto visualmente, nunca display:none */
+#goviStoryComposer #goviStoryFile,
+#goviStoryComposer #goviStoryGifFile,
+#goviStoryComposer #goviStoryAudioFile{
+ display:block!important;
+ position:fixed!important;
+ left:0!important;
+ top:0!important;
+ width:1px!important;
+ height:1px!important;
+ min-width:1px!important;
+ min-height:1px!important;
+ max-width:1px!important;
+ max-height:1px!important;
+ padding:0!important;
+ margin:0!important;
+ opacity:0!important;
+ overflow:hidden!important;
+ clip-path:inset(50%)!important;
+ pointer-events:none!important;
+ z-index:-1!important;
+}
 </style>
