@@ -2954,5 +2954,63 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 }
 </style>
 
+
+<style id="govi-story-live-editor-v6">
+#goviStoryComposer.open #goviStoryControlTray{max-height:31dvh!important;padding:9px!important;background:#11131df2!important;border:1px solid #ffffff30!important;border-radius:15px!important;backdrop-filter:blur(16px)!important}
+#goviStoryLiveControls{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:8px;margin-top:8px;border:1px solid #c49a4a;border-radius:12px;background:#171717;color:#fff}
+#goviStoryLiveControls label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:800;color:#f2dfb5}
+#goviStoryLiveControls select,#goviStoryLiveControls input{width:100%;min-height:32px;accent-color:#d5ad59}
+#goviStoryLiveControls input[type=color]{height:34px;padding:2px;background:#222;border:1px solid #777;border-radius:7px}
+#goviStoryLiveControls .wide{grid-column:1/-1}
+#goviStoryLiveControls input[type=range]{min-height:24px}
+@media(max-width:700px){#goviStoryComposer.open #goviStoryControlTray{max-height:34dvh!important}#goviStoryLiveControls{gap:5px;padding:7px}#goviStoryLiveControls label{font-size:10px}}
+</style>
+<script id="govi-story-live-editor-v6">
+(function(){
+ const $=id=>document.getElementById(id);
+ const canvas=$('goviStoryPreview'), tray=$('goviStoryControlTray');
+ if(!canvas||!tray||$('goviStoryLiveControls'))return;
+ const panel=document.createElement('section');panel.id='goviStoryLiveControls';
+ panel.innerHTML='<label>Tipo de letra<select id="goviLiveFont"><option value="Arial,sans-serif">Moderna</option><option value="Georgia,serif">Elegante</option><option value="Courier New,monospace">Máquina</option><option value="Impact,sans-serif">Gruesa</option></select></label><label>Tamaño <output id="goviLiveSizeValue">30 px</output><input id="goviLiveSize" type="range" min="12" max="90" value="30"></label><label>Color del texto<input id="goviLiveColor" type="color" value="#ffffff"></label><label>Contorno<select id="goviLiveOutline"><option value="1px 2px 5px #000">Sombra</option><option value="none">Sin contorno</option><option value="1px 1px 2px #000, -1px -1px 2px #000">Negro</option><option value="0 0 8px #fff">Brillo</option></select></label><label class="wide">Zoom de foto o vídeo <input id="goviLiveZoom" type="range" min="50" max="160" value="100"></label>';
+ tray.appendChild(panel);
+ let mediaUrl=null;
+ const apply=()=>{
+  const text=$('goviStoryPreviewText'),link=$('goviStoryPreviewLink');
+  if(!text)return;
+  const font=$('goviLiveFont').value,color=$('goviLiveColor').value,outline=$('goviLiveOutline').value,size=$('goviLiveSize').value;
+  text.style.fontFamily=font;text.style.color=color;text.style.textShadow=outline==='none'?'none':outline;text.style.fontSize=size+'px';
+  text.dataset.size=size;$('goviLiveSizeValue').textContent=size+' px';
+  if(link){link.style.fontFamily=font;link.style.textShadow=outline==='none'?'none':outline;}
+  const oldFont=$('goviStoryFont'),oldColor=$('goviStoryColor'),oldOutline=$('goviStoryOutline'),oldZoom=$('goviStoryImageScale');
+  if(oldFont)oldFont.value=font;if(oldColor)oldColor.value=color;if(oldOutline)oldOutline.value=outline;if(oldZoom)oldZoom.value=$('goviLiveZoom').value;
+  if(typeof goviApplyStoryEditorStyles==='function')goviApplyStoryEditorStyles();
+  text.style.fontFamily=font;text.style.color=color;text.style.textShadow=outline==='none'?'none':outline;text.style.fontSize=size+'px';
+  ['goviStoryPreviewImage','goviStoryPreviewVideo'].forEach(id=>{const el=$(id);if(el){el.style.transform='scale('+($('goviLiveZoom').value/100)+')';el.style.objectFit='contain';}});
+ };
+ ['goviLiveFont','goviLiveSize','goviLiveColor','goviLiveOutline','goviLiveZoom'].forEach(id=>$(id).addEventListener('input',apply));
+ const file=$('goviStoryFile'),img=$('goviStoryPreviewImage'),video=$('goviStoryPreviewVideo');
+ if(file)file.addEventListener('change',()=>{
+  const f=file.files&&file.files[0];if(!f)return;
+  if(mediaUrl)URL.revokeObjectURL(mediaUrl);
+  mediaUrl=URL.createObjectURL(f);
+  if(f.type.startsWith('video/')){
+   if(img){img.removeAttribute('src');img.style.display='none';}
+   if(video){video.src=mediaUrl;video.style.display='block';video.controls=true;video.muted=true;video.load();}
+  }else{
+   if(video){video.pause();video.removeAttribute('src');video.load();video.style.display='none';}
+   if(img){img.src=mediaUrl;img.style.display='block';}
+  }
+  canvas.style.display='block';
+  const label=$('goviStoryFileName');if(label)label.textContent=f.name;
+  apply();
+ });
+ const textInput=$('goviStoryText');
+ if(textInput)textInput.addEventListener('input',()=>{const t=$('goviStoryPreviewText');if(t){t.textContent=textInput.value;t.style.display=textInput.value.trim()?'block':'none';apply();}});
+ const observer=new MutationObserver(()=>{if($('goviStoryComposer').classList.contains('open'))apply();});
+ observer.observe($('goviStoryText'),{attributes:true,attributeFilter:['value']});
+ apply();
+})();
+</script>
+
 </body>
 </html>
