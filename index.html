@@ -342,6 +342,10 @@ goviCoverInput.accept = 'image/jpeg,image/png,image/webp,image/gif';
 goviCoverInput.className = 'profile-hidden-input';
 goviCoverInput.id = 'goviCoverInput';
 document.body.appendChild(goviCoverInput);
+const goviAvatarGalleryInput=document.createElement('input');
+goviAvatarGalleryInput.type='file';goviAvatarGalleryInput.accept='image/*';goviAvatarGalleryInput.multiple=true;goviAvatarGalleryInput.className='profile-hidden-input';goviAvatarGalleryInput.id='goviAvatarGalleryInput';document.body.appendChild(goviAvatarGalleryInput);
+const goviCoverGalleryInput=document.createElement('input');
+goviCoverGalleryInput.type='file';goviCoverGalleryInput.accept='image/*';goviCoverGalleryInput.multiple=true;goviCoverGalleryInput.className='profile-hidden-input';goviCoverGalleryInput.id='goviCoverGalleryInput';document.body.appendChild(goviCoverGalleryInput);
 
 /* Obtener perfil */
 async function goviGetProfile(userId) {
@@ -373,6 +377,9 @@ async function openGoviProfile(userId) {
 
   try {
     goviCurrentProfile = await goviGetProfile(userId);
+    const {data:galleryRows,error:galleryError}=await supabaseClient.from('profile_gallery').select('id,user_id,image_url,image_path,image_type,created_at').eq('user_id',userId).order('created_at',{ascending:false});
+    if(galleryError) throw galleryError;
+    goviCurrentProfile._gallery=galleryRows||[];
 
     $('goviProfileName').textContent =
       goviCurrentProfile.full_name || 'Usuario GOVI';
@@ -391,7 +398,9 @@ async function openGoviProfile(userId) {
       $('goviProfileDescription').textContent = 'Este es tu perfil público de GOVI.';
       $('goviProfileControls').innerHTML = `
         <button onclick="$('goviAvatarInput').click()">📷 Cambiar foto</button>
+        <button onclick="$('goviAvatarGalleryInput').click()">＋ Añadir fotos</button>
         <button onclick="$('goviCoverInput').click()">🖼️ Cambiar portada</button>
+        <button onclick="$('goviCoverGalleryInput').click()">＋ Añadir portadas</button>
         <button onclick="goviShareProfile()">↗ Compartir perfil</button>
         ${goviCurrentProfile.avatar_url ? '<button class="danger" onclick="goviDeleteProfileImage(\'avatar\')">Eliminar foto</button>' : ''}
         ${goviCurrentProfile.cover_url ? '<button class="danger" onclick="goviDeleteProfileImage(\'cover\')">Eliminar portada</button>' : ''}
@@ -486,16 +495,27 @@ renderPost = function(post,likes,comments,profiles) {
   return article;
 };
 
-/* Visor ampliado de fotos de perfil: solo visualización */
+/* Galería de fotos de perfil y portada */
+let goviGalleryItems=[],goviGalleryIndex=0,goviGalleryType='avatar',goviGalleryOwner=null;
 const goviPhotoViewer=document.createElement('div');
 goviPhotoViewer.id='goviPhotoViewer';
-goviPhotoViewer.style.cssText='display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.92);align-items:center;justify-content:center;padding:20px';
-goviPhotoViewer.innerHTML='<button type="button" aria-label="Cerrar" style="position:absolute;top:18px;right:20px;background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:42px;height:42px;font-size:25px">×</button><img alt="Foto de perfil ampliada" style="max-width:94vw;max-height:85vh;object-fit:contain;border-radius:12px">';
+goviPhotoViewer.style.cssText='display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:18px;flex-direction:column;gap:12px';
+goviPhotoViewer.innerHTML='<button type="button" id="goviGalleryClose" aria-label="Cerrar" style="position:absolute;top:15px;right:16px;background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:42px;height:42px;font-size:25px">×</button><div style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;height:78vh"><button id="goviGalleryPrev" type="button" style="background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:42px;height:42px;font-size:24px">‹</button><img id="goviGalleryImage" alt="Foto ampliada" style="max-width:78vw;max-height:75vh;object-fit:contain;border-radius:12px"><button id="goviGalleryNext" type="button" style="background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:42px;height:42px;font-size:24px">›</button></div><div id="goviGalleryCount" style="color:#f4d27b;font-size:13px"></div><button id="goviGalleryDelete" type="button" style="display:none;background:#492020;color:#ffd0d0;border:1px solid #a55;border-radius:10px;padding:9px 14px">Eliminar esta foto</button>';
 document.body.appendChild(goviPhotoViewer);
-goviPhotoViewer.addEventListener('click',()=>goviPhotoViewer.style.display='none');
-function goviShowProfilePhoto(url){if(!url)return;goviPhotoViewer.querySelector('img').src=url;goviPhotoViewer.style.display='flex'}
+function goviRenderGallery(){if(!goviGalleryItems.length)return;const item=goviGalleryItems[goviGalleryIndex];$('goviGalleryImage').src=item.url;$('goviGalleryCount').textContent=(goviGalleryIndex+1)+' / '+goviGalleryItems.length;$('goviGalleryPrev').style.visibility=goviGalleryItems.length>1?'visible':'hidden';$('goviGalleryNext').style.visibility=goviGalleryItems.length>1?'visible':'hidden';$('goviGalleryDelete').style.display=currentUser&&currentUser.id===goviGalleryOwner?'block':'none'}
+function goviOpenGallery(type){if(!goviCurrentProfile)return;goviGalleryType=type;goviGalleryOwner=goviCurrentProfile.id;const column=type==='avatar'?'avatar_url':'cover_url';const main=goviCurrentProfile[column];goviGalleryItems=(goviCurrentProfile._gallery||[]).filter(x=>x.image_type===type).map(x=>({id:x.id,url:x.image_url,path:x.image_path}));if(main&&!goviGalleryItems.some(x=>x.url===main))goviGalleryItems.unshift({id:null,url:main,path:goviStoragePath(main)});if(!goviGalleryItems.length)return;goviGalleryIndex=0;goviRenderGallery();goviPhotoViewer.style.display='flex'}
+function goviShowProfilePhoto(url){if(!url)return;goviOpenGallery('avatar')}
+$('goviGalleryClose').addEventListener('click',()=>goviPhotoViewer.style.display='none');
+$('goviGalleryPrev').addEventListener('click',()=>{if(goviGalleryItems.length>1){goviGalleryIndex=(goviGalleryIndex-1+goviGalleryItems.length)%goviGalleryItems.length;goviRenderGallery()}});
+$('goviGalleryNext').addEventListener('click',()=>{if(goviGalleryItems.length>1){goviGalleryIndex=(goviGalleryIndex+1)%goviGalleryItems.length;goviRenderGallery()}});
+$('goviGalleryDelete').addEventListener('click',goviDeleteGalleryImage);
+let goviTouchX=0;
+goviPhotoViewer.addEventListener('touchstart',e=>{goviTouchX=e.changedTouches[0].screenX},{passive:true});
+goviPhotoViewer.addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-goviTouchX;if(Math.abs(dx)>45){if(dx<0)$('goviGalleryNext').click();else $('goviGalleryPrev').click()}},{passive:true});
 $('goviAvatar').style.cursor='zoom-in';
-$('goviAvatar').addEventListener('click',()=>goviShowProfilePhoto(goviCurrentProfile?.avatar_url));
+$('goviAvatar').addEventListener('click',()=>goviOpenGallery('avatar'));
+$('goviCover').style.cursor='zoom-in';
+$('goviCover').addEventListener('click',()=>goviOpenGallery('cover'));
 
 /* Clic en el nombre o la foto de un usuario */
 $('feed').addEventListener('click',function(e) {
@@ -507,6 +527,44 @@ $('feed').addEventListener('click',function(e) {
     openGoviProfile(target.dataset.userId);
   }
 });
+
+/* Añadir varias imágenes a la galería permanente */
+async function goviUploadGallery(files,type){
+  if(!currentUser){toast('Inicia sesión para añadir fotos');openModal('authModal');return}
+  if(!goviCurrentProfile||goviCurrentProfile.id!==currentUser.id){toast('Solo puedes editar tu propio perfil');return}
+  const chosen=Array.from(files||[]);if(!chosen.length)return;
+  if(chosen.some(f=>!f.type.startsWith('image/')||f.size>10*1024*1024)){toast('Usa imágenes de hasta 10 MB cada una');return}
+  toast('Guardando fotos en tu galería…');
+  try{
+    for(const file of chosen){
+      const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+      const path=`${currentUser.id}/gallery/${type}-${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      const {error:upErr}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(upErr)throw upErr;
+      const {data:urlData}=supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+      const {error:dbErr}=await supabaseClient.from('profile_gallery').insert({user_id:currentUser.id,image_url:urlData.publicUrl,image_path:path,image_type:type});if(dbErr){await supabaseClient.storage.from(BUCKET).remove([path]);throw dbErr}
+      const column=type==='avatar'?'avatar_url':'cover_url';
+      if(!goviCurrentProfile[column]){const {error:profileErr}=await supabaseClient.from('profiles').update({[column]:urlData.publicUrl}).eq('id',currentUser.id);if(profileErr)throw profileErr}
+    }
+    toast(chosen.length===1?'Foto añadida a tu galería':'Fotos añadidas a tu galería');
+    await openGoviProfile(currentUser.id);await goviUpdateAccountAvatars();
+  }catch(error){console.error(error);toast('No se pudieron guardar las fotos: '+error.message)}
+}
+async function goviDeleteGalleryImage(){
+  if(!currentUser||currentUser.id!==goviGalleryOwner)return;
+  const item=goviGalleryItems[goviGalleryIndex];if(!item||!confirm('¿Eliminar esta foto de tu galería?'))return;
+  try{
+    if(item.id){const {error}=await supabaseClient.from('profile_gallery').delete().eq('id',item.id).eq('user_id',currentUser.id);if(error)throw error}
+    const column=goviGalleryType==='avatar'?'avatar_url':'cover_url';
+    if(goviCurrentProfile[column]===item.url){
+      const next=goviGalleryItems.find((x,i)=>i!==goviGalleryIndex);
+      const {error}=await supabaseClient.from('profiles').update({[column]:next?.url||null}).eq('id',currentUser.id);if(error)throw error;
+    }
+    const path=item.path||goviStoragePath(item.url);if(path&&path.startsWith(currentUser.id+'/'))await supabaseClient.storage.from(BUCKET).remove([path]);
+    toast('Foto eliminada');goviPhotoViewer.style.display='none';await openGoviProfile(currentUser.id);await goviUpdateAccountAvatars();
+  }catch(error){console.error(error);toast('No se pudo eliminar: '+error.message)}
+}
+goviAvatarGalleryInput.addEventListener('change',e=>{goviUploadGallery(e.target.files,'avatar');e.target.value=''});
+goviCoverGalleryInput.addEventListener('change',e=>{goviUploadGallery(e.target.files,'cover');e.target.value=''});
 
 /* Subir foto de perfil o portada */
 async function goviUploadProfileImage(file,type) {
