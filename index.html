@@ -706,6 +706,8 @@ async function openGoviProfile(userId) {
 
   goviProfileId = userId;
   activeFilter = 'Perfil';
+  // Marcar navegación y mostrar el perfil inmediatamente, sin esperar consultas.
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.textContent.includes('Mi perfil')));
 
   $('goviProfileView').style.display = 'block';
   $('feed').style.display = 'block';
@@ -718,17 +720,9 @@ async function openGoviProfile(userId) {
 
   try {
     goviCurrentProfile = await goviGetProfile(userId);
-    // La galería es opcional: si la tabla aún no existe o sus permisos fallan,
-    // el perfil principal debe seguir abriendo normalmente.
-    let galleryRows=[];
-    try {
-      const galleryResult=await supabaseClient.from('profile_gallery').select('id,user_id,image_url,image_path,image_type,created_at').eq('user_id',userId).order('created_at',{ascending:false});
-      if(!galleryResult.error) galleryRows=galleryResult.data||[];
-      else console.warn('Galería no disponible:',galleryResult.error.message);
-    } catch(galleryError) {
-      console.warn('Galería no disponible:',galleryError);
-    }
-    goviCurrentProfile._gallery=galleryRows;
+    // No bloquear la apertura del perfil esperando la galería secundaria.
+    // La galería se carga de forma diferida cuando el usuario la abre.
+    goviCurrentProfile._gallery=[];
 
     $('goviProfileName').textContent =
       goviCurrentProfile.full_name || 'Usuario GOVI';
