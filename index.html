@@ -2493,33 +2493,36 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 
 
 <style id="govi-story-last-layout">
-/* Distribución única: vista previa arriba, herramientas debajo, sin cubrir el contenido */
+/* Editor limpio: controles flotantes arriba y lienzo libre debajo */
 #goviStoryComposer{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;padding:0!important;background:#08080d!important;overflow:hidden!important;z-index:25000!important}
 #goviStoryComposer.open{display:block!important}
 #goviStoryComposer .govi-story-compose-card{position:relative!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
-#goviStoryPreview{position:fixed!important;top:116px!important;left:12px!important;right:12px!important;bottom:270px!important;width:auto!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#111!important;border:1px solid #ffffff25!important;border-radius:16px!important;box-shadow:none!important}
-#goviStoryPreview>.govi-story-preview-label{display:none!important}
-#goviStoryPreview>.govi-story-canvas-tools,#goviStoryPreview>.govi-story-canvas-style{display:none!important}
+#goviStoryComposer .govi-story-compose-head{position:fixed!important;z-index:200!important;top:env(safe-area-inset-top,6px)!important;left:8px!important;right:8px!important;height:38px!important;padding:2px 8px!important;background:#171522dd!important;border:1px solid #ffffff30!important;border-radius:20px!important;backdrop-filter:blur(12px)!important}
+#goviStoryComposer .govi-story-compose-head h2{font-size:13px!important}
+#goviStoryCategoryBar{position:fixed!important;z-index:200!important;top:calc(env(safe-area-inset-top,6px) + 44px)!important;left:8px!important;right:8px!important;display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;gap:5px!important;padding:4px!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#goviStoryControlTray{position:fixed!important;z-index:205!important;top:calc(env(safe-area-inset-top,6px) + 88px)!important;left:8px!important;right:8px!important;bottom:auto!important;width:auto!important;max-width:none!important;max-height:112px!important;overflow-y:auto!important;overflow-x:hidden!important;margin:0!important;padding:4px!important;display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;justify-content:center!important;gap:5px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;pointer-events:auto!important}
+#goviStoryControlTray>div,#goviStoryControlTray>p,#goviStoryControlTray>label,#goviStoryControlTray>textarea,#goviStoryControlTray>input{margin:0!important}
+#goviStoryControlTray .govi-story-canvas-tools,#goviStoryControlTray .govi-story-canvas-style{position:static!important;inset:auto!important;display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:center!important;gap:5px!important;width:100%!important;max-width:none!important;max-height:none!important;overflow:visible!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#goviStoryControlTray .govi-story-canvas-style label,#goviStoryControlTray .govi-story-editor-tools label{display:inline-flex!important;align-items:center!important;gap:4px!important;font-size:11px!important}
+#goviStoryPreview{position:fixed!important;top:calc(env(safe-area-inset-top,6px) + 205px)!important;left:8px!important;right:8px!important;bottom:8px!important;width:auto!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#080808!important;border:0!important;border-radius:12px!important;box-shadow:none!important}
+#goviStoryPreview>.govi-story-preview-label,#goviStoryPreview>.govi-story-canvas-tools,#goviStoryPreview>.govi-story-canvas-style{display:none!important}
 #goviStoryPreviewImage,#goviStoryPreviewVideo{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#080808!important}
 #goviStoryPreviewText,#goviStoryPreviewLink{z-index:20!important;pointer-events:auto!important;touch-action:none!important}
-#goviStoryComposer .govi-story-compose-head{position:fixed!important;z-index:110!important;top:env(safe-area-inset-top,8px)!important;left:10px!important;right:10px!important;height:46px!important;background:#171522!important;border:1px solid #ffffff35!important;border-radius:22px!important}
-#goviStoryCategoryBar{position:fixed!important;z-index:110!important;top:calc(env(safe-area-inset-top,8px) + 56px)!important;left:10px!important;right:10px!important;display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;background:#171522!important;border:1px solid #ffffff35!important;border-radius:18px!important}
-#goviStoryControlTray{position:fixed!important;z-index:115!important;left:10px!important;right:10px!important;top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 54px)!important;width:auto!important;max-width:720px!important;max-height:190px!important;overflow-y:auto!important;margin:0 auto!important;padding:9px!important;display:flex!important;flex-direction:column!important;gap:7px!important;background:#171522!important;border:1px solid #ffffff35!important;border-radius:16px!important;box-shadow:0 6px 24px #0008!important}
-#goviStoryControlTray .govi-story-canvas-tools,#goviStoryControlTray .govi-story-canvas-style{position:static!important;inset:auto!important;display:flex!important;flex-wrap:wrap!important;gap:7px!important;width:100%!important;max-width:none!important;max-height:none!important;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important}
-#goviStoryFileName{position:fixed!important;z-index:116!important;left:14px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 12px)!important;max-width:48vw!important;pointer-events:none!important}
-#goviStoryPublish{position:fixed!important;z-index:120!important;top:calc(env(safe-area-inset-top,8px) + 5px)!important;right:14px!important;bottom:auto!important;left:auto!important}
-#goviStoryComposer #goviStoryStatus{position:fixed!important;z-index:130!important;top:calc(env(safe-area-inset-top,8px) + 108px)!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important;max-width:calc(100vw - 24px)!important}
+#goviStoryFileName{position:fixed!important;z-index:210!important;left:10px!important;bottom:10px!important;max-width:45vw!important;pointer-events:none!important}
+#goviStoryPublish{position:fixed!important;z-index:220!important;top:calc(env(safe-area-inset-top,6px) + 5px)!important;right:10px!important;bottom:auto!important;left:auto!important}
+#goviStoryComposer #goviStoryStatus{position:fixed!important;z-index:230!important;top:calc(env(safe-area-inset-top,6px) + 140px)!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important;max-width:calc(100vw - 24px)!important}
+#goviStoryComposer #goviStoryFile,#goviStoryComposer #goviStoryGifFile{display:none!important}
 #goviAvatar.profile-avatar{box-sizing:border-box!important;width:112px!important;height:112px!important;min-width:112px!important;min-height:112px!important;max-width:112px!important;max-height:112px!important;aspect-ratio:1/1!important;border-radius:50%!important;overflow:hidden!important;clip-path:circle(50%)!important;position:relative!important;isolation:isolate!important;display:block!important;flex:0 0 112px!important;padding:0!important}
-#goviAvatar.profile-avatar img{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;object-fit:cover!important;object-position:center!important;border:0!important;border-radius:50%!important;margin:0!important;padding:0!important;transform:none!important}
+#goviAvatar.profile-avatar img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;object-fit:cover!important;border:0!important;border-radius:50%!important;margin:0!important;padding:0!important;transform:none!important}
 @media(max-width:700px){
- #goviStoryPreview{top:116px!important;bottom:270px!important;left:8px!important;right:8px!important}
- #goviStoryControlTray{max-height:190px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 54px)!important}
+ #goviStoryPreview{top:calc(env(safe-area-inset-top,6px) + 205px)!important;bottom:8px!important}
+ #goviStoryControlTray{max-height:112px!important}
  #goviAvatar.profile-avatar{width:92px!important;height:92px!important;min-width:92px!important;min-height:92px!important;max-width:92px!important;max-height:92px!important;flex-basis:92px!important}
 }
 @media(min-width:760px){
- #goviStoryPreview{left:5vw!important;right:380px!important;top:90px!important;bottom:24px!important}
- #goviStoryControlTray{left:auto!important;right:18px!important;top:160px!important;bottom:18px!important;width:340px!important;max-height:none!important}
- #goviStoryCategoryBar{right:375px!important}
+ #goviStoryPreview{left:350px!important;right:16px!important;top:90px!important;bottom:16px!important}
+ #goviStoryControlTray{left:10px!important;right:auto!important;top:90px!important;width:320px!important;max-height:calc(100dvh - 110px)!important;justify-content:flex-start!important}
+ #goviStoryCategoryBar{left:10px!important;right:auto!important;top:48px!important;width:320px!important}
 }
 </style>
 
