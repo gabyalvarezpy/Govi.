@@ -629,7 +629,8 @@ function goviRenderStory(){
   content.style.display='none';img.style.display='none';video.style.display='none';
   if(item.media_type==='video'&&item.media_url){video.style.display='block';video.src=item.media_url;video.muted=false;video.volume=1;video.load()}
   else if(item.media_type==='image'&&item.media_url){img.style.display='block';img.src=item.media_url}
-  if(item.story_audio_url){let audio=$('goviStoryAudio');if(!audio){audio=document.createElement('audio');audio.id='goviStoryAudio';audio.controls=true;audio.style.cssText='position:absolute;z-index:8;bottom:64px;left:12px;width:calc(100% - 24px)';$('goviStoryCard').appendChild(audio)}audio.src=item.story_audio_url;audio.load()}\n  if(item.story_text||item.link_url){
+  if(item.story_audio_url){let audio=$('goviStoryAudio');if(!audio){audio=document.createElement('audio');audio.id='goviStoryAudio';audio.controls=true;audio.style.cssText='position:absolute;z-index:8;bottom:64px;left:12px;width:calc(100% - 24px)';$('goviStoryCard').appendChild(audio)}audio.src=item.story_audio_url;audio.load()}
+  if(item.story_text||item.link_url){
     content.style.display='flex';
     content.innerHTML=(item.story_text?'<div>'+escapeHTML(item.story_text)+'</div>':'')+(item.link_url?'<a href="'+escapeHTML(item.link_url)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(item.link_url)+'</a>':'');
   }
