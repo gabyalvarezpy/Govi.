@@ -472,6 +472,20 @@ body{background:radial-gradient(ellipse at 50% -18%,#30230d 0,#111 34%,#090909 7
  #goviStoryControlTray{max-height:none!important}
 }
 </style>
+<style id="govi-story-media-first">
+/* Editor de historia: el contenido ocupa el lienzo; controles fuera de la imagen */
+#goviStoryPreview{position:relative!important;isolation:isolate!important;overflow:hidden!important;background:#090909!important}
+#goviStoryPreviewImage,#goviStoryPreviewVideo{object-fit:cover!important;object-position:center center!important;background:transparent!important;z-index:1!important}
+#goviStoryPreviewVideo{pointer-events:none!important}
+#goviStoryPreview .govi-story-canvas-tools,#goviStoryPreview .govi-story-canvas-style{display:none!important}
+#goviStoryControlTray .govi-story-canvas-tools{position:relative!important;inset:auto!important;display:flex!important;flex-wrap:wrap!important;justify-content:flex-start!important;gap:7px!important;padding:4px 0!important;background:transparent!important;z-index:1!important}
+#goviStoryControlTray .govi-story-canvas-tools button{background:#242424!important;border:1px solid #80652f!important;color:#f5dda0!important;border-radius:20px!important;padding:10px 13px!important}
+#goviStoryControlTray .govi-story-canvas-style{position:relative!important;inset:auto!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;padding:10px!important;background:#181818!important;border:1px solid #ffffff20!important;border-radius:12px!important;z-index:1!important}
+#goviStoryControlTray .govi-story-canvas-style label{display:flex!important;position:static!important;flex-direction:column!important;gap:4px!important;color:#ddd!important;font-size:11px!important}
+#goviStoryControlTray .govi-story-canvas-style select,#goviStoryControlTray .govi-story-canvas-style input{max-width:100%!important;width:100%!important}
+#goviStoryPreviewText,#goviStoryPreviewLink{z-index:8!important;pointer-events:auto!important}
+@media(max-width:759px){#goviStoryPreview{width:min(100%,calc((100dvh - 340px)*.5625))!important;max-height:calc(100dvh - 340px)!important}#goviStoryControlTray .govi-story-canvas-style{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+</style>
 </head>    
 <body>    
 <header class="topbar">    
@@ -558,7 +572,8 @@ body{background:radial-gradient(ellipse at 50% -18%,#30230d 0,#111 34%,#090909 7
       const tray=document.createElement('div');tray.id='goviStoryControlTray';tray.className='govi-story-in-canvas-controls';
       const ids=['goviStoryChoices','goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'];
       ids.forEach(id=>{const el=document.getElementById(id);if(el)tray.appendChild(el)});
-      ['.govi-story-emoji-row','.govi-extra-media-tools','.govi-story-hint'].forEach(sel=>{const el=document.querySelector(sel);if(el)tray.appendChild(el)});
+      /* Las herramientas se colocan fuera de la foto/vídeo para no tapar el contenido */
+      ['.govi-story-canvas-tools','.govi-story-canvas-style','.govi-story-emoji-row','.govi-extra-media-tools','.govi-story-hint'].forEach(sel=>{const el=canvas.querySelector(sel)||document.querySelector(sel);if(el)tray.appendChild(el)});
       canvas.parentNode.insertBefore(tray,canvas.nextSibling);
       canvas.style.display='block';
     })();
@@ -1619,6 +1634,23 @@ refreshSession();
   if(action==='links'){document.querySelector('[data-part="link"]')?.click();document.getElementById('goviStoryLink')?.focus();}
   if(action==='emojis')document.querySelector('[data-part="text"]')?.click();
  }));
+})();
+</script>
+
+
+<script>
+/* Vista previa limpia: foto/vídeo a pantalla completa detrás de los elementos */
+(function(){
+ const v=document.getElementById('goviStoryPreviewVideo');
+ if(v){v.removeAttribute('controls');v.muted=true;v.loop=true;v.playsInline=true;}
+ const original=window.goviUpdateStoryPreview;
+ if(typeof original==='function'){
+  window.goviUpdateStoryPreview=function(){
+   original();
+   const video=document.getElementById('goviStoryPreviewVideo');
+   if(video&&video.style.display!=='none'){video.muted=true;video.loop=true;video.play().catch(()=>{});}
+  };
+ }
 })();
 </script>
 
