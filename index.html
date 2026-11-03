@@ -975,7 +975,7 @@ async function goviLoadStories(){
  finish();
 })();
 
-async async function goviPublishStory(){
+async function goviPublishStory(){
   if(!currentUser){$('goviStoryComposer').classList.remove('open');toast('Tu sesión no está activa. Inicia sesión y vuelve a intentarlo.');openModal('authModal');return}
   const file=$('goviStoryFile').files[0]||$('goviStoryGifFile')?.files?.[0],storyText=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
   if(!file&&!storyText&&!link){toast('Añade texto, una foto, un vídeo o un enlace');return}
@@ -2473,6 +2473,19 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  [previewText,$('goviStoryPreviewLink')].forEach(el=>{if(el){el.style.zIndex='20';el.style.pointerEvents='auto';el.style.touchAction='none';}});
 })();
 </script>
+
+
+<style id="govi-story-last-layout">
+#goviStoryComposer{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;padding:0!important;background:transparent!important;overflow:hidden!important;z-index:25000!important}
+#goviStoryComposer.open{display:block!important}
+#goviStoryComposer .govi-story-compose-card{position:static!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;overflow:visible!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+#goviStoryPreview{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+#goviStoryPreview .govi-story-preview-label,#goviStoryPreview .govi-story-canvas-tools,#goviStoryPreview .govi-story-canvas-style{display:none!important}
+#goviStoryPreviewImage,#goviStoryPreviewVideo{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;transform-origin:center!important}
+#goviStoryComposer .govi-story-compose-head{position:fixed!important;z-index:100!important;top:env(safe-area-inset-top,8px)!important;left:10px!important;right:10px!important;background:#171522aa!important;border:1px solid #ffffff44!important;border-radius:24px!important;backdrop-filter:blur(14px)!important}
+#goviStoryCategoryBar{position:fixed!important;z-index:100!important;top:calc(env(safe-area-inset-top,8px) + 54px)!important;left:10px!important;right:10px!important;background:#171522aa!important;border-radius:20px!important;backdrop-filter:blur(14px)!important}
+#goviStoryControlTray{position:fixed!important;z-index:100!important;left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)!important;top:auto!important;max-height:27dvh!important;overflow:auto!important;background:#171522bb!important;border:1px solid #ffffff44!important;border-radius:18px!important;backdrop-filter:blur(14px)!important}
+</style>
 
 </body>
 </html>
