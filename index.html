@@ -486,6 +486,13 @@ body{background:radial-gradient(ellipse at 50% -18%,#30230d 0,#111 34%,#090909 7
 #goviStoryPreviewText,#goviStoryPreviewLink{z-index:8!important;pointer-events:auto!important}
 @media(max-width:759px){#goviStoryPreview{width:min(100%,calc((100dvh - 340px)*.5625))!important;max-height:calc(100dvh - 340px)!important}#goviStoryControlTray .govi-story-canvas-style{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 </style>
+
+<style id="govi-profile-avatar-circle-fix">
+/* Foto de perfil: recorte circular real, sin desbordamientos */
+#goviAvatar.profile-avatar{box-sizing:border-box!important;width:112px!important;height:112px!important;min-width:112px!important;min-height:112px!important;max-width:112px!important;max-height:112px!important;aspect-ratio:1/1!important;border-radius:50%!important;overflow:hidden!important;clip-path:circle(50%)!important;position:relative!important;isolation:isolate!important;display:block!important;flex:0 0 112px!important;padding:0!important}
+#goviAvatar.profile-avatar img{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;object-position:center!important;border:0!important;border-radius:50%!important;margin:0!important;padding:0!important;transform:none!important}
+@media(max-width:700px){#goviAvatar.profile-avatar{width:92px!important;height:92px!important;min-width:92px!important;min-height:92px!important;max-width:92px!important;max-height:92px!important;flex-basis:92px!important}}
+</style>
 </head>    
 <body>    
 <header class="topbar">    
