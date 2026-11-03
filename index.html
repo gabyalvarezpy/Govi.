@@ -2206,5 +2206,74 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  const pub=$('goviStoryPublish');if(pub){pub.type='button';pub.onclick=async e=>{e.preventDefault();e.stopPropagation();try{await window.goviPublishStory();}catch(err){const st=$('goviStoryStatus');if(st){st.style.display='block';st.textContent='No se pudo publicar: '+(err.message||err);}}};}
  paint();
 })();
-</script></body>
+</script>
+<!-- GOVI STORY IMMERSIVE REFACTOR 2026-11 -->
+<style id="govi-story-immersive-refactor">
+#goviStoryComposer{position:fixed!important;inset:0!important;z-index:25000!important;padding:0!important;background:#050505!important;overflow:hidden!important;align-items:stretch!important;justify-content:stretch!important}
+#goviStoryComposer.open{display:flex!important}
+#goviStoryComposer .govi-story-compose-card{position:relative!important;display:block!important;width:100%!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;overflow:hidden!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+#goviStoryComposer .govi-story-compose-head{position:fixed!important;z-index:60!important;top:env(safe-area-inset-top,0px)!important;left:12px!important;right:12px!important;height:46px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 8px!important;background:#09090966!important;border:1px solid #ffffff24!important;border-radius:16px!important;backdrop-filter:blur(16px)!important}
+#goviStoryComposer .govi-story-compose-head h2{font-size:14px!important;margin:0!important}
+#goviStoryComposer .govi-story-compose-head small{display:none!important}
+#goviStoryCategoryBar{position:fixed!important;z-index:55!important;top:calc(env(safe-area-inset-top,0px) + 54px)!important;left:10px!important;right:10px!important;display:flex!important;flex-wrap:nowrap!important;gap:7px!important;overflow-x:auto!important;padding:6px!important;background:#08080855!important;border:1px solid #ffffff20!important;border-radius:16px!important;backdrop-filter:blur(14px)!important}
+#goviStoryCategoryBar .govi-story-tab{flex:0 0 auto!important;padding:8px 11px!important;font-size:11px!important;background:#19151fdd!important;border:1px solid #ffffff30!important;color:#fff!important}
+#goviStoryCategoryBar .govi-story-tab.active{background:linear-gradient(120deg,#f3dc91,#bd8c28)!important;color:#17120a!important}
+#goviStoryComposer .govi-story-compose-card>p:first-of-type{display:none!important}
+#goviStoryPreview{position:absolute!important;inset:0!important;z-index:1!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;min-height:0!important;aspect-ratio:auto!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;overflow:hidden!important;background:#050505!important;display:block!important;isolation:isolate!important}
+#goviStoryPreviewImage,#goviStoryPreviewVideo{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center!important;border:0!important;border-radius:0!important;z-index:1!important;background:#050505!important}
+#goviStoryPreviewText,#goviStoryPreviewLink{position:absolute!important;z-index:10!important;pointer-events:auto!important;touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;cursor:grab!important;max-width:88%!important;overflow-wrap:anywhere!important}
+#goviStoryPreviewText{left:50%;top:50%;transform:translate(-50%,-50%);font-size:30px;font-weight:900;text-align:center}
+#goviStoryPreviewLink{left:50%;top:70%;transform:translate(-50%,-50%)}
+#goviStoryPreview .govi-story-canvas-tools,#goviStoryPreview .govi-story-canvas-style{display:none!important}
+#goviStoryControlTray{position:fixed!important;z-index:52!important;left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 66px)!important;top:auto!important;inset-inline:auto!important;width:auto!important;max-width:760px!important;max-height:25dvh!important;overflow:auto!important;margin:0 auto!important;padding:9px!important;display:flex!important;flex-direction:column!important;gap:7px!important;border:1px solid #ffffff28!important;border-radius:17px!important;background:#101014a8!important;backdrop-filter:blur(18px)!important;box-shadow:0 8px 30px #0005!important}
+#goviStoryControlTray #goviStoryChoices{display:flex!important;gap:6px!important;flex-wrap:wrap!important;margin:0!important}
+#goviStoryControlTray .govi-story-choice{padding:7px 10px!important;font-size:11px!important}
+#goviStoryControlTray #goviStoryTextWrap,#goviStoryControlTray #goviStoryLinkWrap,#goviStoryControlTray #goviStoryMediaWrap{background:transparent!important;padding:0!important;margin:0!important}
+#goviStoryControlTray #goviStoryTextWrap[hidden],#goviStoryControlTray #goviStoryLinkWrap[hidden],#goviStoryControlTray #goviStoryMediaWrap[hidden]{display:none!important}
+#goviStoryControlTray .govi-story-editor-tools,#goviStoryControlTray .govi-story-canvas-style{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;padding:7px!important;margin:0!important;background:#ffffff0d!important;border:1px solid #ffffff1c!important;border-radius:12px!important}
+#goviStoryControlTray label{font-size:10px!important;min-width:0!important}
+#goviStoryControlTray input,#goviStoryControlTray select,#goviStoryControlTray textarea{max-width:100%!important;width:100%!important;font-size:12px!important}
+#goviStoryControlTray .govi-story-emoji-row{max-height:64px!important;overflow:auto!important}
+#goviStoryFileName{position:fixed!important;z-index:51!important;left:12px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 54px)!important;max-width:55%!important;font-size:10px!important;color:#fff!important;text-shadow:0 1px 4px #000!important}
+#goviStoryPublish{position:fixed!important;z-index:70!important;right:12px!important;left:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)!important;width:auto!important;min-width:155px!important;padding:12px 18px!important;border-radius:24px!important;background:linear-gradient(110deg,#f4dc91,#bd8c28)!important;color:#17120a!important;font-size:12px!important;font-weight:900!important}
+#goviStoryComposer #goviStoryStatus{position:fixed!important;z-index:100!important;top:calc(env(safe-area-inset-top,0px) + 10px)!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important;width:max-content!important;max-width:calc(100vw - 24px)!important;padding:11px 16px!important;border:1px solid #ffffff35!important;border-radius:24px!important;background:#19191de8!important;color:#fff!important;box-shadow:0 8px 28px #0007!important;backdrop-filter:blur(16px)!important;font-size:12px!important;pointer-events:none!important}
+#goviStoryComposer #goviStoryStatus[style*="display: none"]{display:none!important}
+@media(min-width:760px){#goviStoryControlTray{left:auto!important;right:18px!important;bottom:82px!important;width:320px!important;max-height:45dvh!important}#goviStoryCategoryBar{left:18px!important;right:auto!important;max-width:calc(100vw - 380px)!important}#goviStoryFileName{left:20px!important;bottom:22px!important}#goviStoryPublish{right:22px!important;bottom:22px!important}#goviStoryComposer .govi-story-compose-head{left:18px!important;right:18px!important}}
+@media(max-height:650px){#goviStoryControlTray{max-height:20dvh!important}#goviStoryCategoryBar{top:calc(env(safe-area-inset-top,0px) + 48px)!important}}
+</style>
+<script id="govi-story-immersive-refactor-js">
+(function(){
+ const $=id=>document.getElementById(id);
+ const composer=$('goviStoryComposer'),card=composer?.querySelector('.govi-story-compose-card'),canvas=$('goviStoryPreview'),tray=$('goviStoryControlTray');
+ if(!composer||!card||!canvas||!tray)return;
+ // Remove obsolete element-level gesture listeners; the existing canvas pointer controller remains the sole drag/scale handler.
+ ['goviStoryPreviewText','goviStoryPreviewLink'].forEach(id=>{const old=$(id);if(old){const fresh=old.cloneNode(true);old.replaceWith(fresh);}});
+ const text=$('goviStoryPreviewText'),link=$('goviStoryPreviewLink');
+ // Keep the editor's actual canvas and tools in separate layers.
+ if(tray.parentElement!==card)card.appendChild(tray);
+ if(canvas.parentElement!==card)card.appendChild(canvas);
+ const bar=$('goviStoryCategoryBar');if(bar&&bar.parentElement!==card)card.appendChild(bar);
+ // Re-apply the selected text styling whenever a control changes.
+ const read=(...ids)=>ids.map(id=>$(id)).find(Boolean);
+ const font=read('goviStoryFont','goviStoryFontCanvas'),color=read('goviStoryColor','goviStoryColorCanvas'),outline=read('goviStoryOutline','goviStoryOutlineCanvas'),align=$('goviStoryAlign'),bg=$('goviStoryTextBg');
+ function apply(){
+  if(font&&text)text.style.fontFamily=font.value;
+  if(color&&text)text.style.color=color.value;
+  if(outline&&text)text.style.textShadow=outline.value;
+  if(align&&text)text.style.textAlign=align.value;
+  if(bg&&text)text.style.background=bg.value;
+  if(text){text.style.zIndex='10';text.style.pointerEvents='auto';}
+ }
+ [font,color,outline,align,bg].filter(Boolean).forEach(el=>{el.addEventListener('input',apply);el.addEventListener('change',apply);});
+ const textInput=$('goviStoryText');
+ if(textInput&&text){const sync=()=>{text.textContent=textInput.value;text.style.display=textInput.value.trim()?'block':'none';};textInput.addEventListener('input',sync);sync();}
+ // Mouse-wheel zoom and keyboard-safe controls.
+ if(text&&!text.dataset.goviWheelZoom){text.dataset.goviWheelZoom='1';text.addEventListener('wheel',e=>{e.preventDefault();const n=Math.max(12,Math.min(110,(parseFloat(getComputedStyle(text).fontSize)||30)+(e.deltaY<0?2:-2)));text.style.fontSize=n+'px';const slider=$('goviStoryTextSize');if(slider)slider.value=Math.min(90,n);},{passive:false});}
+ // Temporary toast-style feedback; never reserve a modal panel.
+ const status=$('goviStoryStatus');
+ if(status){const observer=new MutationObserver(()=>{if(status.textContent.trim()){status.style.display='block';clearTimeout(window.goviStoryStatusTimer);window.goviStoryStatusTimer=setTimeout(()=>{status.style.display='none';},status.textContent.includes('Enviando')?12000:3200);}});observer.observe(status,{childList:true,subtree:true,characterData:true});}
+ apply();
+})();
+</script>
+</body>
 </html>
