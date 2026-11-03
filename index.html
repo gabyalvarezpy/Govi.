@@ -97,6 +97,25 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 .overlay{display:none;position:fixed;inset:0;background:#000b;z-index:30;align-items:center;justify-content:center;padding:15px}.overlay.show{display:flex}.modal{width:min(540px,100%);max-height:90vh;overflow:auto;background:#191919;color:var(--text);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 25px 80px #0008}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.modal-head h2{font-size:19px;margin:0}.close{border:0;background:transparent;color:inherit;font-size:25px}.modal textarea,.auth-fields input{width:100%;border:1px solid #51452d;border-radius:12px;padding:12px;background:#111;color:var(--text);outline:none}.modal textarea{min-height:115px;resize:vertical}.file-label{display:block;border:1px dashed #9d7a35;border-radius:12px;padding:14px;text-align:center;margin-top:12px;color:#E8C66A;font-size:13px;cursor:pointer}.file-label input{display:none}.file-hint{font-size:11px;color:#aaa18d;margin-top:8px;line-height:1.5}.preview{display:none;width:100%;max-height:240px;object-fit:contain;margin-top:10px;border-radius:12px;background:#080808}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:14px}.primary-btn{background:#E8C66A;color:#15110A;border:0;border-radius:11px;padding:11px 15px;font-weight:850}.secondary-btn{background:#29251d;color:#eee0bd;border:1px solid #51452d;border-radius:11px;padding:10px 14px;font-weight:750}.auth-fields{display:grid;gap:10px}.auth-switch{border:0;background:transparent;color:#E8C66A;font-weight:800;padding:12px 0}.demo-note{font-size:11px;color:#aaa18d;line-height:1.5}.toast{position:fixed;z-index:16000;bottom:22px;left:50%;transform:translate(-50%,20px);background:#2b2110;color:#f8e8bd;padding:12px 18px;border-radius:30px;font-size:12px;font-weight:750;opacity:0;transition:.25s;z-index:50;pointer-events:none;max-width:90vw;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}    
 @media(max-width:1050px){.layout{grid-template-columns:175px minmax(0,1fr)}.rightcol{display:none}}    
 @media(max-width:700px){.topbar{height:58px;padding:0 11px}.brand{font-size:21px}.search{display:none}.top-actions button{padding:8px}.layout{display:block;padding:14px 10px 25px}.sidebar{position:static;display:flex;overflow:auto;margin-bottom:14px;padding:6px;gap:4px}.nav-item{white-space:nowrap;padding:9px;font-size:11px}.side-note{display:none}.welcome h1{font-size:21px}.post{padding:12px}.post-buttons button{padding:8px 6px;font-size:11px}}    
+
+/* GOVI STORIES: editor y visualización vertical 9:16 */
+.govi-story-composer{align-items:center!important;justify-content:center!important;padding:10px!important;background:#050505f7!important}
+.govi-story-compose-card{width:min(520px,100%)!important;max-height:calc(100dvh - 20px)!important;border-radius:20px!important}
+.govi-story-preview{width:min(100%,390px)!important;aspect-ratio:9/16!important;min-height:0!important;height:auto!important;max-height: min(62dvh,690px)!important;margin:8px auto!important;padding:0!important;border-radius:18px!important;display:block!important;position:relative!important;overflow:hidden!important;background:linear-gradient(145deg,#402b17,#151515,#3b1834)!important}
+.govi-story-preview-label{position:absolute!important;top:10px!important;left:12px!important;z-index:8!important;padding:5px 8px!important;border-radius:20px!important;background:#0008!important}
+.govi-story-preview img,.govi-story-preview video{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;border-radius:0!important}
+#goviStoryPreviewText,#goviStoryPreviewLink{z-index:5!important;touch-action:none!important;cursor:grab!important;text-align:center!important;padding:7px 10px!important;border-radius:8px!important;background:transparent!important}
+#goviStoryPreviewLink{color:#fff!important;text-decoration:underline!important}
+#goviStoryViewer{padding:0!important;background:#000!important}
+#goviStoryCard{width:min(100vw,480px)!important;height:min(100dvh,853px)!important;aspect-ratio:9/16!important;border:0!important;border-radius:0!important}
+#goviStoryMedia,#goviStoryVideo{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important}
+@media(max-width:700px){
+ .govi-story-composer{padding:0!important;align-items:stretch!important}
+ .govi-story-compose-card{width:100%!important;max-height:100dvh!important;height:100dvh!important;border-radius:0!important;padding:10px!important}
+ .govi-story-preview{width:min(100%,360px)!important;max-height:55dvh!important}
+ #goviStoryCard{width:100vw!important;height:100dvh!important;max-height:100dvh!important}
+}
+
 </style>    
 </head>    
 <body>    
