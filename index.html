@@ -441,7 +441,14 @@ async function goviPublishStory(){
     $('goviStoryText').value='';$('goviStoryLink').value='';$('goviStoryFile').value='';$('goviStoryFileName').textContent='Selecciona una foto o un vídeo.';document.querySelectorAll('.govi-story-choice').forEach(b=>b.setAttribute('aria-pressed','false'));['goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>$(id).hidden=true);$('goviStoryComposer').classList.remove('open');
     status.textContent='¡Historia publicada correctamente!';toast('¡Historia publicada!');await goviLoadStories();
     const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1);
-  }catch(error){if(path)await supabaseClient.storage.from(BUCKET).remove([path]);console.error('ERROR AL PUBLICAR HISTORIA:',error);status.style.display='block';status.textContent='ERROR AL PUBLICAR: '+(error?.message||error?.details||error?.hint||'Error desconocido')+' · Código: '+(error?.code||'sin código');}
+  }catch(error){
+    console.error('ERROR AL PUBLICAR HISTORIA:',error);
+    const detail=error?.message||error?.details||error?.hint||String(error)||'Error desconocido';
+    status.style.display='block';
+    status.textContent='ERROR AL PUBLICAR: '+detail+' · Código: '+(error?.code||'sin código');
+    toast('No se pudo publicar: '+detail);
+    if(path){try{await supabaseClient.storage.from(BUCKET).remove([path]);}catch(cleanupError){console.error('ERROR AL LIMPIAR ARCHIVO:',cleanupError);}}
+  }
   finally{btn.disabled=false;btn.textContent='PUBLICAR HISTORIA'}
 }
 window.goviPublishStory=goviPublishStory;
