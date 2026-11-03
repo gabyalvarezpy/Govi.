@@ -57,7 +57,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 .govi-story-composer{display:none;position:fixed;inset:0;z-index:15000;background:#050505eF;align-items:center;justify-content:center;padding:16px}
 .govi-story-composer.open{display:flex}
 .govi-story-compose-card{width:min(600px,100%);background:#191919;border:1px solid #b78b36;border-radius:22px;padding:24px;box-shadow:0 25px 80px #000b}
-.govi-story-compose-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.govi-story-choice{flex:1;min-width:105px;padding:12px 8px;border:1px solid #69552f;border-radius:12px;background:#111;color:#d8cba9;font-weight:800}.govi-story-choice[aria-pressed="true"]{background:#4a3918;border-color:#e8c66a;color:#ffe6a1;box-shadow:inset 0 0 0 1px #e8c66a}.govi-story-choice:focus-visible{outline:2px solid #e8c66a;outline-offset:2px}.govi-story-compose-card [hidden]{display:none!important}.govi-story-compose-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .govi-story-compose-head small{color:#e8c66a;font-weight:900;letter-spacing:2px}
 .govi-story-compose-head h2{font-size:27px;margin:5px 0}
 .govi-story-compose-head button{font-size:32px;color:white;background:none;border:0}
@@ -128,9 +128,15 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 <div id="goviStoryComposer" class="govi-story-composer" aria-label="Crear historia">
   <div class="govi-story-compose-card">
     <div class="govi-story-compose-head"><div><small>GOVI · TU MOMENTO</small><h2>Crear historia</h2></div><button type="button" id="goviStoryComposeClose">×</button></div>
-    <textarea id="goviStoryText" maxlength="500" placeholder="¿Qué quieres compartir hoy?"></textarea>
-    <input id="goviStoryLink" type="url" placeholder="Pega un enlace (opcional) · https://...">
-    <label class="govi-story-file">📷 Añadir foto o vídeo<input id="goviStoryFile" type="file" accept="image/*,video/*"></label>
+    <p style="color:#c9bea3;font-size:14px;margin:0 0 10px">Elige qué quieres incluir. Puedes combinar las tres opciones:</p>
+    <div id="goviStoryChoices" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      <button type="button" class="govi-story-choice" data-part="text" aria-pressed="false">✍️ Texto</button>
+      <button type="button" class="govi-story-choice" data-part="link" aria-pressed="false">🔗 Enlace</button>
+      <button type="button" class="govi-story-choice" data-part="media" aria-pressed="false">📷 Foto / vídeo</button>
+    </div>
+    <div id="goviStoryTextWrap" hidden><textarea id="goviStoryText" maxlength="500" placeholder="¿Qué quieres compartir hoy?"></textarea></div>
+    <div id="goviStoryLinkWrap" hidden><input id="goviStoryLink" type="url" placeholder="Pega un enlace · https://..."></div>
+    <div id="goviStoryMediaWrap" hidden><label class="govi-story-file">📷 Añadir foto o vídeo<input id="goviStoryFile" type="file" accept="image/*,video/*"></label></div>
     <div id="goviStoryFileName">También puedes publicar solo texto o un enlace.</div>
     <button type="button" id="goviStoryPublish" onclick="window.goviPublishStory()">PUBLICAR HISTORIA</button>
     <p id="goviStoryStatus" role="status" style="display:none;margin:12px 0 0;padding:12px;border-radius:10px;background:#292116;color:#f4d989;font-size:13px;line-height:1.45;overflow-wrap:anywhere"></p>
@@ -393,6 +399,15 @@ $('goviAddStory').addEventListener('click',goviOpenStoryComposer);
 $('goviStoryComposeClose').addEventListener('click',()=>$('goviStoryComposer').classList.remove('open'));
 $('goviStoryComposer').addEventListener('click',e=>{if(e.target===$('goviStoryComposer'))$('goviStoryComposer').classList.remove('open')});
 $('goviStoryFile').addEventListener('change',e=>{$('goviStoryFileName').textContent=e.target.files[0]?.name||'También puedes publicar solo texto o un enlace.'});
+function goviToggleStoryPart(part,button){
+  const map={text:'goviStoryTextWrap',link:'goviStoryLinkWrap',media:'goviStoryMediaWrap'};
+  const wrap=$(map[part]);if(!wrap)return;
+  const active=button.getAttribute('aria-pressed')==='true';
+  button.setAttribute('aria-pressed',String(!active));wrap.hidden=active;
+  if(active){if(part==='text')$('goviStoryText').value='';if(part==='link')$('goviStoryLink').value='';if(part==='media'){$('goviStoryFile').value='';$('goviStoryFileName').textContent='Selecciona una foto o un vídeo.'}}
+}
+document.querySelectorAll('.govi-story-choice').forEach(button=>button.addEventListener('click',()=>goviToggleStoryPart(button.dataset.part,button)));
+
 async function goviLoadStories(){
   const bar=$('goviStories');if(!bar)return;
   const {data:stories,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,media_path,story_text,link_url,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:true});
@@ -423,7 +438,7 @@ async function goviPublishStory(){
     }else if(link)mediaType='link';
     const payload={user_id:currentUser.id,media_url:mediaUrl,media_type:mediaType,media_path:path,story_text:storyText||null,link_url:link||null,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()};
     const {error}=await supabaseClient.from('stories').insert(payload);if(error)throw error;
-    $('goviStoryText').value='';$('goviStoryLink').value='';$('goviStoryFile').value='';$('goviStoryFileName').textContent='También puedes publicar solo texto o un enlace.';$('goviStoryComposer').classList.remove('open');
+    $('goviStoryText').value='';$('goviStoryLink').value='';$('goviStoryFile').value='';$('goviStoryFileName').textContent='Selecciona una foto o un vídeo.';document.querySelectorAll('.govi-story-choice').forEach(b=>b.setAttribute('aria-pressed','false'));['goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>$(id).hidden=true);$('goviStoryComposer').classList.remove('open');
     status.textContent='¡Historia publicada correctamente!';toast('¡Historia publicada!');await goviLoadStories();
     const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1);
   }catch(error){if(path)await supabaseClient.storage.from(BUCKET).remove([path]);console.error('ERROR AL PUBLICAR HISTORIA:',error);status.style.display='block';status.textContent='ERROR AL PUBLICAR: '+(error?.message||error?.details||error?.hint||'Error desconocido')+' · Código: '+(error?.code||'sin código');}
