@@ -718,9 +718,17 @@ async function openGoviProfile(userId) {
 
   try {
     goviCurrentProfile = await goviGetProfile(userId);
-    const {data:galleryRows,error:galleryError}=await supabaseClient.from('profile_gallery').select('id,user_id,image_url,image_path,image_type,created_at').eq('user_id',userId).order('created_at',{ascending:false});
-    if(galleryError) throw galleryError;
-    goviCurrentProfile._gallery=galleryRows||[];
+    // La galería es opcional: si la tabla aún no existe o sus permisos fallan,
+    // el perfil principal debe seguir abriendo normalmente.
+    let galleryRows=[];
+    try {
+      const galleryResult=await supabaseClient.from('profile_gallery').select('id,user_id,image_url,image_path,image_type,created_at').eq('user_id',userId).order('created_at',{ascending:false});
+      if(!galleryResult.error) galleryRows=galleryResult.data||[];
+      else console.warn('Galería no disponible:',galleryResult.error.message);
+    } catch(galleryError) {
+      console.warn('Galería no disponible:',galleryError);
+    }
+    goviCurrentProfile._gallery=galleryRows;
 
     $('goviProfileName').textContent =
       goviCurrentProfile.full_name || 'Usuario GOVI';
