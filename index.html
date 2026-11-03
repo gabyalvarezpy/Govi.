@@ -1147,6 +1147,7 @@ async function openGoviProfile(userId) {
 
     history.replaceState(null,'','#profile-' + userId);
     await goviLoadProfilePosts(userId);
+    await goviRenderProfileStories(userId);
 
     document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   } catch(error) {
@@ -2040,6 +2041,77 @@ window.addEventListener('popstate',()=>{const el=document.getElementById('goviSt
  const center=$('goviStoryCenterText');if(center)center.addEventListener('click',()=>{goviStoryPositions.text={x:50,y:50};if(x)x.value=50;if(y)y.value=50;goviApplyStoryEditorStyles()});
  const input=$('goviStoryText');if(input){input.addEventListener('input',()=>{text.textContent=input.value;text.style.display=input.value.trim()?'block':'none';});}
  const pub=$('goviStoryPublish');if(pub){pub.type='button';pub.addEventListener('click',e=>{e.preventDefault();if(typeof window.goviPublishStory==='function')window.goviPublishStory();},true);}
+})();
+</script>
+
+<style id="govi-story-profile-square">
+#goviProfileStorySection{margin:14px 0 18px;padding:14px;background:#171717;border:1px solid #59452b;border-radius:16px}
+#goviProfileStorySection h3{margin:0 0 10px;color:#f1d58f;font-size:15px}
+#goviProfileStoryGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.govi-profile-story-tile{position:relative;aspect-ratio:1/1;border:1px solid #9b7b43;border-radius:11px;overflow:hidden;padding:0;background:#29202e;color:#fff;cursor:pointer}
+.govi-profile-story-tile img,.govi-profile-story-tile video{width:100%;height:100%;object-fit:cover;display:block}
+.govi-profile-story-tile span{position:absolute;inset:auto 0 0;padding:18px 6px 6px;background:linear-gradient(transparent,#000b);font-size:11px;text-align:left}
+.govi-profile-story-empty{font-size:12px;color:#aaa;grid-column:1/-1;padding:8px 0}
+</style>
+<script id="govi-story-profile-square-js">
+(function(){
+ const $=id=>document.getElementById(id),canvas=$('goviStoryPreview');
+ if(!canvas||canvas.dataset.goviTouchDrag==='1')return;
+ canvas.dataset.goviTouchDrag='1';
+ let active=null,start=null,initialDistance=0,initialSize=30;
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ const getPos=()=>goviStoryPositions[active||'text'];
+ const setPos=(x,y)=>{const p=getPos();p.x=clamp(x,3,97);p.y=clamp(y,3,97);goviApplyStoryEditorStyles();};
+ const distance=touches=>Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);
+ canvas.addEventListener('touchstart',e=>{
+   if(!e.touches.length)return;
+   if(e.touches.length===1){
+     const t=e.target.closest('#goviStoryPreviewText,#goviStoryPreviewLink');
+     if(!t)return;
+     active=t.id==='goviStoryPreviewLink'?'link':'text';
+     const p=getPos();start={x:e.touches[0].clientX,y:e.touches[0].clientY,px:p.x,py:p.y};
+     e.preventDefault();
+   }else if(e.touches.length===2&&active){
+     const el=active==='text'?$('goviStoryPreviewText'):$('goviStoryPreviewLink');
+     initialDistance=Math.max(1,distance(e.touches));initialSize=parseFloat(getComputedStyle(el).fontSize)||30;e.preventDefault();
+   }
+ },{capture:true,passive:false});
+ canvas.addEventListener('touchmove',e=>{
+   if(!active)return;
+   e.preventDefault();
+   const el=active==='text'?$('goviStoryPreviewText'):$('goviStoryPreviewLink');
+   if(e.touches.length>=2){
+     const size=clamp(initialSize*distance(e.touches)/initialDistance,12,100);
+     el.style.setProperty('font-size',size+'px','important');el.dataset.size=String(size);
+     const control=$('goviStorySizeControl');if(active==='text'&&control)control.value=String(Math.round(size));
+   }else if(e.touches.length===1&&start){
+     const r=canvas.getBoundingClientRect();
+     setPos(start.px+(e.touches[0].clientX-start.x)/r.width*100,start.py+(e.touches[0].clientY-start.y)/r.height*100);
+     const x=$('goviStoryXControl'),y=$('goviStoryYControl');if(active==='text'&&x&&y){x.value=goviStoryPositions.text.x;y.value=goviStoryPositions.text.y;}
+   }
+ },{capture:true,passive:false});
+ canvas.addEventListener('touchend',e=>{if(!e.touches.length){active=null;start=null;}else if(e.touches.length===1){const t=e.touches[0],p=getPos();start={x:t.clientX,y:t.clientY,px:p.x,py:p.y};}},{capture:true,passive:true});
+ canvas.addEventListener('touchcancel',()=>{active=null;start=null;},{capture:true,passive:true});
+})();
+async function goviRenderProfileStories(userId){
+ const profile=$('goviProfileView');if(!profile)return;
+ let section=$('goviProfileStorySection');
+ if(!section){section=document.createElement('section');section.id='goviProfileStorySection';const title=profile.querySelector('.profile-section-title');profile.insertBefore(section,title||null);}
+ section.innerHTML='<h3>Historias</h3><div id="goviProfileStoryGrid"><span class="govi-profile-story-empty">Cargando historias…</span></div>';
+ const {data,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,story_text,created_at,expires_at').eq('user_id',userId).gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false});
+ const grid=$('goviProfileStoryGrid');if(!grid)return;
+ if(error){grid.innerHTML='<span class="govi-profile-story-empty">No se pudieron cargar las historias.</span>';console.warn('Perfil historias',error);return;}
+ if(!data||!data.length){grid.innerHTML='<span class="govi-profile-story-empty">Todavía no hay historias activas.</span>';return;}
+ grid.innerHTML=data.map((story,i)=>{
+  const media=story.media_type==='image'&&story.media_url?'<img src="'+escapeHTML(story.media_url)+'" alt="Historia">':story.media_type==='video'&&story.media_url?'<video src="'+escapeHTML(story.media_url)+'" muted playsinline preload="metadata"></video>':'<span>'+escapeHTML((story.story_text||'Enlace compartido').slice(0,70))+'</span>';
+  return '<button class="govi-profile-story-tile" type="button" data-profile-story-index="'+i+'">'+media+'<span>Ver historia</span></button>';
+ }).join('');
+ grid.querySelectorAll('[data-profile-story-index]').forEach(btn=>btn.addEventListener('click',()=>{
+   const idx=Number(btn.dataset.profileStoryIndex),group=(goviStoryGroups||[]).find(g=>g.userId===userId);
+   if(group){const chronological=group.items;const story=data[idx];const pos=chronological.findIndex(x=>x.id===story.id);const groupIndex=goviStoryGroups.indexOf(group);goviOpenStoryGroup(groupIndex,Math.max(0,pos));}
+ }));
+}
+const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 })();
 </script>
 </body>
