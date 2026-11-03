@@ -116,6 +116,47 @@ button,input,textarea{font:inherit}button{cursor:pointer}
  #goviStoryCard{width:100vw!important;height:100dvh!important;max-height:100dvh!important}
 }
 
+
+/* Editor de historias GOVI: experiencia móvil moderna, lienzo 9:16 */
+.govi-story-composer{position:fixed!important;inset:0!important;z-index:15000!important;display:none;align-items:center!important;justify-content:center!important;padding:0!important;background:#08090df7!important;overflow:auto!important}
+.govi-story-composer.open{display:flex!important}
+.govi-story-compose-card{width:min(1120px,100%)!important;height:min(100dvh,900px)!important;max-height:100dvh!important;overflow:auto!important;display:grid!important;grid-template-columns:minmax(300px,1fr) minmax(310px,420px)!important;grid-template-rows:auto 1fr!important;gap:12px 26px!important;padding:22px!important;border:0!important;border-radius:0!important;background:radial-gradient(circle at 15% 15%,#29213b,#11131b 55%,#090a0e)!important}
+.govi-story-compose-head{grid-column:1/-1!important;position:relative!important;top:auto!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 0 12px!important;border-bottom:1px solid #ffffff20!important;background:transparent!important}
+.govi-story-compose-head h2{font-size:25px!important;margin:4px 0!important;color:#fff!important}
+.govi-story-compose-head small{color:#d9b85e!important;letter-spacing:2px!important;font-weight:900!important}
+#goviStoryChoices{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:9px!important;margin:0 0 14px!important}
+.govi-story-choice{min-width:0!important;border:1px solid #ffffff24!important;border-radius:14px!important;background:#ffffff0c!important;color:#fff!important;padding:14px 7px!important;font-size:13px!important}
+.govi-story-choice[aria-pressed=true]{background:linear-gradient(135deg,#7955d9,#bd65a5)!important;border-color:transparent!important;color:white!important}
+.govi-story-compose-card>p:first-of-type{color:#aeb2c4!important;margin:0 0 12px!important}
+.govi-story-compose-card textarea,.govi-story-compose-card input[type=url]{width:100%!important;box-sizing:border-box!important;border:1px solid #ffffff25!important;border-radius:13px!important;background:#ffffff10!important;color:#fff!important;padding:14px!important;font-size:16px!important}
+.govi-story-compose-card textarea{min-height:90px!important}
+.govi-story-file{display:block!important;text-align:center!important;border:1px dashed #a98be8!important;border-radius:14px!important;padding:16px!important;background:#9c6be51a!important;color:#fff!important}
+.govi-story-editor-tools{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin:14px 0!important}
+.govi-story-editor-tools label{background:#ffffff0b!important;border:1px solid #ffffff16!important;border-radius:12px!important;padding:9px!important;color:#d9dbea!important;font-size:12px!important}
+.govi-story-editor-tools select,.govi-story-editor-tools input{background:#151722!important;color:#fff!important;border:1px solid #ffffff25!important;border-radius:8px!important;padding:8px!important}
+.govi-story-preview{grid-column:2!important;grid-row:2!important;align-self:center!important;justify-self:center!important;width:min(100%,380px)!important;aspect-ratio:9/16!important;height:auto!important;min-height:0!important;max-height:calc(100dvh - 150px)!important;margin:0!important;padding:0!important;display:block!important;position:relative!important;overflow:hidden!important;border:1px solid #ffffff2c!important;border-radius:22px!important;box-shadow:0 25px 90px #000b!important;background:linear-gradient(145deg,#483b70,#151522,#612d55)!important}
+.govi-story-preview-label{position:absolute!important;top:12px!important;left:12px!important;z-index:9!important;padding:6px 9px!important;border-radius:20px!important;background:#0009!important;color:#fff!important}
+.govi-story-preview img,.govi-story-preview video{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;border-radius:0!important}
+#goviStoryPreviewText,#goviStoryPreviewLink{z-index:6!important;touch-action:none!important;cursor:move!important;user-select:none!important;-webkit-user-select:none!important;font-size:clamp(18px,3vw,30px)!important;font-weight:900!important;text-align:center!important;padding:8px 12px!important;border-radius:10px!important;background:#0002!important;overflow-wrap:anywhere!important}
+#goviStoryPreviewLink{font-size:clamp(14px,2vw,19px)!important;text-decoration:underline!important}
+.govi-story-emoji-row{display:flex!important;align-items:center!important;gap:7px!important;flex-wrap:wrap!important;margin:10px 0!important;color:#aeb2c4!important;font-size:12px!important}
+.govi-story-emoji-row button{border:1px solid #ffffff20!important;background:#ffffff10!important;border-radius:10px!important;padding:7px 9px!important;font-size:20px!important}
+.govi-story-hint{color:#aeb2c4!important;font-size:12px!important;line-height:1.5!important}
+#goviStoryFileName{color:#aeb2c4!important;font-size:12px!important}
+#goviStoryPublish{grid-column:1!important;position:sticky!important;bottom:0!important;border-radius:14px!important;background:linear-gradient(100deg,#8b5cf6,#d45aa8)!important;color:white!important;box-shadow:0 10px 30px #0007!important}
+@media(max-width:700px){
+ .govi-story-compose-card{display:flex!important;flex-direction:column!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;padding:12px!important;gap:9px!important}
+ .govi-story-compose-head{flex:none!important}
+ .govi-story-compose-head h2{font-size:21px!important}
+ .govi-story-preview{order:2!important;flex:none!important;width:min(100%,330px)!important;max-height:none!important;aspect-ratio:9/16!important;margin:4px auto!important}
+ #goviStoryChoices{order:1!important}
+ .govi-story-editor-tools{order:3!important}
+ .govi-story-emoji-row{order:4!important}
+ #goviStoryFileName{order:5!important}
+ #goviStoryPublish{order:6!important;position:sticky!important;bottom:0!important;margin-top:5px!important}
+ .govi-story-hint{order:4!important}
+}
+
 </style>    
 </head>    
 <body>    
@@ -148,7 +189,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 </div>  <div class="overlay" id="postModal"><div class="modal">    
   <div class="modal-head"><h2 id="postModalTitle">Crear publicación</h2><button class="close" onclick="closeModal('postModal')">×</button></div>    
   <textarea id="postText" placeholder="¿Qué quieres compartir con tu comunidad?"></textarea>    
-  <label class="file-label">＋ Añadir fotografía o vídeo<input id="mediaFile" type="file" accept="image/*,video/*"></label>    
+  <label class="file-label">＋ Añadir fotografía o vídeo<input id="mediaFile" type="file" accept="image/*,video/*,.gif"></label>    
   <div class="file-hint">Formatos habituales de imagen y vídeo. Límite recomendado: 50 MB por archivo. Los vídeos grandes pueden tardar en subir según tu conexión.</div>    
   <img id="imagePreview" class="preview" alt="Vista previa">    
   <video id="videoPreview" class="preview" controls playsinline></video>    
@@ -174,12 +215,14 @@ button,input,textarea{font:inherit}button{cursor:pointer}
     <div id="goviStoryLinkWrap" hidden><input id="goviStoryLink" type="url" placeholder="Pega un enlace · https://..."></div>
     <div id="goviStoryMediaWrap" hidden><label class="govi-story-file">📷 Añadir foto o vídeo<input id="goviStoryFile" type="file" accept="image/*,video/*"></label></div>
     <div class="govi-story-editor-tools">
-      <label>Tipo de letra<select id="goviStoryFont"><option value="Arial,sans-serif">Moderna</option><option value="Georgia,serif">Elegante</option><option value="'Courier New',monospace">Máquina</option><option value="Impact,sans-serif">Gruesa</option></select></label>
-      <label>Color de texto<input id="goviStoryColor" type="color" value="#ffffff"></label>
-      <label>Contorno<select id="goviStoryOutline"><option value="none">Sin contorno</option><option value="1px 1px 2px #000, -1px -1px 2px #000">Negro</option><option value="1px 1px 2px #f4d989, -1px -1px 2px #f4d989">Dorado</option></select></label>
-      <label>Tamaño de imagen<input id="goviStoryImageScale" type="range" min="50" max="140" value="100"></label>
+      <label>Letra<select id="goviStoryFont"><option value="Arial,sans-serif">Moderna</option><option value="Georgia,serif">Elegante</option><option value="'Courier New',monospace">Máquina</option><option value="Impact,sans-serif">Gruesa</option></select></label>
+      <label>Color del texto<input id="goviStoryColor" type="color" value="#ffffff"></label>
+      <label>Color del enlace<input id="goviStoryLinkColor" type="color" value="#ffe08a"></label>
+      <label>Contorno<select id="goviStoryOutline"><option value="1px 2px 5px #000">Sombra</option><option value="none">Sin contorno</option><option value="1px 1px 2px #000, -1px -1px 2px #000">Negro</option></select></label>
+      <label class="govi-story-scale">Zoom de foto/vídeo<input id="goviStoryImageScale" type="range" min="50" max="140" value="100"></label>
     </div>
-    <p style="font-size:11px;color:#bdb39d;margin:0">Arrastrá el texto o el enlace dentro de la vista previa para colocarlo a tu gusto.</p>
+    <div class="govi-story-emoji-row" aria-label="Añadir emojis"><span>Emojis rápidos</span><button type="button" data-story-emoji="❤️">❤️</button><button type="button" data-story-emoji="🔥">🔥</button><button type="button" data-story-emoji="😂">😂</button><button type="button" data-story-emoji="🙏">🙏</button><button type="button" data-story-emoji="✨">✨</button><button type="button" data-story-emoji="😍">😍</button><button type="button" data-story-emoji="🎉">🎉</button></div>
+    <p class="govi-story-hint">Toca y arrastra las letras o el enlace sobre la historia para ubicarlos donde quieras. También puedes añadir un GIF desde tus archivos.</p>
     <div id="goviStoryPreview" class="govi-story-preview" style="display:none"><div class="govi-story-preview-label">VISTA PREVIA</div><img id="goviStoryPreviewImage" alt="Vista previa" style="display:none"><video id="goviStoryPreviewVideo" controls playsinline style="display:none"></video><div id="goviStoryPreviewText" data-drag="text"></div><a id="goviStoryPreviewLink" data-drag="link" target="_blank" rel="noopener noreferrer" style="display:none"></a></div>
     <div id="goviStoryFileName">También puedes publicar solo texto o un enlace.</div>
     <button type="button" id="goviStoryPublish" onclick="window.goviPublishStory()">PUBLICAR HISTORIA</button>
@@ -444,10 +487,10 @@ $('goviStoryComposeClose').addEventListener('click',()=>$('goviStoryComposer').c
 $('goviStoryComposer').addEventListener('click',e=>{if(e.target===$('goviStoryComposer'))$('goviStoryComposer').classList.remove('open')});
 let goviStoryPositions={text:{x:50,y:50},link:{x:50,y:82}},goviStoryObjectUrls=[];
 function goviApplyStoryEditorStyles(){
-  const font=$('goviStoryFont').value,color=$('goviStoryColor').value,outline=$('goviStoryOutline').value,scale=Number($('goviStoryImageScale').value)/100;
-  ['goviStoryPreviewText','goviStoryPreviewLink'].forEach(id=>{const el=$(id);el.style.fontFamily=font;el.style.color=color;el.style.textShadow=outline==='none'?'none':outline;el.style.position='absolute';el.style.left=(id==='goviStoryPreviewText'?goviStoryPositions.text.x:goviStoryPositions.link.x)+'%';el.style.top=(id==='goviStoryPreviewText'?goviStoryPositions.text.y:goviStoryPositions.link.y)+'%';el.style.transform='translate(-50%,-50%)';el.style.maxWidth='88%';el.style.zIndex='4'});
-  $('goviStoryPreviewImage').style.transform='scale('+scale+')';
-  $('goviStoryPreviewVideo').style.transform='scale('+scale+')';
+  const font=$('goviStoryFont').value,outline=$('goviStoryOutline').value,scale=Number($('goviStoryImageScale').value)/100;
+  const text=$('goviStoryPreviewText'),link=$('goviStoryPreviewLink');
+  [text,link].forEach((el,i)=>{el.style.fontFamily=font;el.style.color=i===0?$('goviStoryColor').value:$('goviStoryLinkColor').value;el.style.textShadow=outline==='none'?'none':outline;el.style.position='absolute';el.style.left=(i===0?goviStoryPositions.text.x:goviStoryPositions.link.x)+'%';el.style.top=(i===0?goviStoryPositions.text.y:goviStoryPositions.link.y)+'%';el.style.transform='translate(-50%,-50%)';el.style.maxWidth='88%';el.style.zIndex='5';el.style.touchAction='none'});
+  $('goviStoryPreviewImage').style.transform='scale('+scale+')';$('goviStoryPreviewVideo').style.transform='scale('+scale+')';
 }
 function goviUpdateStoryPreview(){
   const file=$('goviStoryFile').files[0],txt=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
@@ -467,10 +510,11 @@ function goviEnableStoryDrag(el,kind){
   const end=()=>{drag=null};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
 }
 goviEnableStoryDrag($('goviStoryPreviewText'),'text');goviEnableStoryDrag($('goviStoryPreviewLink'),'link');
-['goviStoryFont','goviStoryColor','goviStoryOutline','goviStoryImageScale'].forEach(id=>$(id).addEventListener('input',goviApplyStoryEditorStyles));
+['goviStoryFont','goviStoryColor','goviStoryLinkColor','goviStoryOutline','goviStoryImageScale'].forEach(id=>$(id).addEventListener('input',goviApplyStoryEditorStyles));
 $('goviStoryFile').addEventListener('change',e=>{$('goviStoryFileName').textContent=e.target.files[0]?.name||'También puedes publicar solo texto o un enlace.';goviUpdateStoryPreview()});
 $('goviStoryText').addEventListener('input',goviUpdateStoryPreview);
 $('goviStoryLink').addEventListener('input',goviUpdateStoryPreview);
+document.querySelectorAll('[data-story-emoji]').forEach(button=>button.addEventListener('click',()=>{const field=$('goviStoryText');$('goviStoryTextWrap').hidden=false;document.querySelector('[data-part="text"]').setAttribute('aria-pressed','true');field.value+=(field.value?' ':'')+button.dataset.storyEmoji;goviUpdateStoryPreview()}));
 function goviToggleStoryPart(part,button){
   const map={text:'goviStoryTextWrap',link:'goviStoryLinkWrap',media:'goviStoryMediaWrap'};
   const wrap=$(map[part]);if(!wrap)return;
