@@ -274,7 +274,7 @@ function applyFilter(){
 }
 $('searchInput').addEventListener('input',applyFilter);
 document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('show')}));
-$('authSwitch').addEventListener('click',toggleAuthMode);
+
 supabaseClient.auth.onAuthStateChange(()=>{setTimeout(refreshSession,0)});
 refreshSession();
 </script>
