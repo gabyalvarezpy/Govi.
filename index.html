@@ -22,13 +22,17 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 .story-ring.has-story{background:linear-gradient(140deg,#f3d47c,#d34d8a,#7045d6);padding:3px}
 .story-name{display:block;max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .story-loading{font-size:11px;color:#aaa18d;padding:18px 4px}
-.avatar,[data-user-id].avatar,#goviAvatar{position:relative}
-.avatar::after,#goviAvatar::after{content:'＋';position:absolute;right:-3px;bottom:-3px;width:19px;height:19px;border-radius:50%;display:grid;place-items:center;background:#d9b65c;color:#17120a;border:2px solid var(--panel);font-size:15px;font-weight:900;line-height:1;z-index:2;pointer-events:none}
+.post .avatar,.comment-avatar{position:relative}
+.post .avatar::after,.comment-avatar::after{content:'＋';position:absolute;right:-4px;bottom:-4px;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#d9b65c;color:#17120a;border:2px solid var(--panel);font-size:18px;font-weight:900;line-height:1;z-index:2;pointer-events:none}
 #goviProfileActionMenu{display:none;position:fixed;inset:0;z-index:14000;background:#0009;align-items:center;justify-content:center;padding:20px}
 #goviProfileActionCard{width:min(330px,100%);background:var(--panel);border:1px solid #a9853e;border-radius:18px;padding:18px;box-shadow:0 15px 50px #0008}
 #goviProfileActionCard h3{margin:0 0 14px;color:var(--text)}
-#goviProfileActionCard button{width:100%;padding:13px;margin:5px 0;border:1px solid #8f7139;border-radius:11px;background:transparent;color:var(--text);font-weight:700}
-#goviProfileActionCard button:last-child{border-color:transparent;opacity:.75}
+#goviProfileActionCard button{width:100%;min-height:76px;padding:12px 16px;margin:7px 0;border:1px solid #8f7139;border-radius:14px;background:#ffffff08;color:var(--text);font-weight:850;font-size:17px;display:flex;align-items:center;gap:16px;text-align:left}
+#goviProfileActionCard button .action-icon{width:48px;height:48px;flex:0 0 48px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#f8df91,#b77b18);color:#17120a;font-size:27px}
+#goviProfileActionCard button:last-child{min-height:48px;justify-content:center;border-color:transparent;opacity:.75;font-size:15px}
+#goviProfileActionCard button:last-child .action-icon{display:none}
+.nav-item{font-size:17px;padding:15px 13px;min-height:52px}
+
 
 #goviStoryViewer{display:none;position:fixed;inset:0;z-index:13000;background:#050505f5;align-items:center;justify-content:center;padding:12px}
 #goviStoryCard{position:relative;width:min(440px,100%);height:min(780px,92vh);background:#171717;border:1px solid #51452d;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center}
@@ -93,7 +97,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}
   <p class="demo-note">En el registro, Supabase puede pedirte confirmar tu correo electrónico.</p>    
 </div></div>    
 <div id="goviStoryViewer" role="dialog" aria-label="Historias"><div id="goviStoryCard"><div id="goviStoryTop"><img id="goviStoryAvatar" alt=""><b id="goviStoryAuthor"></b><span id="goviStoryTime"></span><button id="goviStoryClose" type="button">×</button></div><img id="goviStoryMedia" alt="Historia" style="display:none"><video id="goviStoryVideo" controls playsinline style="display:none;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;background:#050505"></video><button id="goviStoryPrev" type="button">‹</button><button id="goviStoryNext" type="button">›</button><button id="goviStoryDelete" type="button" style="display:none">Eliminar historia</button></div></div>
-<div id="goviProfileActionMenu"><div id="goviProfileActionCard"><h3 id="goviProfileActionTitle">Perfil GOVI</h3><button type="button" id="goviActionViewProfile">👤 VER PERFIL</button><button type="button" id="goviActionViewStory">⭕ VER HISTORIA</button><button type="button" id="goviActionCancel">Cancelar</button></div></div>
+<div id="goviProfileActionMenu"><div id="goviProfileActionCard"><h3 id="goviProfileActionTitle">Perfil GOVI</h3><button type="button" id="goviActionViewProfile"><span class="action-icon">👤</span><span>VER PERFIL</span></button><button type="button" id="goviActionViewStory"><span class="action-icon">⭕</span><span>VER HISTORIA</span></button><button type="button" id="goviActionCancel">Cancelar</button></div></div>
 <input id="goviStoryInput" type="file" accept="image/*,video/*" style="display:none">
 <div class="toast" id="toast"></div>    
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>    
@@ -612,8 +616,8 @@ $('goviGalleryDelete').addEventListener('click',goviDeleteGalleryImage);
 let goviTouchX=0;
 goviPhotoViewer.addEventListener('touchstart',e=>{goviTouchX=e.changedTouches[0].screenX},{passive:true});
 goviPhotoViewer.addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-goviTouchX;if(Math.abs(dx)>45){if(dx<0)$('goviGalleryNext').click();else $('goviGalleryPrev').click()}},{passive:true});
-$('goviAvatar').style.cursor='pointer';
-$('goviAvatar').addEventListener('click',()=>goviShowProfileActions(goviCurrentProfile?.id));
+$('goviAvatar').style.cursor='zoom-in';
+$('goviAvatar').addEventListener('click',()=>goviOpenGallery('avatar'));
 $('goviCover').style.cursor='zoom-in';
 $('goviCover').addEventListener('click',()=>goviOpenGallery('cover'));
 
