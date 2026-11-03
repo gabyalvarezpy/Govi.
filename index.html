@@ -174,7 +174,9 @@ $('feed').addEventListener('click',async e=>{
   if(action==='comments'){const area=$('comments-'+id);area.classList.toggle('open');if(area.classList.contains('open'))area.querySelector('input')?.focus();return}    
   if(action==='share')return sharePost(id);    
   if(action==='manage')return managePost(id);    
-  if(action==='send-comment')return addComment(id,btn);\n  if(action==='reply-comment'){const slot=document.getElementById('reply-'+btn.dataset.commentId);if(slot){slot.innerHTML='<div class="reply-form"><input maxlength="1000" placeholder="Escribe tu respuesta…"><button data-action="send-reply" data-id="'+id+'" data-parent-id="'+btn.dataset.commentId+'">Responder</button></div>';slot.querySelector('input')?.focus()}return}\n  if(action==='send-reply')return addComment(id,btn,btn.dataset.parentId);    
+  if(action==='send-comment')return addComment(id,btn);
+  if(action==='reply-comment'){const slot=document.getElementById('reply-'+btn.dataset.commentId);if(slot){slot.innerHTML='<div class="reply-form"><input maxlength="1000" placeholder="Escribe tu respuesta…"><button data-action="send-reply" data-id="'+id+'" data-parent-id="'+btn.dataset.commentId+'">Responder</button></div>';slot.querySelector('input')?.focus()}return}
+  if(action==='send-reply')return addComment(id,btn,btn.dataset.parentId);    
   if(action==='edit-comment')return editComment(id,btn.dataset.postId);    
   if(action==='delete-comment')return deleteComment(id,btn.dataset.postId);    
 });    
@@ -770,8 +772,10 @@ document.getElementById('goviCropSave').addEventListener('click',()=>{
   if(!goviCropState)return;const s=goviCropState,canvas=document.getElementById('goviCropCanvas'),type=s.type;
   canvas.toBlob(async blob=>{if(!blob){toast('No se pudo preparar la imagen');return}const file=new File([blob],type+'-govi.jpg',{type:'image/jpeg'});document.getElementById('goviCropModal').style.display='none';goviCropState=null;await goviUploadProfileImage(file,type)},'image/jpeg',.92);
 });
-\n/* Recuperar la sesión y mostrar el perfil actualizado */
+
+/* Recuperar la sesión y mostrar el perfil actualizado */
 refreshSession();
 </script>
-<div class="overlay" id="goviCropModal" style="display:none;z-index:10000"><div class="modal" style="width:min(94vw,520px)"><div class="modal-head"><h2 id="goviCropTitle">Ajustar imagen</h2><button class="close" id="goviCropCancel">×</button></div><p class="demo-note">Arrastra la imagen para centrarla y usa el zoom.</p><canvas id="goviCropCanvas" style="width:100%;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none"></canvas><label style="display:block;margin:15px 0">Zoom <input id="goviCropZoom" type="range" min="1" max="3" step=".01" value="1" style="width:100%"></label><button class="primary" id="goviCropSave" style="width:100%">Guardar recorte</button></div></div>\n</body>
+<div class="overlay" id="goviCropModal" style="display:none;z-index:10000"><div class="modal" style="width:min(94vw,520px)"><div class="modal-head"><h2 id="goviCropTitle">Ajustar imagen</h2><button class="close" id="goviCropCancel">×</button></div><p class="demo-note">Arrastra la imagen para centrarla y usa el zoom.</p><canvas id="goviCropCanvas" style="width:100%;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none"></canvas><label style="display:block;margin:15px 0">Zoom <input id="goviCropZoom" type="range" min="1" max="3" step=".01" value="1" style="width:100%"></label><button class="primary" id="goviCropSave" style="width:100%">Guardar recorte</button></div></div>
+</body>
 </html>
