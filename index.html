@@ -414,6 +414,18 @@ body{background:radial-gradient(ellipse at 50% -18%,#30230d 0,#111 34%,#090909 7
 @media(min-width:1100px){.content{max-width:1120px!important}.layout{grid-template-columns:245px minmax(0,1fr) 300px!important}}
 </style>
 
+<style id="govi-story-category-premium">
+#goviStoryCategoryBar{display:flex;gap:8px;overflow-x:auto;padding:5px 1px 12px;scrollbar-width:thin;scrollbar-color:#a98432 transparent;position:sticky;top:52px;z-index:9;background:linear-gradient(#171717 82%,transparent);-webkit-overflow-scrolling:touch}
+.govi-story-tab{flex:0 0 auto;border:1px solid #695326;background:#171717;color:#d7c9a8;border-radius:999px;padding:10px 14px;font-size:12px;font-weight:850;white-space:nowrap}
+.govi-story-tab.active{background:linear-gradient(120deg,#f3dc91,#bd8c28);color:#17120a;border-color:#f5d879;box-shadow:0 4px 18px #d4af3733}
+.govi-story-compose-card{background:linear-gradient(160deg,#1c1c1c,#0d0d0d)!important;border-color:#80652d!important}
+.govi-story-preview{background:#080808!important;border:1px solid #9a762b!important;box-shadow:0 12px 38px #0009,0 0 22px #d4af3712}
+.govi-sticker-folder summary{list-style:none;border:1px solid #594725;border-radius:12px;padding:9px 11px;background:#1d1a14;color:#f3d47c;font-size:12px;font-weight:800;cursor:pointer}
+.govi-sticker-folder>div{display:flex;gap:6px;flex-wrap:wrap;padding:7px}
+.govi-sticker-folder button{background:#292319;border:1px solid #594725;border-radius:10px;padding:8px;font-size:22px}
+.govi-extra-media-tools label{border:1px solid #715a2a!important;background:#1b1811!important;border-radius:12px!important;color:#f2d57e!important}
+@media(max-width:700px){#goviStoryCategoryBar{top:42px;margin:0 -2px}.govi-story-tab{padding:10px 12px;font-size:11px}.govi-story-compose-card{padding:12px!important}}
+</style>
 </head>    
 <body>    
 <header class="topbar">    
@@ -461,6 +473,13 @@ body{background:radial-gradient(ellipse at 50% -18%,#30230d 0,#111 34%,#090909 7
 <div id="goviStoryComposer" class="govi-story-composer" aria-label="Crear historia">
   <div class="govi-story-compose-card">
     <div class="govi-story-compose-head"><div><small>GOVI · TU MOMENTO</small><h2>Crear historia</h2></div><button type="button" id="goviStoryComposeClose">×</button></div>
+    <nav id="goviStoryCategoryBar" aria-label="Categorías de historias">
+      <button type="button" class="govi-story-tab active" data-story-tab="emojis">😀 Emojis</button>
+      <button type="button" class="govi-story-tab" data-story-tab="gifs">✨ GIFs</button>
+      <button type="button" class="govi-story-tab" data-story-tab="media">📷 Fotos / Vídeos</button>
+      <button type="button" class="govi-story-tab" data-story-tab="music">🎵 Música</button>
+      <button type="button" class="govi-story-tab" data-story-tab="links">🔗 Links</button>
+    </nav>
     <p style="color:#c9bea3;font-size:14px;margin:0 0 10px">Elige qué quieres incluir. Puedes combinar las tres opciones:</p>
     <div id="goviStoryChoices" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
       <button type="button" class="govi-story-choice" data-part="text" aria-pressed="false">✍️ Texto</button>
@@ -776,7 +795,7 @@ function goviApplyStoryEditorStyles(){
   $('goviStoryPreviewImage').style.transform='scale('+scale+')';$('goviStoryPreviewVideo').style.transform='scale('+scale+')';
 }
 function goviUpdateStoryPreview(){
-  const file=$('goviStoryFile').files[0],txt=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
+  const file=$('goviStoryFile').files[0]||$('goviStoryGifFile')?.files?.[0],txt=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
   const box=$('goviStoryPreview'),img=$('goviStoryPreviewImage'),video=$('goviStoryPreviewVideo');
   img.style.display='none';video.pause();video.removeAttribute('src');video.load();video.style.display='none';
   goviStoryObjectUrls.forEach(URL.revokeObjectURL);goviStoryObjectUrls=[];
@@ -786,6 +805,18 @@ function goviUpdateStoryPreview(){
   const a=$('goviStoryPreviewLink');a.textContent=link;a.href=link||'#';a.style.display=link?'block':'none';
   box.style.display='block';goviApplyStoryEditorStyles();
 }
+/* Categorías del editor de historias GOVI */
+document.querySelectorAll('[data-story-tab]').forEach(tab=>tab.addEventListener('click',()=>{
+ document.querySelectorAll('[data-story-tab]').forEach(x=>x.classList.toggle('active',x===tab));
+ const section=tab.dataset.storyTab;
+ if(section==='emojis'){document.querySelector('.govi-story-emoji-row')?.scrollIntoView({behavior:'smooth',block:'nearest'});}
+ if(section==='gifs'){$('goviStoryMediaWrap').hidden=false;$('goviStoryGifFile')?.click();}
+ if(section==='media'){$('goviStoryMediaWrap').hidden=false;$('goviStoryFile')?.click();}
+ if(section==='music'){$('goviStoryAudioFile')?.click();}
+ if(section==='links'){$('goviStoryLinkWrap').hidden=false;$('goviStoryLink')?.focus();}
+}));
+$('goviStoryGifFile')?.addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;$('goviStoryFile').value='';$('goviStoryFileName').textContent='GIF seleccionado: '+file.name;goviUpdateStoryPreview()});
+$('goviStoryAudioFile')?.addEventListener('change',e=>{const file=e.target.files?.[0];if(file)$('goviStoryFileName').textContent='Música seleccionada: '+file.name});
 function goviEnableStoryDrag(el,kind){
   const canvas=$('goviStoryPreview'),active=new Map();let start=null;
   canvas.addEventListener('pointerdown',e=>{const hit=e.target.closest('#goviStoryPreviewText,#goviStoryPreviewLink');if(hit!==el&&active.size===0)return;if(el.style.display==='none')return;const chosen=active.size?el:hit;if(chosen!==el)return;active.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.setPointerCapture(e.pointerId);if(active.size===1)start={x:e.clientX,y:e.clientY,px:goviStoryPositions[kind].x,py:goviStoryPositions[kind].y};if(active.size===2){const p=[...active.values()];start={pinch:true,distance:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),size:Number(el.dataset.size||parseFloat(getComputedStyle(el).fontSize)||30)}}e.preventDefault()});
@@ -799,7 +830,7 @@ $('goviStoryPreview').addEventListener('gestureend',e=>e.preventDefault());
 document.addEventListener('touchmove',e=>{if($('goviStoryComposer').classList.contains('open')&&e.touches.length>1)e.preventDefault()},{passive:false});
 goviEnableStoryDrag($('goviStoryPreviewText'),'text');goviEnableStoryDrag($('goviStoryPreviewLink'),'link');
 ['goviStoryFont','goviStoryColor','goviStoryLinkColor','goviStoryOutline','goviStoryImageScale'].forEach(id=>$(id).addEventListener('input',goviApplyStoryEditorStyles));
-$('goviStoryFile').addEventListener('change',e=>{$('goviStoryFileName').textContent=e.target.files[0]?.name||'También puedes publicar solo texto o un enlace.';goviUpdateStoryPreview()});
+$('goviStoryFile').addEventListener('change',e=>{$('goviStoryGifFile').value='';$('goviStoryFileName').textContent=e.target.files[0]?.name||'También puedes publicar solo texto o un enlace.';goviUpdateStoryPreview()});
 $('goviStoryText').addEventListener('input',goviUpdateStoryPreview);
 $('goviStoryLink').addEventListener('input',goviUpdateStoryPreview);
 document.querySelectorAll('[data-canvas-action]').forEach(button=>button.addEventListener('click',()=>{const action=button.dataset.canvasAction;if(action==='text'){goviToggleStoryPart('text',document.querySelector('[data-part="text"]'));$('goviStoryTextWrap').hidden=false;$('goviStoryText').focus()}if(action==='link'){$('goviStoryLinkWrap').hidden=false;document.querySelector('[data-part="link"]').setAttribute('aria-pressed','true');$('goviStoryLink').focus()}if(action==='media'){$('goviStoryMediaWrap').hidden=false;document.querySelector('[data-part="media"]').setAttribute('aria-pressed','true');$('goviStoryFile').click()}if(action==='emoji'){$('goviStoryTextWrap').hidden=false;document.querySelector('[data-part="text"]').setAttribute('aria-pressed','true');$('goviStoryText').value+=' '+(prompt('Escribe o pega un emoji','🔥')||'');goviUpdateStoryPreview()}if(action==='gif'){$('goviStoryMediaWrap').hidden=false;$('goviStoryGifFile').click()}if(action==='music')$('goviStoryAudioFile').click()}));
@@ -852,7 +883,7 @@ async function goviLoadStories(){
 
 async function goviPublishStory(){
   if(!currentUser){$('goviStoryComposer').classList.remove('open');toast('Tu sesión no está activa. Inicia sesión y vuelve a intentarlo.');openModal('authModal');return}
-  const file=$('goviStoryFile').files[0],storyText=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
+  const file=$('goviStoryFile').files[0]||$('goviStoryGifFile')?.files?.[0],storyText=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
   if(!file&&!storyText&&!link){toast('Añade texto, una foto, un vídeo o un enlace');return}
   if(link&&!/^https?:\/\//i.test(link)){toast('El enlace debe empezar por https:// o http://');return}
   if(file&&file.size>50*1024*1024){toast('La historia no puede superar los 50 MB');return}
