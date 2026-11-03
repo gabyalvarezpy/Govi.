@@ -704,7 +704,7 @@ body{background:radial-gradient(ellipse at 48% -15%,rgba(166,119,42,.14),transpa
       function build(){
         const canvas=$('goviStoryPreview'),card=document.querySelector('#goviStoryComposer .govi-story-compose-card');
         if(!canvas||!card||$('goviStoryLayoutFinal'))return;
-        const tray=document.createElement('div');tray.id='goviStoryControlTray';tray.className='govi-story-control-tray';
+        const tray=$('goviStoryControlTray')||document.createElement('div');tray.id='goviStoryControlTray';tray.className='govi-story-control-tray';
         ['goviStoryChoices','goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>{const el=$(id);if(el)tray.appendChild(el)});
         const toolbar=canvas.querySelector('.govi-story-canvas-tools');
         const style=canvas.querySelector('.govi-story-canvas-style');
