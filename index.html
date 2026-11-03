@@ -69,6 +69,15 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 #goviStoryPublish{width:100%;padding:17px;border:0;border-radius:14px;background:linear-gradient(120deg,#f4d989,#b77b18);color:#17120a;font-size:18px;font-weight:950}
 #goviStoryContent{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;padding:35px;text-align:center;color:white;white-space:pre-wrap;overflow-wrap:anywhere;font-size:clamp(24px,5vw,42px);font-weight:850;background:linear-gradient(145deg,#402b17,#151515,#3b1834)}
 #goviStoryContent a{color:#f6d98d;font-size:17px;overflow-wrap:anywhere}
+.govi-story-preview{position:relative;margin:12px 0 16px;min-height:120px;max-height:360px;overflow:hidden;border:1px solid #66502a;border-radius:14px;background:linear-gradient(145deg,#402b17,#151515,#3b1834);color:#fff;text-align:center;padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.govi-story-preview-label{align-self:flex-start;color:#e8c66a;font-size:10px;font-weight:900;letter-spacing:1.5px}
+.govi-story-preview img,.govi-story-preview video{max-width:100%;max-height:230px;object-fit:contain;border-radius:8px}
+#goviStoryPreviewText{white-space:pre-wrap;overflow-wrap:anywhere;font-size:18px;font-weight:800}
+#goviStoryPreviewLink{color:#f6d98d;overflow-wrap:anywhere;font-size:14px;position:relative;z-index:2}
+#goviStoryContent{background:transparent;z-index:3;pointer-events:none}
+#goviStoryContent a{pointer-events:auto}
+#goviStoryCard #goviStoryMedia,#goviStoryCard #goviStoryVideo{position:relative;z-index:1}
+
 @media(min-width:1500px){.layout{grid-template-columns:270px minmax(0,1fr) 340px}.content{max-width:1400px}}
 @media(max-width:1050px){.layout{grid-template-columns:190px minmax(0,1fr)}.rightcol{display:none}}
 @media(max-width:700px){.topbar{height:64px}.brand{font-size:24px}.layout{display:block;padding:15px 12px 30px}.sidebar{margin-bottom:16px}.nav-item{font-size:14px;min-height:46px;padding:12px}.welcome h1{font-size:25px}.welcome p{font-size:14px}.story{flex-basis:78px}.story-ring{width:68px;height:68px}.post{padding:16px}.post-text{font-size:15px}.govi-story-compose-card{padding:18px}.govi-story-compose-head h2{font-size:23px}}
@@ -137,6 +146,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}
     <div id="goviStoryTextWrap" hidden><textarea id="goviStoryText" maxlength="500" placeholder="¿Qué quieres compartir hoy?"></textarea></div>
     <div id="goviStoryLinkWrap" hidden><input id="goviStoryLink" type="url" placeholder="Pega un enlace · https://..."></div>
     <div id="goviStoryMediaWrap" hidden><label class="govi-story-file">📷 Añadir foto o vídeo<input id="goviStoryFile" type="file" accept="image/*,video/*"></label></div>
+    <div id="goviStoryPreview" class="govi-story-preview" style="display:none"><div class="govi-story-preview-label">VISTA PREVIA</div><img id="goviStoryPreviewImage" alt="Vista previa" style="display:none"><video id="goviStoryPreviewVideo" controls playsinline style="display:none"></video><div id="goviStoryPreviewText"></div><a id="goviStoryPreviewLink" target="_blank" rel="noopener noreferrer" style="display:none"></a></div>
     <div id="goviStoryFileName">También puedes publicar solo texto o un enlace.</div>
     <button type="button" id="goviStoryPublish" onclick="window.goviPublishStory()">PUBLICAR HISTORIA</button>
     <p id="goviStoryStatus" role="status" style="display:none;margin:12px 0 0;padding:12px;border-radius:10px;background:#292116;color:#f4d989;font-size:13px;line-height:1.45;overflow-wrap:anywhere"></p>
@@ -398,7 +408,19 @@ function goviOpenStoryComposer(){
 $('goviAddStory').addEventListener('click',goviOpenStoryComposer);
 $('goviStoryComposeClose').addEventListener('click',()=>$('goviStoryComposer').classList.remove('open'));
 $('goviStoryComposer').addEventListener('click',e=>{if(e.target===$('goviStoryComposer'))$('goviStoryComposer').classList.remove('open')});
-$('goviStoryFile').addEventListener('change',e=>{$('goviStoryFileName').textContent=e.target.files[0]?.name||'También puedes publicar solo texto o un enlace.'});
+function goviUpdateStoryPreview(){
+  const file=$('goviStoryFile').files[0],txt=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
+  const box=$('goviStoryPreview'),img=$('goviStoryPreviewImage'),video=$('goviStoryPreviewVideo');
+  img.style.display='none';video.pause();video.removeAttribute('src');video.load();video.style.display='none';
+  if(file){const url=URL.createObjectURL(file);if(file.type.startsWith('video/')){video.src=url;video.style.display='block'}else if(file.type.startsWith('image/')){img.src=url;img.style.display='block'}}
+  $('goviStoryPreviewText').textContent=txt;
+  $('goviStoryPreviewText').style.display=txt?'block':'none';
+  const a=$('goviStoryPreviewLink');a.textContent=link;a.href=link||'#';a.style.display=link?'block':'none';
+  box.style.display=(file||txt||link)?'flex':'none';
+}
+$('goviStoryFile').addEventListener('change',e=>{$('goviStoryFileName').textContent=e.target.files[0]?.name||'También puedes publicar solo texto o un enlace.';goviUpdateStoryPreview()});
+$('goviStoryText').addEventListener('input',goviUpdateStoryPreview);
+$('goviStoryLink').addEventListener('input',goviUpdateStoryPreview);
 function goviToggleStoryPart(part,button){
   const map={text:'goviStoryTextWrap',link:'goviStoryLinkWrap',media:'goviStoryMediaWrap'};
   const wrap=$(map[part]);if(!wrap)return;
@@ -438,7 +460,7 @@ async function goviPublishStory(){
     }else if(link)mediaType='link';
     const payload={user_id:currentUser.id,media_url:mediaUrl,media_type:mediaType,media_path:path,story_text:storyText||null,link_url:link||null,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()};
     const {error}=await supabaseClient.from('stories').insert(payload);if(error)throw error;
-    $('goviStoryText').value='';$('goviStoryLink').value='';$('goviStoryFile').value='';$('goviStoryFileName').textContent='Selecciona una foto o un vídeo.';document.querySelectorAll('.govi-story-choice').forEach(b=>b.setAttribute('aria-pressed','false'));['goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>$(id).hidden=true);$('goviStoryComposer').classList.remove('open');
+    $('goviStoryText').value='';$('goviStoryLink').value='';$('goviStoryFile').value='';$('goviStoryFileName').textContent='Selecciona una foto o un vídeo.';goviUpdateStoryPreview();document.querySelectorAll('.govi-story-choice').forEach(b=>b.setAttribute('aria-pressed','false'));['goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>$(id).hidden=true);$('goviStoryComposer').classList.remove('open');
     status.textContent='¡Historia publicada correctamente!';toast('¡Historia publicada!');await goviLoadStories();
     const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1);
   }catch(error){
@@ -461,9 +483,12 @@ function goviRenderStory(){
   const img=$('goviStoryMedia'),video=$('goviStoryVideo');video.pause();video.removeAttribute('src');video.load();
   let content=$('goviStoryContent');if(!content){content=document.createElement('div');content.id='goviStoryContent';$('goviStoryCard').appendChild(content)}
   content.style.display='none';img.style.display='none';video.style.display='none';
-  if(item.media_type==='video'&&item.media_url){video.style.display='block';video.src=item.media_url;video.load()}
+  if(item.media_type==='video'&&item.media_url){video.style.display='block';video.src=item.media_url;video.muted=false;video.volume=1;video.load()}
   else if(item.media_type==='image'&&item.media_url){img.style.display='block';img.src=item.media_url}
-  else{content.style.display='flex';content.innerHTML='<div>'+escapeHTML(item.story_text||'')+'</div>'+(item.link_url?'<a href="'+escapeHTML(item.link_url)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(item.link_url)+'</a>':'')}
+  if(item.story_text||item.link_url){
+    content.style.display='flex';
+    content.innerHTML=(item.story_text?'<div>'+escapeHTML(item.story_text)+'</div>':'')+(item.link_url?'<a href="'+escapeHTML(item.link_url)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(item.link_url)+'</a>':'');
+  }
   $('goviStoryPrev').style.display=(goviStoryItemIndex>0||goviStoryGroupIndex>0)?'block':'none';$('goviStoryNext').style.display=(goviStoryItemIndex<group.items.length-1||goviStoryGroupIndex<goviStoryGroups.length-1)?'block':'none';$('goviStoryDelete').style.display=currentUser&&currentUser.id===group.userId?'block':'none';
 }
 function goviStoryStep(direction){
