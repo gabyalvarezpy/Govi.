@@ -3149,9 +3149,9 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   canvas.dataset.goviV8='1';
   /* El panel de herramientas queda superpuesto dentro del marco, a la derecha */
   canvas.appendChild(tray);
-  const toolbar=canvas.querySelector('.govi-story-canvas-tools');
+  const toolbar=tray.querySelector('.govi-story-canvas-tools');
   if(toolbar)canvas.appendChild(toolbar);
-  const style=canvas.querySelector('.govi-story-canvas-style');
+  const style=tray.querySelector('.govi-story-canvas-style');
   if(style)tray.appendChild(style);
   /* Acciones de encuadre y giro */
   const rotate=document.createElement('div');rotate.id='goviStoryRotateControls';
