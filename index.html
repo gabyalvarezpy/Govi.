@@ -708,6 +708,11 @@ body{background:radial-gradient(ellipse at 48% -15%,rgba(166,119,42,.14),transpa
         ['goviStoryChoices','goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>{const el=$(id);if(el)tray.appendChild(el)});
         const toolbar=canvas.querySelector('.govi-story-canvas-tools');
         const style=canvas.querySelector('.govi-story-canvas-style');
+        const legacyTools=card.querySelector('.govi-story-editor-tools');
+        if(legacyTools)tray.appendChild(legacyTools);
+        const category=$('goviStoryCategoryBar');if(category)category.style.setProperty('display','none','important');
+        const intro=category&&category.nextElementSibling;
+        if(intro&&intro.tagName==='P')intro.style.setProperty('display','none','important');
         const emoji=document.querySelector('.govi-story-emoji-row');
         const extra=document.querySelector('.govi-extra-media-tools');
         const hint=document.querySelector('.govi-story-hint');
