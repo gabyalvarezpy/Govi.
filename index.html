@@ -2687,5 +2687,105 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  }
  await sync();window.supabaseClient.auth.onAuthStateChange(()=>setTimeout(sync,0));
 })();
-</script></body>
+</script>
+<style id="govi-home-premium-v2">
+/* GOVI · portada y perfil principal */
+.govi-home-profile{
+  position:relative!important;isolation:isolate!important;overflow:hidden!important;
+  margin:0 0 27px!important;border:1px solid rgba(212,175,55,.28)!important;
+  border-radius:24px!important;background:linear-gradient(145deg,#191919,#101010)!important;
+  box-shadow:0 18px 55px #0008, inset 0 1px #ffffff0b!important;
+}
+.govi-home-cover{
+  height:clamp(190px,22vw,270px)!important;position:relative!important;overflow:hidden!important;
+  background-color:#17130c!important;
+  background-image:linear-gradient(115deg,#090a0d 0%,#211a0d 42%,#72521d 72%,#151515 100%)!important;
+}
+.govi-home-cover:before{
+  content:"";position:absolute;inset:-35% -8% auto 34%;height:180%;
+  border:1px solid #f1d68a30;border-radius:50%;transform:rotate(-18deg);
+  box-shadow:0 0 0 24px #d4af3708,0 0 0 55px #d4af3706,0 0 90px #d4af3712;
+}
+.govi-home-cover:after{
+  content:"G";position:absolute;right:7%;top:50%;transform:translateY(-54%);
+  font-size:clamp(150px,23vw,280px);line-height:1;font-weight:950;letter-spacing:-.12em;
+  color:#f4d77812;text-shadow:0 0 55px #d4af3712;pointer-events:none;
+}
+.govi-home-cover-shade{
+  position:absolute!important;inset:0!important;z-index:1!important;
+  background:linear-gradient(0deg,#111 0%,#1117 25%,transparent 72%),linear-gradient(90deg,#08080875,transparent 75%)!important;
+}
+.govi-home-cover-brand{
+  z-index:2!important;right:20px!important;top:18px!important;
+  padding:9px 13px!important;border:1px solid #f4d77855!important;border-radius:30px!important;
+  background:#09090970!important;backdrop-filter:blur(12px)!important;
+  color:#f4d778!important;font-size:10px!important;letter-spacing:2px!important;
+}
+.govi-home-profile-info{
+  position:relative!important;z-index:2!important;display:flex!important;align-items:center!important;
+  gap:20px!important;min-height:122px!important;padding:0 26px 23px!important;
+}
+.govi-home-avatar{
+  width:126px!important;height:126px!important;flex:0 0 126px!important;margin-top:-66px!important;
+  border:6px solid #151515!important;border-radius:50%!important;
+  background:linear-gradient(145deg,#f7e4a2,#c69a36 58%,#755018)!important;
+  color:#17120a!important;font-size:38px!important;
+  box-shadow:0 8px 28px #000b,0 0 0 1px #d4af3780!important;
+}
+.govi-home-avatar img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
+.govi-home-identity{min-width:0!important;flex:1!important;padding-top:12px!important}
+.govi-home-identity .govi-kicker{color:#d9b85e!important;font-size:9px!important;letter-spacing:2px!important;font-weight:900!important}
+.govi-home-identity h1{margin:6px 0 5px!important;color:#fff!important;font-size:clamp(21px,2.2vw,29px)!important;font-weight:850!important;letter-spacing:-.7px!important}
+.govi-home-identity p{margin:0!important;color:#b7b2a8!important;font-size:13px!important;line-height:1.5!important}
+.govi-home-profile-actions{display:flex!important;flex-wrap:wrap!important;gap:9px!important;align-items:center!important;padding-top:17px!important}
+.govi-home-profile-actions button{
+  min-height:42px!important;padding:0 16px!important;border-radius:12px!important;
+  border:1px solid #d4af3760!important;background:#ffffff08!important;color:#f4d778!important;
+  font-size:12px!important;font-weight:850!important;transition:transform .18s,background .18s!important;
+}
+.govi-home-profile-actions button:first-child{
+  background:linear-gradient(120deg,#f5df9a,#d4af37 65%,#a87920)!important;
+  border-color:transparent!important;color:#17120a!important;box-shadow:0 6px 18px #d4af3726!important;
+}
+.govi-home-profile-actions button:hover{transform:translateY(-2px)!important;background:#d4af371b!important}
+.govi-section-block{margin-top:24px!important}
+.govi-section-heading{display:flex!important;align-items:end!important;justify-content:space-between!important;gap:12px!important;margin:0 2px 10px!important}
+.govi-section-heading h2{margin:4px 0 0!important;color:#fff!important;font-size:22px!important;letter-spacing:-.5px!important}
+.govi-section-caption{color:#aaa397!important;font-size:11px!important}
+.govi-content .stories{padding:13px 5px 20px!important;gap:16px!important}
+.govi-content .story{flex:0 0 76px!important;color:#cfc8b8!important;font-size:11px!important}
+.govi-content .story-ring{width:68px!important;height:68px!important;padding:3px!important}
+.govi-content .story-ring img,.govi-content .story-ring span{border:3px solid #171717!important}
+.govi-content .story-name{max-width:76px!important}
+@media(max-width:760px){
+ .govi-home-profile{border-radius:19px!important;margin-bottom:22px!important}
+ .govi-home-cover{height:174px!important}
+ .govi-home-cover-brand{top:12px!important;right:12px!important;font-size:8px!important;padding:7px 10px!important}
+ .govi-home-profile-info{
+   display:grid!important;grid-template-columns:82px minmax(0,1fr)!important;
+   align-items:start!important;column-gap:13px!important;row-gap:9px!important;
+   padding:0 15px 17px!important;min-height:0!important;
+ }
+ .govi-home-avatar{width:88px!important;height:88px!important;flex-basis:88px!important;margin-top:-42px!important;border-width:5px!important;font-size:29px!important}
+ .govi-home-identity{padding-top:9px!important}
+ .govi-home-identity .govi-kicker{font-size:8px!important;letter-spacing:1.4px!important}
+ .govi-home-identity h1{font-size:20px!important;margin:5px 0!important}
+ .govi-home-identity p{font-size:11px!important}
+ .govi-home-profile-actions{grid-column:1/-1!important;padding-top:5px!important;display:grid!important;grid-template-columns:1fr 1fr!important}
+ .govi-home-profile-actions button{width:100%!important;min-height:41px!important;padding:0 8px!important;font-size:11px!important}
+ .govi-section-block{margin-top:19px!important}
+ .govi-section-heading h2{font-size:20px!important}
+ .govi-section-caption{font-size:9px!important}
+ .govi-content .stories{gap:12px!important;padding:10px 2px 17px!important}
+ .govi-content .story{flex-basis:68px!important}
+ .govi-content .story-ring{width:61px!important;height:61px!important}
+ .govi-content .story-name{max-width:68px!important;font-size:10px!important}
+}
+@media(min-width:1200px){
+ .govi-home-cover{height:250px!important}
+ .govi-home-profile-info{padding-left:30px!important;padding-right:30px!important}
+}
+</style>
+
+</body>
 </html>
