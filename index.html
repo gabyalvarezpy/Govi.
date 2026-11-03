@@ -428,6 +428,7 @@ async function goviPublishStory(){
   }catch(error){if(path)await supabaseClient.storage.from(BUCKET).remove([path]);console.error(error);toast('No se pudo publicar: '+error.message)}
   finally{btn.disabled=false;btn.textContent='PUBLICAR HISTORIA'}
 }
+$('goviStoryPublish').addEventListener('click',goviPublishStory);
 function goviOpenStoryGroup(groupIndex,itemIndex){goviStoryGroupIndex=groupIndex;goviStoryItemIndex=itemIndex;goviRenderStory();$('goviStoryViewer').style.display='flex'}
 function goviRenderStory(){
   const group=goviStoryGroups[goviStoryGroupIndex];if(!group)return;
