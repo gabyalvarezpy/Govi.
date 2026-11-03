@@ -616,7 +616,7 @@ const $=id=>document.getElementById(id);
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),3000)}    
 function openModal(id){$(id).classList.add('show')}    
 function closeModal(id){$(id).classList.remove('show')}    
-async function accountAction(){if(currentUser){if(confirm('¿Quieres cerrar tu sesión de GOVI?'))await supabaseClient.auth.signOut()}else openModal('authModal')}    
+async function accountAction(){if(currentUser){if(confirm('¿Quieres cerrar tu sesión de GOVI?')){await supabaseClient.auth.signOut();const story=document.getElementById('goviStoryComposer');if(story){story.classList.remove('open');story.style.setProperty('display','none','important');story.setAttribute('aria-hidden','true');}const video=document.getElementById('goviStoryPreviewVideo');if(video){video.pause();video.removeAttribute('src');video.load();}}}else openModal('authModal')}    
 function escapeHTML(value=''){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}    
 function initials(name='G'){return name.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'G'}    
 function timeLabel(date){return new Date(date).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'})}    
@@ -2535,7 +2535,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 <script id="govi-auth-composer-guard-js">
 (function(){
  const composer=document.getElementById('goviStoryComposer');
- if(!composer||!window.supabase)return;
+ if(!composer||!window.supabaseClient)return;
  function closeStoryComposer(){
   composer.classList.remove('open');
   composer.style.setProperty('display','none','important');
@@ -2549,7 +2549,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   if(event==='SIGNED_OUT'||!session){closeStoryComposer();}
   else{composer.removeAttribute('aria-hidden');}
  }
- window.supabase.auth.onAuthStateChange(syncAuthState);
+ window.supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||!session){closeStoryComposer();}else if(session){composer.removeAttribute('aria-hidden');}});
  document.getElementById('goviStoryComposeClose')?.addEventListener('click',closeStoryComposer);
 })();
 </script>
