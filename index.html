@@ -573,6 +573,20 @@ body{background:radial-gradient(ellipse at 48% -15%,rgba(166,119,42,.14),transpa
 .govi-mobile-nav{display:none}
 @media(max-width:1100px){.govi-shell{grid-template-columns:205px minmax(0,1fr);width:96%;gap:18px}.govi-rightcol{display:none}}
 @media(max-width:700px){.govi-topbar{height:65px!important;padding:0 13px!important;gap:10px}.govi-brand{min-width:auto}.govi-brand .brand-mark{width:37px;height:37px}.govi-brand-copy strong{font-size:17px}.govi-brand-copy small{font-size:7px}.govi-search{display:none!important}.govi-top-actions{margin-left:auto}.govi-create-btn{font-size:0!important;padding:9px 13px!important}.govi-create-btn span{font-size:22px}.govi-notify-btn{display:none}.govi-shell{display:block;width:auto;margin:17px 12px 100px}.govi-sidebar,.govi-rightcol{display:none!important}.govi-welcome{min-height:150px;padding:21px!important;margin-bottom:24px}.govi-welcome h1{font-size:27px!important}.govi-welcome p{max-width:230px;line-height:1.5}.govi-welcome-mark{width:65px;height:65px;flex-shrink:0}.govi-welcome-mark span{font-size:31px}.govi-section-heading h2{font-size:20px}.govi-section-caption{font-size:9px}.govi-content .stories{padding:12px!important}.govi-mobile-nav{position:fixed;z-index:1000;bottom:0;left:0;right:0;display:flex;justify-content:space-around;align-items:center;padding:9px 8px calc(9px + env(safe-area-inset-bottom));background:rgba(13,14,17,.97);border-top:1px solid var(--govi-line);backdrop-filter:blur(18px)}.govi-mobile-nav button{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;color:#a9a397;font-size:9px;padding:2px 10px}.govi-mobile-nav button span{font-size:20px}.govi-mobile-nav button.active{color:#e6c77f}.govi-mobile-nav .govi-mobile-plus{width:43px;height:43px;border-radius:14px;background:linear-gradient(145deg,#f0d48e,#b78637);color:#15110a;font-size:25px;padding:0;box-shadow:0 5px 18px #b7863740}.govi-mobile-nav .govi-mobile-plus span{font-size:25px}}
+</style><style id="govi-home-facebook-cover">
+.govi-home-profile{overflow:hidden;border:1px solid rgba(214,173,88,.28);border-radius:19px;background:#121419;margin:0 0 29px;box-shadow:0 15px 42px #0005}
+.govi-home-cover{height:190px;position:relative;overflow:hidden;background:linear-gradient(125deg,#20170c,#74501f 48%,#15171b);background-position:center;background-size:cover}
+.govi-home-cover:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 75% 30%,#f1cf8040,transparent 38%),linear-gradient(110deg,#090a0d99,transparent 70%)}
+.govi-home-cover-shade{position:absolute;inset:0;background:linear-gradient(0deg,#101115 0%,transparent 60%)}
+.govi-home-cover-brand{position:absolute;right:20px;top:17px;font-size:9px;letter-spacing:2px;color:#f4d99c;font-weight:850}
+.govi-home-profile-info{position:relative;display:flex;align-items:center;gap:17px;padding:0 22px 20px;min-height:104px}
+.govi-home-avatar{width:108px;height:108px;flex:0 0 108px;margin-top:-55px;position:relative;border:5px solid #121419;border-radius:50%;background:linear-gradient(145deg,#e8c77e,#8b6127);display:grid;place-items:center;color:#17120a;font-size:35px;font-weight:950;overflow:hidden;box-shadow:0 5px 20px #0008}
+.govi-home-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.govi-home-identity{min-width:0;flex:1;padding-top:10px}.govi-home-identity h1{font-size:23px;line-height:1.2;margin:5px 0;color:#f7f1e5}.govi-home-identity p{font-size:12px;color:#aaa397;margin:0}
+.govi-home-profile-actions{display:flex;gap:8px;align-items:center;padding-top:12px}
+.govi-home-profile-actions button{border:1px solid #c49a4e;background:linear-gradient(135deg,#e7c77f,#b98939);color:#17130b;border-radius:10px;padding:10px 14px;font-weight:850;font-size:11px;white-space:nowrap}
+.govi-home-profile-actions button.govi-home-edit{background:#1b1d22;color:#e7c77f;border-color:#554327}
+@media(max-width:700px){.govi-home-cover{height:145px}.govi-home-profile-info{padding:0 13px 16px;gap:11px;flex-wrap:wrap}.govi-home-avatar{width:84px;height:84px;flex-basis:84px;margin-top:-43px;border-width:4px;font-size:28px}.govi-home-identity{padding-top:7px;flex:1 1 calc(100% - 105px)}.govi-home-identity h1{font-size:19px}.govi-home-identity p{font-size:10px}.govi-home-profile-actions{width:100%;padding-top:2px}.govi-home-profile-actions button{flex:1;padding:11px 8px}.govi-home-cover-brand{font-size:8px;right:12px;top:12px}}
 </style></head>    
 <body>    
 <header class="topbar govi-topbar">
@@ -599,9 +613,15 @@ body{background:radial-gradient(ellipse at 48% -15%,rgba(166,119,42,.14),transpa
     <div class="govi-side-motto"><span class="govi-motto-mark">G</span><b>Tu mundo.<br>Tu gente.</b><small>Una comunidad para expresarte.</small></div>
   </aside>
   <main class="content govi-content">
-    <section class="welcome govi-welcome">
-      <div><div class="eyebrow">TU COMUNIDAD · TU VOZ · TU ESPACIO</div><h1>Todo empieza contigo.</h1><p>Descubre, comparte y conecta con personas de tu mundo.</p></div>
-      <div class="govi-welcome-mark"><span>G</span><small>GOVI SOCIAL</small></div>
+    <section class="govi-home-profile" id="goviHomeProfile">
+      <div class="govi-home-cover" id="goviHomeCover">
+        <div class="govi-home-cover-shade"></div><span class="govi-home-cover-brand">GOVI · TU MUNDO. TU GENTE.</span>
+      </div>
+      <div class="govi-home-profile-info">
+        <div class="govi-home-avatar" id="goviHomeAvatar">G</div>
+        <div class="govi-home-identity"><span class="govi-kicker">TU ESPACIO EN GOVI</span><h1 id="goviHomeName">Tu perfil te espera</h1><p id="goviHomeBio">Comparte tu mundo. Conecta con tu gente.</p></div>
+        <div class="govi-home-profile-actions"><button type="button" id="goviHomeViewProfile" onclick="if(currentUser)openGoviProfile(currentUser.id);else openModal('authModal')">Ver mi perfil</button><button type="button" class="govi-home-edit" id="goviHomeEditProfile" onclick="if(currentUser){openGoviProfile(currentUser.id)}else openModal('authModal')">Editar portada</button></div>
+      </div>
     </section>
     <section class="govi-section-block"><div class="govi-section-heading"><div><span class="govi-kicker">MOMENTOS QUE CONECTAN</span><h2>Historias</h2></div><span class="govi-section-caption">Desaparecen en 24 horas</span></div>
       <div class="stories" id="goviStories"><button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div>Tu historia</button><div class="story-loading">Cargando historias…</div></div>
@@ -2648,5 +2668,24 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  document.getElementById('goviStoryComposeClose')?.addEventListener('click',closeStoryComposer);
 })();
 </script>
-</body>
+<script id="govi-home-profile-sync">
+(async function(){
+ const cover=document.getElementById('goviHomeCover'),avatar=document.getElementById('goviHomeAvatar'),name=document.getElementById('goviHomeName'),bio=document.getElementById('goviHomeBio'),edit=document.getElementById('goviHomeEditProfile');
+ if(!cover||!window.supabaseClient)return;
+ async function sync(){
+  try{
+   const {data:{session}}=await window.supabaseClient.auth.getSession();const user=session?.user;
+   if(!user){name.textContent='Tu perfil te espera';avatar.textContent='G';avatar.innerHTML='G';bio.textContent='Inicia sesión y comparte tu mundo con la comunidad.';cover.style.backgroundImage='';edit.textContent='Crear mi perfil';return}
+   const {data}=await window.supabaseClient.from('profiles').select('full_name,avatar_url,cover_url').eq('id',user.id).maybeSingle();
+   const display=data?.full_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'Usuario GOVI';
+   name.textContent=display;bio.textContent='Tu perfil en GOVI · Tu mundo. Tu gente.';
+   avatar.innerHTML=data?.avatar_url?'<img src="'+String(data.avatar_url).replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" alt="Foto de perfil">':String(display.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'G');
+   if(data?.cover_url){cover.style.backgroundImage='url("'+String(data.cover_url).replace(/"/g,'%22')+'")';}
+   else cover.style.backgroundImage='linear-gradient(125deg,#20170c,#74501f 48%,#15171b)';
+   edit.textContent='Editar portada';
+  }catch(e){console.warn('GOVI home profile:',e)}
+ }
+ await sync();window.supabaseClient.auth.onAuthStateChange(()=>setTimeout(sync,0));
+})();
+</script></body>
 </html>
