@@ -3310,3 +3310,33 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  z-index:-1!important;
 }
 </style>
+
+
+<script id="govi-story-toolbar-click-final">
+/* Captura el botón REAL creado por GOVI Story Layout Final. */
+(function(){
+ document.addEventListener('click',function(e){
+  const add=e.target.closest('#goviStoryStoryToolbar .govi-story-tool[aria-label="Añadir"]');
+  if(!add)return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  const composer=document.getElementById('goviStoryComposer');
+  const input=document.getElementById('goviStoryFile');
+  const wrap=document.getElementById('goviStoryMediaWrap');
+  if(composer && !composer.classList.contains('open')){
+   composer.classList.add('open');
+   composer.style.display='flex';
+  }
+  if(wrap)wrap.hidden=false;
+  if(input){
+   input.removeAttribute('disabled');
+   input.removeAttribute('hidden');
+   input.click();
+  }
+ },true);
+})();
+</script>
+<style id="govi-story-toolbar-click-final-style">
+#goviStoryStoryToolbar{position:relative!important;z-index:25010!important;pointer-events:auto!important}
+#goviStoryStoryToolbar .govi-story-tool{position:relative!important;z-index:25011!important;pointer-events:auto!important;touch-action:manipulation!important}
+</style>
