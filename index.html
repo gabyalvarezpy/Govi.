@@ -2595,8 +2595,8 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
  let media={scale:1,x:0,y:0};
  function mediaPaint(){const target=img.style.display!=='none'?img:video;target.style.setProperty('transform','translate(calc(-50% + '+media.x+'px),calc(-50% + '+media.y+'px)) scale('+media.scale+')','important');}
- function posFor(el){return el===link?(window.goviStoryPositions?.link||{x:50,y:80}):(window.goviStoryPositions?.text||{x:50,y:50});}
- function setPos(el,x,y){const key=el===link?'link':'text';if(window.goviStoryPositions){window.goviStoryPositions[key]={x:clamp(x,3,97),y:clamp(y,3,97)};}el.style.left=clamp(x,3,97)+'%';el.style.top=clamp(y,3,97)+'%';}
+ function posFor(el){const key=el===link?'link':'text';return typeof goviStoryPositions!=='undefined'?(goviStoryPositions[key]||{x:50,y:80}):{x:50,y:80};}
+ function setPos(el,x,y){const key=el===link?'link':'text',p={x:clamp(x,3,97),y:clamp(y,3,97)};if(typeof goviStoryPositions!=='undefined')goviStoryPositions[key]=p;el.style.left=p.x+'%';el.style.top=p.y+'%';}
  function down(e){
   const target=e.target,overlay=target===text||text.contains(target)?text:(target===link||link.contains(target)?link:null);
   const mediaTarget=(target===img||target===video)?(target.style.display!=='none'?target:null):null;
