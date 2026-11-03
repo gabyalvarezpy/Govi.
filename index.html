@@ -138,7 +138,7 @@ async function loadFeed(){
   ]);    
   const userIds=[...new Set([...(likes||[]).map(x=>x.user_id),...(comments||[]).map(x=>x.user_id),...posts.map(x=>x.user_id)])];    
   let profiles={};    
-  if(userIds.length){const {data}=await supabaseClient.from('profiles').select('id,full_name').in('id',userIds);(data||[]).forEach(p=>profiles[p.id]=p.full_name)}    
+  if(userIds.length){const {data}=await supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',userIds);(data||[]).forEach(p=>profiles[p.id]={name:p.full_name,avatar:p.avatar_url})}    
   feed.replaceChildren();    
   posts.forEach(post=>feed.append(renderPost(post,likes||[],comments||[],profiles)));    
   applyFilter();    
@@ -148,7 +148,7 @@ function renderPost(post,likes,comments,profiles){
   const mine=currentUser&&post.user_id===currentUser.id;    
   const postLikes=likes.filter(x=>x.post_id===post.id), postComments=comments.filter(x=>x.post_id===post.id);    
   const liked=!!currentUser&&postLikes.some(x=>x.user_id===currentUser.id);    
-  const author=profiles[post.user_id]|| (mine?'Tú':'Usuario GOVI');    
+  const authorProfile=profiles[post.user_id]||{}; const author=authorProfile.name|| (mine?'Tú':'Usuario GOVI'); const authorAvatar=authorProfile.avatar;    
   const article=document.createElement('article');article.className='post panel';article.id='post-'+post.id;article.dataset.kind=post.media_type||'text';article.dataset.search=(author+' '+(post.content||'')).toLowerCase();    
   let media='';    
   if(post.media_url){    
@@ -156,10 +156,10 @@ function renderPost(post,likes,comments,profiles){
       ? `<video class="post-media video" controls playsinline preload="metadata" src="${escapeHTML(post.media_url)}"></video>`    
       : `<img class="post-media" loading="lazy" src="${escapeHTML(post.media_url)}" alt="Fotografía compartida en GOVI">`;    
   }    
-  const renderOneComment=(c,isReply=false)=>`<div class="comment ${isReply?'comment-reply':''}"><b>${escapeHTML(profiles[c.user_id]||'Usuario')}</b>${escapeHTML(c.content)}<div class="post-meta">${timeLabel(c.created_at)}${c.updated_at?' · editado':''}</div><div class="comment-actions">${currentUser?`<button data-action="reply-comment" data-id="${post.id}" data-comment-id="${c.id}">Responder</button>`:''}${currentUser&&c.user_id===currentUser.id?`<button data-action="edit-comment" data-id="${c.id}" data-post-id="${post.id}">Editar</button><button data-action="delete-comment" data-id="${c.id}" data-post-id="${post.id}">Eliminar</button>`:''}</div><div class="reply-composer" id="reply-${c.id}"></div>${postComments.filter(r=>r.parent_comment_id===c.id).map(r=>renderOneComment(r,true)).join('')}</div>`;
+  const renderOneComment=(c,isReply=false)=>{const cp=profiles[c.user_id]||{};const cn=cp.name||'Usuario';return `<div class="comment ${isReply?'comment-reply':''}"><div class="comment-user" style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span class="avatar comment-avatar" data-user-id="${c.user_id}" style="width:27px;height:27px;min-width:27px;overflow:hidden;cursor:pointer">${cp.avatar?`<img src="${escapeHTML(cp.avatar)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:escapeHTML(initials(cn))}</span><b data-user-id="${c.user_id}" style="cursor:pointer">${escapeHTML(cn)}</b></div>${escapeHTML(c.content)}<div class="post-meta">${timeLabel(c.created_at)}${c.updated_at?' · editado':''}</div><div class="comment-actions">${currentUser?`<button data-action="reply-comment" data-id="${post.id}" data-comment-id="${c.id}">Responder</button>`:''}${currentUser&&c.user_id===currentUser.id?`<button data-action="edit-comment" data-id="${c.id}" data-post-id="${post.id}">Editar</button><button data-action="delete-comment" data-id="${c.id}" data-post-id="${post.id}">Eliminar</button>`:''}</div><div class="reply-composer" id="reply-${c.id}"></div>${postComments.filter(r=>r.parent_comment_id===c.id).map(r=>renderOneComment(r,true)).join('')}</div>`};
   const commentHTML=postComments.filter(c=>!c.parent_comment_id).map(c=>renderOneComment(c)).join('');    
   article.innerHTML=`    
-    <div class="post-head"><div class="avatar">${escapeHTML(initials(author))}</div><div><div class="post-author">${escapeHTML(author)}${mine?' · Tú':''}</div><div class="post-meta">${timeLabel(post.created_at)} · Público</div></div>    
+    <div class="post-head"><div class="avatar" style="overflow:hidden;cursor:pointer">${authorAvatar?`<img src="${escapeHTML(authorAvatar)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:escapeHTML(initials(author))}</div><div><div class="post-author">${escapeHTML(author)}${mine?' · Tú':''}</div><div class="post-meta">${timeLabel(post.created_at)} · Público</div></div>    
     ${mine?`<button class="more" aria-label="Opciones" data-action="manage" data-id="${post.id}">···</button>`:''}</div>    
     ${post.content?`<p class="post-text">${escapeHTML(post.content)}</p>`:''}${media}    
     <div class="post-stats"><span>💛 ${postLikes.length} Me gusta</span><span role="button" tabindex="0" data-action="comments" data-id="${post.id}" style="cursor:pointer">${postComments.length} comentarios</span></div>    
@@ -440,7 +440,7 @@ async function goviLoadProfilePosts(userId) {
   const [{data:likes},{data:comments}] = await Promise.all([
     supabaseClient.from('post_likes').select('post_id,user_id').in('post_id',ids),
     supabaseClient.from('post_comments')
-      .select('id,post_id,user_id,content,created_at,updated_at')
+      .select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id')
       .in('post_id',ids)
       .order('created_at',{ascending:true})
   ]);
@@ -455,10 +455,10 @@ async function goviLoadProfilePosts(userId) {
   if(userIds.length) {
     const {data} = await supabaseClient
       .from('profiles')
-      .select('id,full_name')
+      .select('id,full_name,avatar_url')
       .in('id',userIds);
 
-    (data||[]).forEach(p=>profiles[p.id]=p.full_name);
+    (data||[]).forEach(p=>profiles[p.id]={name:p.full_name,avatar:p.avatar_url});
   }
 
   feed.replaceChildren();
@@ -486,10 +486,22 @@ renderPost = function(post,likes,comments,profiles) {
   return article;
 };
 
+/* Visor ampliado de fotos de perfil: solo visualización */
+const goviPhotoViewer=document.createElement('div');
+goviPhotoViewer.id='goviPhotoViewer';
+goviPhotoViewer.style.cssText='display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.92);align-items:center;justify-content:center;padding:20px';
+goviPhotoViewer.innerHTML='<button type="button" aria-label="Cerrar" style="position:absolute;top:18px;right:20px;background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:42px;height:42px;font-size:25px">×</button><img alt="Foto de perfil ampliada" style="max-width:94vw;max-height:85vh;object-fit:contain;border-radius:12px">';
+document.body.appendChild(goviPhotoViewer);
+goviPhotoViewer.addEventListener('click',()=>goviPhotoViewer.style.display='none');
+function goviShowProfilePhoto(url){if(!url)return;goviPhotoViewer.querySelector('img').src=url;goviPhotoViewer.style.display='flex'}
+$('goviAvatar').style.cursor='zoom-in';
+$('goviAvatar').addEventListener('click',()=>goviShowProfilePhoto(goviCurrentProfile?.avatar_url));
+
 /* Clic en el nombre o la foto de un usuario */
 $('feed').addEventListener('click',function(e) {
   const target = e.target.closest('[data-user-id]');
   if(target) {
+    if(target.classList.contains('comment-avatar') || target.closest('.comment-user')) { const img=target.querySelector('img')||target.closest('.comment-user')?.querySelector('img'); if(img?.src){goviShowProfilePhoto(img.src);return;} }
     e.preventDefault();
     e.stopPropagation();
     openGoviProfile(target.dataset.userId);
