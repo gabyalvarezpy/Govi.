@@ -138,7 +138,7 @@ async function loadFeed(){
   ]);    
   const userIds=[...new Set([...(likes||[]).map(x=>x.user_id),...(comments||[]).map(x=>x.user_id),...posts.map(x=>x.user_id)])];    
   let profiles={};    
-  if(userIds.length){const {data}=await supabaseClient.from('profiles').select('id,display_name').in('id',userIds);(data||[]).forEach(p=>profiles[p.id]=p.display_name)}    
+  if(userIds.length){const {data}=await supabaseClient.from('profiles').select('id,full_name').in('id',userIds);(data||[]).forEach(p=>profiles[p.id]=p.full_name)}    
   feed.replaceChildren();    
   posts.forEach(post=>feed.append(renderPost(post,likes||[],comments||[],profiles)));    
   applyFilter();    
@@ -244,7 +244,7 @@ async function handleAuth(){
   button.disabled=true;button.textContent='Conectando…';    
   try{    
     if(authMode==='register'){    
-      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{display_name:name,full_name:name}}});if(error)throw error;    
+      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,full_name:name}}});if(error)throw error;    
       if(data.user&&!data.session)toast('Registro enviado. Revisa tu correo para confirmar la cuenta.');else toast('¡Cuenta creada en GOVI!');    
     }else{const {error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;toast('¡Bienvenido a GOVI!')}    
     closeModal('authModal');await refreshSession();    
@@ -253,7 +253,7 @@ async function handleAuth(){
 }    
 async function refreshSession(){    
   const {data:{session}}=await supabaseClient.auth.getSession();currentUser=session?.user||null;    
-  const label=currentUser?.user_metadata?.display_name||currentUser?.user_metadata?.full_name||currentUser?.email||'G';    
+  const label=currentUser?.user_metadata?.full_name||currentUser?.user_metadata?.full_name||currentUser?.email||'G';    
   $('accountButton').textContent=initials(label);$('composerAvatar').textContent=initials(label);    
   await loadFeed();    
 }    
@@ -343,12 +343,12 @@ document.body.appendChild(goviCoverInput);
 async function goviGetProfile(userId) {
   const {data,error} = await supabaseClient
     .from('profiles')
-    .select('id,display_name,avatar_url,cover_url')
+    .select('id,full_name,avatar_url,cover_url')
     .eq('id',userId)
     .maybeSingle();
 
   if(error) throw error;
-  return data || {id:userId,display_name:'Usuario GOVI',avatar_url:null,cover_url:null};
+  return data || {id:userId,full_name:'Usuario GOVI',avatar_url:null,cover_url:null};
 }
 
 /* Mostrar perfil público */
@@ -371,11 +371,11 @@ async function openGoviProfile(userId) {
     goviCurrentProfile = await goviGetProfile(userId);
 
     $('goviProfileName').textContent =
-      goviCurrentProfile.display_name || 'Usuario GOVI';
+      goviCurrentProfile.full_name || 'Usuario GOVI';
 
     $('goviAvatar').innerHTML = goviCurrentProfile.avatar_url
       ? `<img src="${escapeHTML(goviCurrentProfile.avatar_url)}" alt="Foto de perfil">`
-      : escapeHTML(initials(goviCurrentProfile.display_name || 'G'));
+      : escapeHTML(initials(goviCurrentProfile.full_name || 'G'));
 
     $('goviCover').innerHTML = goviCurrentProfile.cover_url
       ? `<img src="${escapeHTML(goviCurrentProfile.cover_url)}" alt="Foto de portada">`
@@ -451,10 +451,10 @@ async function goviLoadProfilePosts(userId) {
   if(userIds.length) {
     const {data} = await supabaseClient
       .from('profiles')
-      .select('id,display_name')
+      .select('id,full_name')
       .in('id',userIds);
 
-    (data||[]).forEach(p=>profiles[p.id]=p.display_name);
+    (data||[]).forEach(p=>profiles[p.id]=p.full_name);
   }
 
   feed.replaceChildren();
@@ -622,8 +622,8 @@ async function goviUpdateAccountAvatars() {
 
   try {
     const profile = await goviGetProfile(currentUser.id);
-    const name = profile.display_name ||
-      currentUser.user_metadata?.display_name ||
+    const name = profile.full_name ||
+      currentUser.user_metadata?.full_name ||
       currentUser.email || 'G';
 
     $('accountButton').innerHTML = profile.avatar_url
