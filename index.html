@@ -202,6 +202,23 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 .govi-story-preview,#goviStoryPreviewText,#goviStoryPreviewLink{touch-action:none!important;overscroll-behavior:none!important}
 @media(max-width:700px){.govi-story-compose-card{display:flex!important;flex-direction:column!important}.govi-story-preview{width:min(100%,340px)!important;max-height:58dvh!important;flex:none!important}.govi-story-canvas-tools{top:42px!important}.govi-story-canvas-style{bottom:6px!important}}
 
+/* Editor unificado: todas las herramientas viven dentro del lienzo 9:16 */
+#goviStoryPreview{display:block!important;position:relative!important;overflow:hidden!important}
+.govi-story-in-canvas-controls{position:absolute;z-index:11;top:88px;left:8px;right:8px;bottom:76px;overflow-y:auto;overscroll-behavior:contain;padding:9px;border:1px solid #ffffff35;border-radius:14px;background:#090909b8;backdrop-filter:blur(10px);text-align:left;display:flex;flex-direction:column;gap:7px}
+.govi-story-in-canvas-controls #goviStoryChoices{display:flex!important;gap:5px!important;flex-wrap:wrap!important;margin:0!important}
+.govi-story-in-canvas-controls .govi-story-choice{min-width:0;flex:1;padding:8px 5px;font-size:11px}
+.govi-story-in-canvas-controls #goviStoryTextWrap textarea{width:100%;min-height:66px;max-height:110px;resize:vertical;background:#111;color:#fff;border:1px solid #ffffff40;border-radius:9px;padding:9px;font-size:14px}
+.govi-story-in-canvas-controls #goviStoryLinkWrap input{width:100%;background:#111;color:#fff;border:1px solid #ffffff40;border-radius:9px;padding:9px;font-size:13px}
+.govi-story-in-canvas-controls .govi-story-file{margin:0;padding:9px;font-size:12px}
+.govi-story-in-canvas-controls .govi-story-emoji-row{max-height:none;overflow:visible;margin:0!important;gap:5px!important}
+.govi-story-in-canvas-controls .govi-extra-media-tools{display:flex!important;gap:6px;align-items:center}
+.govi-story-in-canvas-controls .govi-extra-media-tools label{padding:7px 8px;font-size:11px}
+.govi-story-in-canvas-controls .govi-extra-media-tools input{max-width:130px;font-size:10px}
+.govi-story-in-canvas-controls .govi-story-hint{font-size:10px!important;margin:0}
+.govi-story-canvas-tools{top:7px!important}
+.govi-story-canvas-style{bottom:7px!important}
+.govi-story-in-canvas-controls [hidden]{display:none!important}
+@media(max-width:700px){.govi-story-in-canvas-controls{top:78px;bottom:72px;padding:7px}.govi-story-canvas-tools button{padding:6px 7px!important;font-size:10px!important}.govi-story-canvas-style{gap:3px!important}}
 </style>    
 </head>    
 <body>    
@@ -275,6 +292,18 @@ button,input,textarea{font:inherit}button{cursor:pointer}
     <div class="govi-extra-media-tools"><label>🎞️ GIF animado<input id="goviStoryGifFile" type="file" accept="image/gif,.gif"></label><label>🎵 Música sin copyright<input id="goviStoryAudioFile" type="file" accept="audio/*"></label><small>Usa música propia o con licencia libre de uso. GOVI no incluye canciones comerciales protegidas.</small></div>
     <p class="govi-story-hint">Toca y arrastra las letras o el enlace sobre la historia para ubicarlos donde quieras. También puedes añadir un GIF desde tus archivos.</p>
     <div id="goviStoryPreview" class="govi-story-preview" style="display:none"><div class="govi-story-preview-label">VISTA PREVIA</div><div class="govi-story-canvas-tools"><button type="button" data-canvas-action="text">Aa Texto</button><button type="button" data-canvas-action="link">🔗 Link</button><button type="button" data-canvas-action="media">＋ Foto</button><button type="button" data-canvas-action="emoji">😊 Emoji</button><button type="button" data-canvas-action="gif">GIF</button><button type="button" data-canvas-action="music">🎵 Música</button></div><div class="govi-story-canvas-style"><label>Letra <select id="goviStoryFontCanvas"><option value="Arial,sans-serif">Moderna</option><option value="Georgia,serif">Elegante</option><option value="'Courier New',monospace">Máquina</option><option value="Impact,sans-serif">Gruesa</option></select></label><label>Color <input id="goviStoryColorCanvas" type="color" value="#ffffff"></label><label>Contorno <select id="goviStoryOutlineCanvas"><option value="1px 2px 5px #000">Sombra</option><option value="none">No</option><option value="1px 1px 2px #000, -1px -1px 2px #000">Negro</option><option value="0 0 8px #fff">Brillo</option></select></label><label>Tamaño <input id="goviStoryTextSize" type="range" min="12" max="90" value="30"></label></div><img id="goviStoryPreviewImage" alt="Vista previa" style="display:none"><video id="goviStoryPreviewVideo" controls playsinline style="display:none"></video><div id="goviStoryPreviewText" data-drag="text"></div><a id="goviStoryPreviewLink" data-drag="link" target="_blank" rel="noopener noreferrer" style="display:none"></a></div>
+    <script>
+    (function(){
+      const canvas=document.getElementById('goviStoryPreview');
+      if(!canvas||document.getElementById('goviStoryControlTray'))return;
+      const tray=document.createElement('div');tray.id='goviStoryControlTray';tray.className='govi-story-in-canvas-controls';
+      const ids=['goviStoryChoices','goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'];
+      ids.forEach(id=>{const el=document.getElementById(id);if(el)tray.appendChild(el)});
+      ['.govi-story-emoji-row','.govi-extra-media-tools','.govi-story-hint'].forEach(sel=>{const el=document.querySelector(sel);if(el)tray.appendChild(el)});
+      canvas.appendChild(tray);
+      canvas.style.display='block';
+    })();
+    </script>
     <div id="goviStoryFileName">También puedes publicar solo texto o un enlace.</div>
     <button type="button" id="goviStoryPublish" onclick="window.goviPublishStory()">PUBLICAR HISTORIA</button>
     <p id="goviStoryStatus" role="status" style="display:none;margin:12px 0 0;padding:12px;border-radius:10px;background:#292116;color:#f4d989;font-size:13px;line-height:1.45;overflow-wrap:anywhere"></p>
@@ -561,7 +590,7 @@ function goviUpdateStoryPreview(){
   $('goviStoryPreviewText').textContent=txt;
   $('goviStoryPreviewText').style.display=txt?'block':'none';
   const a=$('goviStoryPreviewLink');a.textContent=link;a.href=link||'#';a.style.display=link?'block':'none';
-  box.style.display=(file||txt||link)?'flex':'none';goviApplyStoryEditorStyles();
+  box.style.display='block';goviApplyStoryEditorStyles();
 }
 function goviEnableStoryDrag(el,kind){
   const canvas=$('goviStoryPreview'),active=new Map();let start=null;
