@@ -975,7 +975,7 @@ async function goviLoadStories(){
  finish();
 })();
 
-async function goviPublishStory(){
+async async function goviPublishStory(){
   if(!currentUser){$('goviStoryComposer').classList.remove('open');toast('Tu sesión no está activa. Inicia sesión y vuelve a intentarlo.');openModal('authModal');return}
   const file=$('goviStoryFile').files[0]||$('goviStoryGifFile')?.files?.[0],storyText=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
   if(!file&&!storyText&&!link){toast('Añade texto, una foto, un vídeo o un enlace');return}
@@ -2431,6 +2431,46 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  }
  const txt=$('goviStoryText'),previewText=$('goviStoryPreviewText');
  if(txt&&previewText){txt.addEventListener('input',()=>{previewText.textContent=txt.value;previewText.style.display=txt.value.trim()?'block':'none';});}
+})();
+</script>
+
+
+<!-- GOVI STORY PATCH: sin recuadro y medios editables -->
+<style id="govi-story-canvas-clean">
+#goviStoryPreview{display:block!important;position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important;background-image:none!important;border:0!important;border-radius:0!important;outline:0!important;box-shadow:none!important;display:block!important}
+#goviStoryPreview>.govi-story-preview-label,#goviStoryPreview>.govi-story-canvas-tools,#goviStoryPreview>.govi-story-canvas-style{display:none!important}
+#goviStoryPreviewImage,#goviStoryPreviewVideo{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;transform-origin:center center!important}
+#goviStoryPreviewText,#goviStoryPreviewLink{position:absolute!important;z-index:20!important;pointer-events:auto!important;touch-action:none!important}
+#goviStoryComposer .govi-story-compose-card{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+</style>
+<script id="govi-story-media-edit-patch">
+(function(){
+ const $=id=>document.getElementById(id),file=$('goviStoryFile'),gif=$('goviStoryGifFile'),img=$('goviStoryPreviewImage'),vid=$('goviStoryPreviewVideo'),canvas=$('goviStoryPreview'),scale=$('goviStoryImageScale');
+ if(!file||!img||!vid||!canvas)return;
+ let url=null,zoom=1;
+ function show(f){
+  if(!f)return;
+  if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(f);
+  if(f.type.startsWith('video/')){img.style.display='none';vid.pause();vid.srcObject=null;vid.src=url;vid.controls=true;vid.muted=true;vid.loop=true;vid.style.display='block';vid.play().catch(()=>{});}
+  else{vid.pause();vid.srcObject=null;vid.removeAttribute('src');vid.load();vid.style.display='none';img.src=url;img.style.display='block';}
+  canvas.style.display='block';applyZoom();
+  const label=$('goviStoryFileName');if(label)label.textContent=f.name||'GIF seleccionado';
+ }
+ function applyZoom(){
+  zoom=scale?Number(scale.value)/100:1;
+  const target=img.style.display!=='none'?img:vid;
+  target.style.setProperty('transform','scale('+zoom+')','important');
+ }
+ file.addEventListener('change',()=>show(file.files&&file.files[0]));
+ if(gif)gif.addEventListener('change',()=>{
+  const f=gif.files&&gif.files[0];if(!f)return;
+  const dt=new DataTransfer();dt.items.add(f);file.files=dt.files;show(f);
+ });
+ if(scale)scale.addEventListener('input',applyZoom);
+ const size=$('goviStoryTextSize'),previewText=$('goviStoryPreviewText');
+ if(size&&previewText)size.addEventListener('input',()=>{previewText.style.fontSize=size.value+'px';});
+ // Asegura que el contenido superpuesto se pueda mover y no quede tapado por el lienzo.
+ [previewText,$('goviStoryPreviewLink')].forEach(el=>{if(el){el.style.zIndex='20';el.style.pointerEvents='auto';el.style.touchAction='none';}});
 })();
 </script>
 
