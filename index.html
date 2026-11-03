@@ -620,7 +620,7 @@ body{background:radial-gradient(ellipse at 48% -15%,rgba(166,119,42,.14),transpa
       <div class="govi-home-profile-info">
         <div class="govi-home-avatar" id="goviHomeAvatar">G</div>
         <div class="govi-home-identity"><span class="govi-kicker">TU ESPACIO EN GOVI</span><h1 id="goviHomeName">Tu perfil te espera</h1><p id="goviHomeBio">Comparte tu mundo. Conecta con tu gente.</p></div>
-        <div class="govi-home-profile-actions"><button type="button" id="goviHomeViewProfile" onclick="if(currentUser)openGoviProfile(currentUser.id);else openModal('authModal')">Ver mi perfil</button><button type="button" class="govi-home-edit" id="goviHomeEditProfile" onclick="if(currentUser){openGoviProfile(currentUser.id)}else openModal('authModal')">Editar portada</button></div>
+        <div class="govi-home-profile-actions"><button type="button" id="goviHomeViewProfile" onclick="if(currentUser)openGoviProfile(currentUser.id);else openModal('authModal')">Ver mi perfil</button><button type="button" class="govi-home-edit" id="goviHomeEditProfile" onclick="if(currentUser)document.getElementById('goviCoverInput').click();else openModal('authModal')">📷 Portada</button><button type="button" class="govi-home-edit" id="goviHomeEditAvatar" onclick="if(currentUser)document.getElementById('goviAvatarInput').click();else openModal('authModal')">👤 Foto de perfil</button></div>
       </div>
     </section>
     <section class="govi-section-block"><div class="govi-section-heading"><div><span class="govi-kicker">MOMENTOS QUE CONECTAN</span><h2>Historias</h2></div><span class="govi-section-caption">Desaparecen en 24 horas</span></div>
@@ -2787,5 +2787,59 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 }
 </style>
 
+
+<style id="govi-story-studio-refresh-v3">
+/* GOVI Story Studio: lienzo limpio, imagen completa y herramientas flotantes */
+#goviStoryComposer.open{display:flex!important;align-items:stretch!important;justify-content:stretch!important;padding:0!important;background:rgba(0,0,0,.96)!important}
+#goviStoryComposer .govi-story-compose-card{position:relative!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;border:0!important;border-radius:0!important;background:#08090d!important;display:block!important}
+#goviStoryComposer .govi-story-compose-head{position:fixed!important;z-index:300!important;top:env(safe-area-inset-top,8px)!important;left:12px!important;right:12px!important;height:44px!important;margin:0!important;padding:4px 12px!important;display:flex!important;align-items:center!important;border:1px solid #ffffff20!important;border-radius:18px!important;background:#111b!important;backdrop-filter:blur(18px)!important}
+#goviStoryComposer .govi-story-compose-head h2{font-size:16px!important;margin:0!important}
+#goviStoryComposer .govi-story-compose-head small{font-size:8px!important}
+#goviStoryComposeClose{width:36px!important;height:36px!important;border-radius:50%!important;background:#ffffff18!important;font-size:26px!important}
+#goviStoryCategoryBar{position:fixed!important;z-index:310!important;top:calc(env(safe-area-inset-top,8px) + 58px)!important;left:12px!important;right:12px!important;width:auto!important;display:flex!important;gap:7px!important;overflow-x:auto!important;padding:5px!important;border:1px solid #ffffff20!important;border-radius:18px!important;background:#111b!important;backdrop-filter:blur(18px)!important}
+#goviStoryCategoryBar button{white-space:nowrap!important;flex:0 0 auto!important;border-radius:14px!important;padding:9px 12px!important;font-size:11px!important}
+#goviStoryComposer .govi-story-compose-card>p:not(#goviStoryStatus),
+#goviStoryComposer .govi-story-editor-tools,
+#goviStoryComposer .govi-story-emoji-row,
+#goviStoryComposer .govi-extra-media-tools,
+#goviStoryComposer .govi-story-hint{display:none!important}
+#goviStoryPreview{display:block!important;position:fixed!important;z-index:2!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;width:min(100vw,calc((100dvh - 190px)*.5625))!important;height:min(100dvh,calc(100vw*1.7778))!important;max-width:none!important;max-height:none!important;min-height:0!important;aspect-ratio:9/16!important;margin:0!important;padding:0!important;overflow:hidden!important;border:0!important;border-radius:18px!important;background:#111!important;box-shadow:0 10px 45px #0009!important}
+#goviStoryPreview .govi-story-preview-label{display:none!important}
+#goviStoryPreviewImage,#goviStoryPreviewVideo{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center!important;border-radius:0!important;background:#050505!important}
+#goviStoryPreviewText,#goviStoryPreviewLink{z-index:30!important}
+#goviStoryPreview .govi-story-canvas-tools{position:fixed!important;z-index:330!important;top:calc(env(safe-area-inset-top,8px) + 112px)!important;right:12px!important;left:auto!important;display:flex!important;flex-direction:column!important;gap:8px!important;padding:8px!important;border:1px solid #ffffff24!important;border-radius:20px!important;background:#111c!important;backdrop-filter:blur(18px)!important}
+#goviStoryPreview .govi-story-canvas-tools button{min-width:44px!important;min-height:42px!important;padding:7px!important;border-radius:14px!important;background:#292929!important;color:#fff!important;font-size:11px!important}
+#goviStoryPreview .govi-story-canvas-style{position:fixed!important;z-index:330!important;left:12px!important;right:12px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 70px)!important;display:flex!important;gap:8px!important;overflow-x:auto!important;padding:9px!important;border:1px solid #ffffff25!important;border-radius:18px!important;background:#111d!important;backdrop-filter:blur(18px)!important}
+#goviStoryPreview .govi-story-canvas-style label{display:flex!important;align-items:center!important;gap:5px!important;white-space:nowrap!important;color:#fff!important;font-size:10px!important}
+#goviStoryPreview .govi-story-canvas-style select{max-width:105px!important;background:#222!important;color:#fff!important;border:1px solid #ffffff30!important;border-radius:9px!important;padding:6px!important}
+#goviStoryPreview .govi-story-canvas-style input{max-width:78px!important}
+#goviStoryControlTray{position:fixed!important;z-index:320!important;left:12px!important;right:12px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 12px)!important;top:auto!important;width:auto!important;max-height:56px!important;overflow-x:auto!important;overflow-y:hidden!important;display:flex!important;align-items:center!important;gap:7px!important;padding:7px!important;border:1px solid #ffffff25!important;border-radius:20px!important;background:#111d!important;backdrop-filter:blur(18px)!important}
+#goviStoryChoices{display:flex!important;flex-wrap:nowrap!important;gap:7px!important;margin:0!important;min-width:max-content!important}
+#goviStoryChoices button{min-width:88px!important;padding:10px!important;border-radius:14px!important;font-size:11px!important}
+#goviStoryTextWrap,#goviStoryLinkWrap,#goviStoryMediaWrap{flex:1 0 100%!important;min-width:0!important}
+#goviStoryTextWrap textarea,#goviStoryLinkWrap input{width:100%!important;max-height:90px!important}
+#goviStoryFileName{position:fixed!important;z-index:340!important;left:14px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 78px)!important;max-width:45vw!important;font-size:10px!important;color:#fff!important;text-shadow:0 1px 5px #000!important}
+#goviStoryPublish{position:fixed!important;z-index:350!important;top:calc(env(safe-area-inset-top,8px) + 6px)!important;right:62px!important;left:auto!important;bottom:auto!important;min-width:116px!important;border-radius:22px!important;background:linear-gradient(120deg,#f7e5a7,#d4af37)!important;color:#17120a!important;font-weight:900!important}
+#goviStoryComposer #goviStoryStatus{position:fixed!important;z-index:360!important;top:calc(env(safe-area-inset-top,8px) + 112px)!important;left:12px!important;right:68px!important;transform:none!important;width:auto!important}
+.govi-home-profile-actions{flex-wrap:wrap!important}
+@media(min-width:760px){
+ #goviStoryPreview{width:min(390px,calc((100dvh - 120px)*.5625))!important;height:min(690px,calc(100dvh - 120px))!important}
+ #goviStoryCategoryBar{left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(680px,calc(100vw - 420px))!important}
+ #goviStoryControlTray{left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(680px,calc(100vw - 420px))!important;justify-content:center!important}
+ #goviStoryPreview .govi-story-canvas-style{left:calc(50% - 350px)!important;right:auto!important;width:700px!important}
+ .govi-home-profile-actions{display:flex!important}
+}
+@media(max-width:759px){
+ #goviStoryPreview{width:min(100vw,calc((100dvh - 205px)*.5625))!important;height:min(calc(100dvh - 205px),calc(100vw*1.7778))!important;border-radius:14px!important}
+ #goviStoryCategoryBar{top:calc(env(safe-area-inset-top,8px) + 56px)!important}
+ #goviStoryPreview .govi-story-canvas-tools{top:calc(env(safe-area-inset-top,8px) + 112px)!important;right:7px!important}
+ #goviStoryPreview .govi-story-canvas-tools button{min-width:38px!important;min-height:38px!important;font-size:10px!important}
+ #goviStoryPreview .govi-story-canvas-style{left:8px!important;right:8px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 72px)!important}
+ #goviStoryControlTray{left:8px!important;right:8px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important}
+ #goviStoryPublish{right:58px!important}
+ .govi-home-profile-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .govi-home-profile-actions button{min-width:0!important;padding:0 7px!important;font-size:10px!important}
+}
+</style>
 </body>
 </html>
