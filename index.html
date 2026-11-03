@@ -274,6 +274,7 @@ document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=
 refreshSession();  
 </script>
 
+<div class="overlay" id="goviCropModal" style="display:none;z-index:10000"><div class="modal" style="width:min(94vw,520px)"><div class="modal-head"><h2 id="goviCropTitle">Ajustar imagen</h2><button class="close" id="goviCropCancel">×</button></div><p class="demo-note">Arrastra la imagen para centrarla y usa el zoom.</p><canvas id="goviCropCanvas" style="width:100%;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none"></canvas><label style="display:block;margin:15px 0">Zoom <input id="goviCropZoom" type="range" min="1" max="3" step=".01" value="1" style="width:100%"></label><button class="primary" id="goviCropSave" style="width:100%">Guardar recorte</button></div></div>
 <script>
 /* ==========================================
    GOVI — PERFILES PÚBLICOS Y FOTOS DE PERFIL
@@ -776,6 +777,5 @@ document.getElementById('goviCropSave').addEventListener('click',()=>{
 /* Recuperar la sesión y mostrar el perfil actualizado */
 refreshSession();
 </script>
-<div class="overlay" id="goviCropModal" style="display:none;z-index:10000"><div class="modal" style="width:min(94vw,520px)"><div class="modal-head"><h2 id="goviCropTitle">Ajustar imagen</h2><button class="close" id="goviCropCancel">×</button></div><p class="demo-note">Arrastra la imagen para centrarla y usa el zoom.</p><canvas id="goviCropCanvas" style="width:100%;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none"></canvas><label style="display:block;margin:15px 0">Zoom <input id="goviCropZoom" type="range" min="1" max="3" step=".01" value="1" style="width:100%"></label><button class="primary" id="goviCropSave" style="width:100%">Guardar recorte</button></div></div>
 </body>
 </html>
