@@ -551,35 +551,83 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:560px){.topbar{height:62px!important;gap:8px!important}.brand{font-size:21px!important}.brand-mark{width:32px!important;height:32px!important}.top-actions{gap:5px!important}.top-actions button{padding:8px 10px!important}.search{width:34vw!important}.layout{padding:13px 10px!important}.post{padding:15px!important;border-radius:17px!important}.composer{padding:15px!important}.welcome h1{font-size:23px!important}.welcome p{font-size:13px!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
-</head>    
+<style id="govi-structural-redesign">
+:root{--govi-gold:#d6ad58;--govi-gold-soft:#f0d99f;--govi-ink:#090a0d;--govi-panel:#121419;--govi-line:rgba(214,173,88,.18)}
+body{background:radial-gradient(ellipse at 48% -15%,rgba(166,119,42,.14),transparent 42%),#090a0d!important;color:#f5f1e8}
+.govi-topbar{height:78px!important;padding:0 clamp(16px,4vw,56px)!important;background:rgba(9,10,13,.94)!important;border-bottom:1px solid var(--govi-line)!important;backdrop-filter:blur(18px);display:flex;gap:34px}
+.govi-brand{display:flex;align-items:center;gap:12px;min-width:205px;text-decoration:none;color:#fff}
+.govi-brand .brand-mark{width:43px;height:43px;border-radius:13px;background:linear-gradient(145deg,#f2d58e,#9e702b);color:#15110a;font-weight:950;display:grid;place-items:center;font-size:25px;box-shadow:0 5px 24px #c99b4433}
+.govi-brand-copy{display:flex;flex-direction:column;line-height:1.05;gap:5px}.govi-brand-copy strong{font-size:20px;letter-spacing:4px}.govi-brand-copy small{font-size:8px;letter-spacing:1.7px;color:var(--govi-gold)}
+.govi-search{max-width:540px!important;margin:auto!important;position:relative}.govi-search>span{position:absolute;left:15px;top:7px;color:var(--govi-gold);font-size:24px}.govi-search input{padding-left:43px!important;border-radius:13px!important;background:#15171c!important;border:1px solid #292a2d!important}
+.govi-top-actions{gap:12px}.govi-create-btn{background:linear-gradient(135deg,#e7c77f,#b98939)!important;color:#17130b!important;border:0!important;border-radius:12px!important;padding:12px 18px!important;font-weight:800}.govi-create-btn span{font-size:19px}.govi-notify-btn{border:1px solid #34302a!important;background:#15171c!important;border-radius:12px!important}
+.govi-shell{width:min(1480px,96%);margin:30px auto 90px;display:grid;grid-template-columns:238px minmax(0,680px) 270px;gap:26px;align-items:start}
+.govi-sidebar{position:sticky;top:100px;padding:22px 15px!important;background:linear-gradient(160deg,#15171c,#101115)!important;border:1px solid var(--govi-line)!important;border-radius:19px!important;min-height:490px}
+.govi-side-label,.govi-kicker{font-size:9px;letter-spacing:1.8px;font-weight:850;color:var(--govi-gold)}
+.govi-side-label{padding:0 12px 12px}.govi-sidebar .nav-item{display:flex;align-items:center;gap:13px;padding:13px 14px;border-radius:11px;margin:3px 0;color:#b8b5ad;cursor:pointer;font-weight:650}.govi-sidebar .nav-item span{font-size:19px;width:22px;text-align:center}.govi-sidebar .nav-item.active{background:linear-gradient(90deg,#d3aa5830,transparent);color:#f2d99e;border-left:2px solid var(--govi-gold)}
+.govi-sidebar-divider{height:1px;background:var(--govi-line);margin:20px 8px}.govi-side-create{display:flex;gap:12px;align-items:center;text-align:left;width:100%;padding:13px;background:#1c1b18;border:1px solid #6f542d;border-radius:13px;color:#f3d99e}.govi-side-create>span:first-child{font-size:25px}.govi-side-create span:last-child{display:flex;flex-direction:column;gap:4px}.govi-side-create small{font-size:10px;color:#aaa092}
+.govi-side-motto{margin:48px 8px 0;padding:17px 13px;border-radius:14px;background:linear-gradient(145deg,#292116,#141416);border:1px solid #5d4726;display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:center}.govi-motto-mark{width:35px;height:35px;border-radius:10px;background:var(--govi-gold);color:#15110a;display:grid;place-items:center;font-weight:950}.govi-side-motto b{font-size:14px;line-height:1.4}.govi-side-motto small{grid-column:1/-1;color:#aaa092;font-size:10px}
+.govi-content{min-width:0}.govi-welcome{min-height:174px;padding:28px 30px!important;border:1px solid #5d4726!important;border-radius:20px!important;background:radial-gradient(circle at 85% 20%,#8d68252e,transparent 36%),linear-gradient(120deg,#211b12,#15161a 70%)!important;display:flex;align-items:center;justify-content:space-between;margin-bottom:30px}.govi-welcome .eyebrow{color:var(--govi-gold);font-size:9px;letter-spacing:2px;font-weight:850}.govi-welcome h1{font-size:clamp(26px,3vw,35px)!important;letter-spacing:-1.2px;margin:12px 0 8px!important}.govi-welcome p{color:#bdb6a8!important;font-size:13px}.govi-welcome-mark{width:92px;height:92px;border:1px solid #b78b45;border-radius:50%;display:grid;place-content:center;text-align:center;box-shadow:0 0 0 9px #b78b4510,0 0 35px #b78b4520}.govi-welcome-mark span{font-size:43px;font-weight:950;color:#e4c47d;line-height:1}.govi-welcome-mark small{font-size:7px;letter-spacing:1.5px;color:#c6a66b}
+.govi-section-block{margin-bottom:30px}.govi-section-heading{display:flex;align-items:end;justify-content:space-between;margin:0 2px 14px}.govi-section-heading h2{font-size:22px;margin:5px 0 0;color:#f4efe4}.govi-section-caption{font-size:10px;color:#938b7e}.govi-live-tag{font-size:9px;letter-spacing:1px;color:#c7bda9}.govi-live-tag i{display:inline-block;width:7px;height:7px;background:#d6ad58;border-radius:50%;margin-right:6px;box-shadow:0 0 10px #d6ad58}
+.govi-content .stories{padding:16px!important;border:1px solid var(--govi-line)!important;border-radius:17px!important;background:#121419!important;overflow-x:auto}.govi-composer{padding:17px!important;border-radius:17px!important;border:1px solid var(--govi-line)!important;background:#121419!important;margin-bottom:18px}.govi-composer .compose-top input{border-radius:12px!important;background:#1b1d22!important;border:1px solid #303137!important;padding:13px 16px!important}.govi-composer .compose-actions{border-top:1px solid #292a2d!important;margin-top:15px!important;padding-top:10px!important}.govi-feed-block #feed{display:grid;gap:18px}
+.govi-rightcol{display:grid;gap:17px;position:sticky;top:100px}.govi-rightcol .right-card{padding:21px!important;border-radius:18px!important;background:linear-gradient(150deg,#17191e,#111216)!important;border:1px solid var(--govi-line)!important}.govi-orbit{width:65px;height:65px;border:1px solid var(--govi-gold);border-radius:50%;display:grid;place-items:center;color:#e8ca85;font-size:34px;font-weight:900;margin:19px 0 15px;box-shadow:0 0 0 7px #d6ad5810}.govi-welcome-card h3{font-size:23px;line-height:1.2;margin:0 0 10px}.govi-welcome-card p{font-size:12px;line-height:1.7;color:#aaa397}.govi-community-card .card-title{font-size:13px;margin-bottom:16px}.govi-right-foot{font-size:8px;letter-spacing:1.5px;color:#776f61;text-align:center}.govi-right-foot span{color:var(--govi-gold)}
+.govi-mobile-nav{display:none}
+@media(max-width:1100px){.govi-shell{grid-template-columns:205px minmax(0,1fr);width:96%;gap:18px}.govi-rightcol{display:none}}
+@media(max-width:700px){.govi-topbar{height:65px!important;padding:0 13px!important;gap:10px}.govi-brand{min-width:auto}.govi-brand .brand-mark{width:37px;height:37px}.govi-brand-copy strong{font-size:17px}.govi-brand-copy small{font-size:7px}.govi-search{display:none!important}.govi-top-actions{margin-left:auto}.govi-create-btn{font-size:0!important;padding:9px 13px!important}.govi-create-btn span{font-size:22px}.govi-notify-btn{display:none}.govi-shell{display:block;width:auto;margin:17px 12px 100px}.govi-sidebar,.govi-rightcol{display:none!important}.govi-welcome{min-height:150px;padding:21px!important;margin-bottom:24px}.govi-welcome h1{font-size:27px!important}.govi-welcome p{max-width:230px;line-height:1.5}.govi-welcome-mark{width:65px;height:65px;flex-shrink:0}.govi-welcome-mark span{font-size:31px}.govi-section-heading h2{font-size:20px}.govi-section-caption{font-size:9px}.govi-content .stories{padding:12px!important}.govi-mobile-nav{position:fixed;z-index:1000;bottom:0;left:0;right:0;display:flex;justify-content:space-around;align-items:center;padding:9px 8px calc(9px + env(safe-area-inset-bottom));background:rgba(13,14,17,.97);border-top:1px solid var(--govi-line);backdrop-filter:blur(18px)}.govi-mobile-nav button{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;color:#a9a397;font-size:9px;padding:2px 10px}.govi-mobile-nav button span{font-size:20px}.govi-mobile-nav button.active{color:#e6c77f}.govi-mobile-nav .govi-mobile-plus{width:43px;height:43px;border-radius:14px;background:linear-gradient(145deg,#f0d48e,#b78637);color:#15110a;font-size:25px;padding:0;box-shadow:0 5px 18px #b7863740}.govi-mobile-nav .govi-mobile-plus span{font-size:25px}}
+</style></head>    
 <body>    
-<header class="topbar">    
-  <div class="brand"><div class="brand-mark">G</div>GOVI</div>    
-  <div class="search"><input id="searchInput" placeholder="Buscar publicaciones…"></div>    
-  <div class="top-actions"><button onclick="openModal('postModal')">＋ Crear</button><button onclick="toast('No tienes notificaciones nuevas')">♧</button><button class="avatar" id="accountButton" onclick="accountAction()">G</button></div>    
-</header>    
-<div class="layout">    
-  <aside class="sidebar panel">    
-    <div class="nav-item active" onclick="filterSection('Inicio',this)">⌂ Inicio</div>    
-    <div class="nav-item" onclick="filterSection('Fotos',this)">▧ Fotos</div>    
-    <div class="nav-item" onclick="filterSection('Vídeos',this)">▷ Vídeos</div>    
-    <div class="nav-item" onclick="goviGoToMyProfile(this)">♙ Mi perfil</div>    
-    <div class="side-note"><b>Tu comunidad, tus oportunidades.</b><br>Comparte lo que te mueve y crece a tu ritmo.</div>    
-  </aside>    
-  <main class="content">    
-    <div class="welcome"><div><div class="eyebrow">TU COMUNIDAD TE ESPERA</div><h1>¡Bienvenido a GOVI! 👋</h1><p>Comparte fotos, vídeos e ideas con tu comunidad.</p></div><div class="live-pill">● GOVI</div></div>    
-    <div class="stories" id="goviStories"><button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div>Tu historia</button><div class="story-loading">Cargando historias…</div></div>    
-    <section class="composer panel">    
-      <div class="compose-top"><div class="avatar" id="composerAvatar">G</div><input placeholder="¿Qué quieres compartir hoy?" onclick="openModal('postModal')" readonly></div>    
-      <div class="compose-actions"><button onclick="openModal('postModal')">▧ Foto / vídeo</button><button onclick="openModal('postModal')">☷ Crear publicación</button></div>    
-    </section>    
-    <div id="feed"><p class="demo-note">Cargando publicaciones de GOVI…</p></div>    
-  </main>    
-  <aside class="rightcol">    
-    <section class="panel right-card"><div class="card-title">Bienvenido a GOVI</div><p class="demo-note">Publica tus momentos, conversa con otros usuarios y construye tu comunidad.</p></section>    
-    <section class="panel right-card"><div class="card-title">Creadores para descubrir</div><div class="creator-row"><div class="avatar">G</div><div><b>Comunidad GOVI</b><small>Tu mundo. Tu gente.</small></div></div></section>    
-  </aside>    
-</div>  <div class="overlay" id="postModal"><div class="modal">    
+<header class="topbar govi-topbar">
+  <a class="brand govi-brand" href="#" onclick="filterSection('Inicio',document.querySelector('.nav-item'));return false" aria-label="GOVI inicio">
+    <span class="brand-mark">G</span><span class="govi-brand-copy"><strong>GOVI</strong><small>TU MUNDO. TU GENTE.</small></span>
+  </a>
+  <div class="search govi-search"><span aria-hidden="true">⌕</span><input id="searchInput" placeholder="Buscar en GOVI…"></div>
+  <div class="top-actions govi-top-actions">
+    <button class="govi-create-btn" onclick="openModal('postModal')"><span>＋</span> Crear publicación</button>
+    <button class="govi-notify-btn" aria-label="Notificaciones" onclick="toast('No tienes notificaciones nuevas')">♧</button>
+    <button class="avatar" id="accountButton" onclick="accountAction()">G</button>
+  </div>
+</header>
+<div class="govi-shell">
+  <aside class="sidebar panel govi-sidebar">
+    <div class="govi-side-label">MENÚ PRINCIPAL</div>
+    <div class="nav-item active" onclick="filterSection('Inicio',this)"><span>⌂</span> Inicio</div>
+    <div class="nav-item" onclick="filterSection('Fotos',this)"><span>▧</span> Fotografías</div>
+    <div class="nav-item" onclick="filterSection('Vídeos',this)"><span>▷</span> Vídeos</div>
+    <div class="nav-item" onclick="goviGoToMyProfile(this)"><span>♙</span> Mi perfil</div>
+    <div class="govi-sidebar-divider"></div>
+    <div class="govi-side-label">TU ESPACIO</div>
+    <button class="govi-side-create" onclick="openModal('postModal')"><span>＋</span><span><b>Crear algo nuevo</b><small>Comparte con tu gente</small></span></button>
+    <div class="govi-side-motto"><span class="govi-motto-mark">G</span><b>Tu mundo.<br>Tu gente.</b><small>Una comunidad para expresarte.</small></div>
+  </aside>
+  <main class="content govi-content">
+    <section class="welcome govi-welcome">
+      <div><div class="eyebrow">TU COMUNIDAD · TU VOZ · TU ESPACIO</div><h1>Todo empieza contigo.</h1><p>Descubre, comparte y conecta con personas de tu mundo.</p></div>
+      <div class="govi-welcome-mark"><span>G</span><small>GOVI SOCIAL</small></div>
+    </section>
+    <section class="govi-section-block"><div class="govi-section-heading"><div><span class="govi-kicker">MOMENTOS QUE CONECTAN</span><h2>Historias</h2></div><span class="govi-section-caption">Desaparecen en 24 horas</span></div>
+      <div class="stories" id="goviStories"><button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div>Tu historia</button><div class="story-loading">Cargando historias…</div></div>
+    </section>
+    <section class="govi-section-block govi-feed-block"><div class="govi-section-heading"><div><span class="govi-kicker">LA CONVERSACIÓN ESTÁ AQUÍ</span><h2>Tu comunidad</h2></div><span class="govi-live-tag"><i></i> EN VIVO EN GOVI</span></div>
+      <section class="composer panel govi-composer">
+        <div class="compose-top"><div class="avatar" id="composerAvatar">G</div><input placeholder="¿Qué te gustaría compartir hoy?" onclick="openModal('postModal')" readonly></div>
+        <div class="compose-actions"><button onclick="openModal('postModal')">▧ Foto / vídeo</button><button onclick="openModal('postModal')">☷ Escribir publicación</button></div>
+      </section>
+      <div id="feed"><p class="demo-note">Cargando publicaciones de GOVI…</p></div>
+    </section>
+  </main>
+  <aside class="rightcol govi-rightcol">
+    <section class="panel right-card govi-welcome-card"><span class="govi-kicker">BIENVENIDO A GOVI</span><div class="govi-orbit">G</div><h3>Un lugar para<br>ser vos mismo.</h3><p>Publica tus momentos, conversa y construye tu propia comunidad.</p></section>
+    <section class="panel right-card govi-community-card"><div class="card-title">La comunidad GOVI</div><div class="creator-row"><div class="avatar">G</div><div><b>Tu gente está aquí</b><small>Conecta. Comparte. Crece.</small></div></div></section>
+    <div class="govi-right-foot">GOVI <span>·</span> TU MUNDO. TU GENTE.</div>
+  </aside>
+</div>
+<nav class="govi-mobile-nav" aria-label="Navegación principal">
+  <button class="active" onclick="filterSection('Inicio',this)"><span>⌂</span>Inicio</button>
+  <button onclick="filterSection('Fotos',this)"><span>▧</span>Fotos</button>
+  <button class="govi-mobile-plus" onclick="openModal('postModal')" aria-label="Crear publicación">＋</button>
+  <button onclick="filterSection('Vídeos',this)"><span>▷</span>Vídeos</button>
+  <button onclick="goviGoToMyProfile(this)"><span>♙</span>Perfil</button>
+</nav>
+<div class="overlay" id="postModal"><div class="modal">    
   <div class="modal-head"><h2 id="postModalTitle">Crear publicación</h2><button class="close" onclick="closeModal('postModal')">×</button></div>    
   <textarea id="postText" placeholder="¿Qué quieres compartir con tu comunidad?"></textarea>    
   <label class="file-label">＋ Añadir fotografía o vídeo<input id="mediaFile" type="file" accept="image/*,video/*,.gif"></label>    
