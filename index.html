@@ -2361,5 +2361,78 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  $('goviStoryComposeClose')?.addEventListener('click',()=>{if(mediaStream){mediaStream.getTracks().forEach(t=>t.stop());mediaStream=null;}});
 })();
 </script>
+
+<!-- GOVI STORY FINAL FIX: canvas limpio, controles flotantes y cámara estable -->
+<style id="govi-story-final-fix">
+#goviStoryComposer{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;padding:0!important;margin:0!important;background:transparent!important;z-index:25000!important;overflow:hidden!important;pointer-events:none!important}
+#goviStoryComposer.open{display:block!important}
+#goviStoryComposer .govi-story-compose-card{position:static!important;display:block!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;pointer-events:none!important}
+#goviStoryPreview{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;overflow:hidden!important;z-index:1!important;pointer-events:none!important}
+#goviStoryPreviewImage,#goviStoryPreviewVideo{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center!important;border:0!important;border-radius:0!important;box-shadow:none!important;z-index:1!important;background:#080808!important}
+#goviStoryPreviewText,#goviStoryPreviewLink{z-index:12!important;pointer-events:auto!important;touch-action:none!important;user-select:none!important;-webkit-user-select:none!important}
+#goviStoryComposer .govi-story-compose-head{position:fixed!important;z-index:60!important;top:env(safe-area-inset-top,8px)!important;left:10px!important;right:10px!important;height:48px!important;display:flex!important;align-items:center!important;padding:4px 8px!important;background:#1118!important;border:1px solid #ffffff35!important;border-radius:24px!important;backdrop-filter:blur(14px)!important;pointer-events:auto!important}
+#goviStoryCategoryBar{position:fixed!important;z-index:61!important;top:calc(env(safe-area-inset-top,8px) + 56px)!important;left:10px!important;right:10px!important;display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;background:#1119!important;border:1px solid #ffffff35!important;border-radius:22px!important;backdrop-filter:blur(14px)!important;pointer-events:auto!important}
+#goviStoryControlTray{position:fixed!important;z-index:62!important;left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 12px)!important;top:auto!important;width:auto!important;max-width:720px!important;max-height:30dvh!important;overflow-y:auto!important;margin:0 auto!important;padding:10px!important;display:flex!important;flex-direction:column!important;gap:7px!important;background:#171522bb!important;border:1px solid #ffffff45!important;border-radius:18px!important;backdrop-filter:blur(16px)!important;box-shadow:0 8px 30px #0005!important;pointer-events:auto!important}
+#goviStoryFileName{position:fixed!important;z-index:63!important;left:14px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 8px)!important;max-width:45vw!important;pointer-events:none!important}
+#goviStoryPublish{position:fixed!important;z-index:80!important;top:calc(env(safe-area-inset-top,8px) + 5px)!important;right:14px!important;bottom:auto!important;left:auto!important;pointer-events:auto!important}
+#goviStoryComposer #goviStoryStatus{position:fixed!important;z-index:100!important;top:calc(env(safe-area-inset-top,8px) + 108px)!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important;max-width:calc(100vw - 24px)!important;border-radius:22px!important;pointer-events:none!important}
+#goviStoryComposer #goviStoryFile,#goviStoryComposer #goviStoryGifFile{display:none!important}
+@media(min-width:760px){#goviStoryControlTray{left:auto!important;right:18px!important;width:340px!important;max-height:52dvh!important;bottom:18px!important}#goviStoryCategoryBar{right:375px!important}}
+</style>
+<script id="govi-story-final-fix-js">
+(function(){
+ const $=id=>document.getElementById(id);
+ const file=$('goviStoryFile'),video=$('goviStoryPreviewVideo'),image=$('goviStoryPreviewImage'),canvas=$('goviStoryPreview');
+ if(!file||!video||!image||!canvas)return;
+ let objectUrl=null,stream=null,recorder=null,chunks=[],recordTimer=null;
+ function preview(f){
+  if(!f)return;
+  if(objectUrl)URL.revokeObjectURL(objectUrl);
+  objectUrl=URL.createObjectURL(f);
+  if(f.type.startsWith('video/')){
+   image.style.display='none';video.pause();video.srcObject=null;video.src=objectUrl;video.controls=true;video.loop=true;video.muted=true;video.style.display='block';video.play().catch(()=>{});
+  }else{
+   video.pause();video.srcObject=null;video.removeAttribute('src');video.load();video.style.display='none';image.src=objectUrl;image.style.display='block';
+  }
+  canvas.style.display='block';
+  const name=$('goviStoryFileName');if(name)name.textContent=f.name||'Archivo preparado';
+ }
+ file.addEventListener('change',()=>preview(file.files&&file.files[0]));
+ // Reemplaza el botón anterior para evitar manejadores de cámara duplicados.
+ const old=$('goviStoryCameraButton');
+ if(old){
+  const camera=old.cloneNode(true);old.replaceWith(camera);
+  function stopCamera(){if(recordTimer)clearTimeout(recordTimer);recordTimer=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}video.srcObject=null;}
+  camera.addEventListener('click',async()=>{
+   if(stream&&recorder&&recorder.state==='recording'){recorder.stop();camera.disabled=true;camera.textContent='Preparando vídeo…';return;}
+   if(stream){stopCamera();camera.textContent='📹 Usar cámara';return;}
+   try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('La cámara necesita HTTPS y permiso del navegador.');
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});
+    video.pause();video.removeAttribute('src');video.srcObject=stream;video.controls=false;video.muted=true;video.style.display='block';image.style.display='none';canvas.style.display='block';await video.play();
+    if(!window.MediaRecorder)throw new Error('Tu navegador no permite grabar vídeo.');
+    camera.textContent='⏺ Grabar (máx. 15 s)';
+    camera.onclick=null;
+    camera.addEventListener('click',()=>{
+     if(!stream||recorder&&recorder.state==='recording')return;
+     chunks=[];
+     let mime='video/webm';if(MediaRecorder.isTypeSupported('video/mp4'))mime='video/mp4';else if(MediaRecorder.isTypeSupported('video/webm;codecs=vp9'))mime='video/webm;codecs=vp9';
+     recorder=new MediaRecorder(stream,{mimeType:mime});
+     recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+     recorder.onstop=()=>{
+      const type=recorder.mimeType||'video/webm',blob=new Blob(chunks,{type}),captured=new File([blob],'govi-camera.'+(type.includes('mp4')?'mp4':'webm'),{type});
+      const dt=new DataTransfer();dt.items.add(captured);file.files=dt.files;stopCamera();preview(captured);camera.disabled=false;camera.textContent='📹 Usar cámara';
+     };
+     recorder.start();camera.textContent='⏹ Detener';recordTimer=setTimeout(()=>{if(recorder&&recorder.state==='recording')recorder.stop()},15000);
+    },{once:true});
+   }catch(err){stopCamera();camera.disabled=false;camera.textContent='📹 Usar cámara';const status=$('goviStoryStatus');if(status){status.textContent=err.message||'No se pudo abrir la cámara';status.style.display='block';}else if(typeof toast==='function')toast(err.message||'No se pudo abrir la cámara');}
+  });
+  $('goviStoryComposeClose')?.addEventListener('click',stopCamera);
+ }
+ const txt=$('goviStoryText'),previewText=$('goviStoryPreviewText');
+ if(txt&&previewText){txt.addEventListener('input',()=>{previewText.textContent=txt.value;previewText.style.display=txt.value.trim()?'block':'none';});}
+})();
+</script>
+
 </body>
 </html>
