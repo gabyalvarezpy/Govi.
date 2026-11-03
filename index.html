@@ -254,6 +254,60 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 .govi-story-canvas-style{bottom:7px!important}
 .govi-story-in-canvas-controls [hidden]{display:none!important}
 @media(max-width:700px){.govi-story-in-canvas-controls{top:78px;bottom:72px;padding:7px}.govi-story-canvas-tools button{padding:6px 7px!important;font-size:10px!important}.govi-story-canvas-style{gap:3px!important}}
+
+/* GOVI Stories: vista previa limpia y controles visibles debajo */
+.govi-story-compose-card{
+  width:min(100%,480px)!important;
+  height:auto!important;
+  max-height:calc(100dvh - 16px)!important;
+  overflow-y:auto!important;
+  padding:14px!important;
+  gap:10px!important;
+  background:linear-gradient(160deg,#171923,#101116 65%,#211a2a)!important;
+  border:1px solid #c9a24e!important;
+  border-radius:22px!important;
+}
+.govi-story-compose-head{position:relative!important;top:auto!important;margin:0!important;padding:4px 2px 8px!important}
+#goviStoryPreview{
+  display:block!important;position:relative!important;
+  width:min(100%,360px)!important;max-width:360px!important;
+  height:auto!important;max-height:none!important;aspect-ratio:9/16!important;
+  margin:0 auto!important;padding:0!important;overflow:hidden!important;
+  border:1px solid #ffffff35!important;border-radius:20px!important;
+  background:linear-gradient(145deg,#49304e,#171a2b 55%,#162d36)!important;
+  box-shadow:0 14px 36px #0008!important;
+}
+#goviStoryPreview .govi-story-preview-label{position:absolute!important;top:10px!important;left:12px!important;z-index:8!important;background:#0008!important;padding:5px 8px!important;border-radius:20px!important;font-size:9px!important}
+#goviStoryPreviewImage,#goviStoryPreviewVideo{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;border-radius:0!important;z-index:1!important}
+#goviStoryPreviewText,#goviStoryPreviewLink{z-index:5!important}
+.govi-story-canvas-tools{position:absolute!important;top:9px!important;left:auto!important;right:9px!important;z-index:9!important;display:flex!important;gap:4px!important;flex-wrap:wrap!important;max-width:75%!important}
+.govi-story-canvas-tools button{padding:6px 8px!important;font-size:10px!important;border-radius:10px!important;background:#101116c9!important;border:1px solid #ffffff35!important;color:#fff!important}
+.govi-story-canvas-style{position:absolute!important;top:48px!important;bottom:auto!important;left:8px!important;right:8px!important;z-index:9!important;display:flex!important;flex-wrap:wrap!important;gap:6px!important;padding:6px!important;border-radius:12px!important;background:#101116b8!important}
+.govi-story-canvas-style label{font-size:9px!important;color:#fff!important}
+.govi-story-canvas-style select{max-width:95px!important;font-size:10px!important}
+.govi-story-in-canvas-controls{
+  position:relative!important;inset:auto!important;max-height:none!important;
+  width:min(100%,420px)!important;margin:10px auto 0!important;
+  overflow:visible!important;padding:12px!important;
+  display:flex!important;flex-direction:column!important;gap:9px!important;
+  border:1px solid #ffffff20!important;border-radius:16px!important;
+  background:#ffffff08!important;backdrop-filter:blur(12px)!important;
+}
+.govi-story-in-canvas-controls #goviStoryChoices{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+.govi-story-in-canvas-controls .govi-story-choice{min-width:0!important;padding:10px 5px!important;font-size:11px!important;border-radius:11px!important}
+.govi-story-in-canvas-controls #goviStoryTextWrap textarea{min-height:66px!important;max-height:110px!important;font-size:14px!important}
+.govi-story-in-canvas-controls .govi-story-emoji-row{display:flex!important;flex-wrap:wrap!important;gap:5px!important;max-height:90px!important;overflow:auto!important}
+.govi-story-in-canvas-controls .govi-story-hint{display:block!important;font-size:11px!important;color:#c9c3d2!important;margin:0!important}
+.govi-story-in-canvas-controls .govi-extra-media-tools{display:flex!important;flex-wrap:wrap!important;gap:7px!important}
+#goviStoryFileName{margin:4px 0!important;text-align:center!important;color:#d9cda9!important;font-size:11px!important}
+#goviStoryPublish{position:relative!important;bottom:auto!important;width:100%!important;margin:4px 0 0!important;padding:14px!important;border-radius:14px!important}
+@media(max-width:700px){
+ .govi-story-compose-card{width:100%!important;max-height:calc(100dvh - 10px)!important;padding:10px!important}
+ #goviStoryPreview{width:min(100%,330px)!important}
+ .govi-story-canvas-style{top:43px!important}
+ .govi-story-canvas-tools button{font-size:9px!important;padding:5px 6px!important}
+}
+
 </style>    
 </head>    
 <body>    
@@ -335,7 +389,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}
       const ids=['goviStoryChoices','goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'];
       ids.forEach(id=>{const el=document.getElementById(id);if(el)tray.appendChild(el)});
       ['.govi-story-emoji-row','.govi-extra-media-tools','.govi-story-hint'].forEach(sel=>{const el=document.querySelector(sel);if(el)tray.appendChild(el)});
-      canvas.appendChild(tray);
+      canvas.parentNode.insertBefore(tray,canvas.nextSibling);
       canvas.style.display='block';
     })();
     </script>
