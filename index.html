@@ -510,6 +510,20 @@ body{background:radial-gradient(ellipse at 50% -18%,#30230d 0,#111 34%,#090909 7
 #goviAvatar.profile-avatar>img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;object-position:center!important;border-radius:50%!important;margin:0!important}
 @media(max-width:700px){#goviAvatar.profile-avatar{width:92px!important;height:92px!important;min-width:92px!important;min-height:92px!important;max-width:92px!important;max-height:92px!important;flex-basis:92px!important}}
 </style>
+
+<style id="govi-hide-story-decoration-controls">
+/* Simplificar editor de historias: ocultar tipografías, colores, contornos, tamaño, emojis y GIF decorativo */
+#goviStoryComposer .govi-story-editor-tools,
+#goviStoryComposer .govi-story-emoji-row,
+#goviStoryComposer .govi-extra-media-tools,
+#goviStoryPreview .govi-story-canvas-style,
+#goviStoryCategoryBar [data-story-tab="emojis"],
+#goviStoryCategoryBar [data-story-tab="gifs"],
+#goviStoryCategoryBar [data-story-tab="style"],
+#goviStoryCategoryBar [data-story-tab="outline"],
+#goviStoryPreview .govi-story-canvas-tools [data-canvas-action="emoji"],
+#goviStoryPreview .govi-story-canvas-tools [data-canvas-action="gif"]{display:none!important}
+</style>
 </head>    
 <body>    
 <header class="topbar">    
