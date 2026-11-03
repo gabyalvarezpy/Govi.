@@ -44,6 +44,35 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 #goviStoryPrev,#goviStoryNext{position:absolute;z-index:3;top:50%;transform:translateY(-50%);border:0;background:#0006;color:white;font-size:30px;width:42px;height:60px}
 #goviStoryPrev{left:0}#goviStoryNext{right:0}
 #goviStoryDelete{position:absolute;z-index:3;bottom:14px;right:14px;background:#4b2020}
+.layout{max-width:none;width:100%;grid-template-columns:240px minmax(0,1fr) 300px;gap:26px;padding:28px clamp(18px,3vw,52px)}
+.content{width:100%;max-width:1200px;margin:0 auto}
+.topbar{padding-left:clamp(18px,3vw,52px);padding-right:clamp(18px,3vw,52px)}
+.brand{font-size:30px}.brand-mark{width:44px;height:44px}
+.nav-item{font-size:18px;min-height:58px;padding:17px}
+.welcome h1{font-size:32px}.welcome p{font-size:16px}.eyebrow{font-size:12px}
+.stories{gap:20px;padding:10px 0 22px}.story{flex-basis:88px;font-size:14px}.story-ring{width:76px;height:76px}.story-name{max-width:88px;font-size:13px}
+.composer{padding:20px}.compose-top input{font-size:16px;padding:17px 20px}.compose-actions button,.post-buttons button{font-size:14px;padding:12px 14px}
+.post{padding:21px}.post-author{font-size:16px}.post-meta{font-size:13px}.post-text{font-size:16px}.post-stats{font-size:13px}
+.right-card{padding:20px}.card-title{font-size:17px}.demo-note{font-size:13px}
+.govi-story-composer{display:none;position:fixed;inset:0;z-index:15000;background:#050505eF;align-items:center;justify-content:center;padding:16px}
+.govi-story-composer.open{display:flex}
+.govi-story-compose-card{width:min(600px,100%);background:#191919;border:1px solid #b78b36;border-radius:22px;padding:24px;box-shadow:0 25px 80px #000b}
+.govi-story-compose-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.govi-story-compose-head small{color:#e8c66a;font-weight:900;letter-spacing:2px}
+.govi-story-compose-head h2{font-size:27px;margin:5px 0}
+.govi-story-compose-head button{font-size:32px;color:white;background:none;border:0}
+.govi-story-compose-card textarea,.govi-story-compose-card input[type=url]{width:100%;background:#0e0e0e;color:white;border:1px solid #594a2d;border-radius:14px;padding:16px;font-size:17px;margin:7px 0}
+.govi-story-compose-card textarea{min-height:130px;resize:vertical}
+.govi-story-file{display:block;text-align:center;padding:19px;border:2px dashed #b78b36;border-radius:15px;color:#f0d58c;font-size:17px;font-weight:800;margin:12px 0;cursor:pointer}
+.govi-story-file input{display:none}
+#goviStoryFileName{font-size:13px;color:#bdb39d;padding:6px 2px 14px}
+#goviStoryPublish{width:100%;padding:17px;border:0;border-radius:14px;background:linear-gradient(120deg,#f4d989,#b77b18);color:#17120a;font-size:18px;font-weight:950}
+#goviStoryContent{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;padding:35px;text-align:center;color:white;white-space:pre-wrap;overflow-wrap:anywhere;font-size:clamp(24px,5vw,42px);font-weight:850;background:linear-gradient(145deg,#402b17,#151515,#3b1834)}
+#goviStoryContent a{color:#f6d98d;font-size:17px;overflow-wrap:anywhere}
+@media(min-width:1500px){.layout{grid-template-columns:270px minmax(0,1fr) 340px}.content{max-width:1400px}}
+@media(max-width:1050px){.layout{grid-template-columns:190px minmax(0,1fr)}.rightcol{display:none}}
+@media(max-width:700px){.topbar{height:64px}.brand{font-size:24px}.layout{display:block;padding:15px 12px 30px}.sidebar{margin-bottom:16px}.nav-item{font-size:14px;min-height:46px;padding:12px}.welcome h1{font-size:25px}.welcome p{font-size:14px}.story{flex-basis:78px}.story-ring{width:68px;height:68px}.post{padding:16px}.post-text{font-size:15px}.govi-story-compose-card{padding:18px}.govi-story-compose-head h2{font-size:23px}}
+
     
 .composer{padding:15px;margin-bottom:16px}.compose-top{display:flex;align-items:center;gap:10px}.compose-top input{flex:1;min-width:0;border:0;border-radius:25px;background:#26231d;padding:13px 15px;color:var(--text);outline:none}.compose-actions{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:13px;padding-top:11px}.compose-actions button,.post-buttons button{border:0;background:transparent;color:#c9bea3;font-size:12px;font-weight:750;padding:9px 11px;border-radius:9px}.compose-actions button:hover,.post-buttons button:hover{background:#ffffff0d}    
 .post{padding:15px;margin-bottom:15px}.post-head{display:flex;align-items:center;gap:10px}.post-head .avatar{flex:0 0 40px}.post-author{font-size:13px;font-weight:850}.post-meta{font-size:11px;color:#9e967f;margin-top:3px}.more{margin-left:auto;background:transparent;border:0;color:#c9bea3;font-size:22px}.post-text{font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:13px 0}.post-media{width:100%;max-height:600px;object-fit:contain;background:#080808;border-radius:13px;display:block}.post-media.video{max-height:520px}.post-stats{display:flex;justify-content:space-between;gap:8px;color:#aaa18d;font-size:11px;padding:11px 2px;border-bottom:1px solid var(--line)}.post-buttons{display:flex;justify-content:space-around;flex-wrap:wrap;padding-top:7px}.post-buttons button.liked{color:#E8C66A} .comment-reply{margin:9px 0 0 18px;padding-left:12px;border-left:2px solid #8f7138}.reply-composer:empty{display:none}.reply-form{display:flex;gap:7px;margin-top:8px}.reply-form input{flex:1;min-width:0;background:#26231d;border:1px solid var(--line);border-radius:18px;padding:9px 12px;color:var(--text)}.reply-form button,.comment-actions button{background:transparent;border:0;color:#d6ad50;font-size:11px;padding:5px 7px}.comments{display:none;padding-top:10px}.comments.open{display:block}.comment-list{display:grid;gap:8px;margin:8px 0}.comment{background:#242019;border-radius:11px;padding:9px 11px;font-size:12px;line-height:1.5}.comment b{color:#E8C66A;margin-right:5px}.comment-actions{display:flex;gap:10px;margin-top:5px}.comment-actions button{border:0;background:transparent;color:#E8C66A;font-size:11px;padding:3px 0}.comment-form{display:flex;gap:7px}.comment-form input{min-width:0;flex:1;border:1px solid #51452d;border-radius:20px;padding:10px 13px;background:transparent;color:var(--text)}.comment-form button{border:0;border-radius:20px;padding:0 14px;background:var(--gold2);color:#15110a;font-weight:800}    
@@ -96,9 +125,19 @@ button,input,textarea{font:inherit}button{cursor:pointer}
   <button class="auth-switch" id="authSwitch" onclick="toggleAuthMode()">Ya tengo una cuenta · Iniciar sesión</button>    
   <p class="demo-note">En el registro, Supabase puede pedirte confirmar tu correo electrónico.</p>    
 </div></div>    
+<div id="goviStoryComposer" class="govi-story-composer" aria-label="Crear historia">
+  <div class="govi-story-compose-card">
+    <div class="govi-story-compose-head"><div><small>GOVI · TU MOMENTO</small><h2>Crear historia</h2></div><button type="button" id="goviStoryComposeClose">×</button></div>
+    <textarea id="goviStoryText" maxlength="500" placeholder="¿Qué quieres compartir hoy?"></textarea>
+    <input id="goviStoryLink" type="url" placeholder="Pega un enlace (opcional) · https://...">
+    <label class="govi-story-file">📷 Añadir foto o vídeo<input id="goviStoryFile" type="file" accept="image/*,video/*"></label>
+    <div id="goviStoryFileName">También puedes publicar solo texto o un enlace.</div>
+    <button type="button" id="goviStoryPublish">PUBLICAR HISTORIA</button>
+  </div>
+</div>
 <div id="goviStoryViewer" role="dialog" aria-label="Historias"><div id="goviStoryCard"><div id="goviStoryTop"><img id="goviStoryAvatar" alt=""><b id="goviStoryAuthor"></b><span id="goviStoryTime"></span><button id="goviStoryClose" type="button">×</button></div><img id="goviStoryMedia" alt="Historia" style="display:none"><video id="goviStoryVideo" controls playsinline style="display:none;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;background:#050505"></video><button id="goviStoryPrev" type="button">‹</button><button id="goviStoryNext" type="button">›</button><button id="goviStoryDelete" type="button" style="display:none">Eliminar historia</button></div></div>
 <div id="goviProfileActionMenu"><div id="goviProfileActionCard"><h3 id="goviProfileActionTitle">Perfil GOVI</h3><button type="button" id="goviActionViewProfile"><span class="action-icon">👤</span><span>VER PERFIL</span></button><button type="button" id="goviActionViewStory"><span class="action-icon">⭕</span><span>VER HISTORIA</span></button><button type="button" id="goviActionCancel">Cancelar</button></div></div>
-<input id="goviStoryInput" type="file" accept="image/*,video/*" style="display:none">
+
 <div class="toast" id="toast"></div>    
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>    
 <script>    
@@ -343,57 +382,65 @@ goviProfileStyles.textContent = `
 `;
 document.head.appendChild(goviProfileStyles);
 
-/* Historias GOVI: fotos y vídeos que duran 24 horas */
+/* Historias GOVI: foto, vídeo, texto y enlaces con 24 horas de duración */
 let goviStoryGroups=[],goviStoryGroupIndex=0,goviStoryItemIndex=0;
+function goviOpenStoryComposer(){
+  if(!currentUser){toast('Inicia sesión para publicar una historia');openModal('authModal');return}
+  $('goviStoryComposer').classList.add('open');
+}
+$('goviAddStory').addEventListener('click',goviOpenStoryComposer);
+$('goviStoryComposeClose').addEventListener('click',()=>$('goviStoryComposer').classList.remove('open'));
+$('goviStoryComposer').addEventListener('click',e=>{if(e.target===$('goviStoryComposer'))$('goviStoryComposer').classList.remove('open')});
+$('goviStoryFile').addEventListener('change',e=>{$('goviStoryFileName').textContent=e.target.files[0]?.name||'También puedes publicar solo texto o un enlace.'});
 async function goviLoadStories(){
   const bar=$('goviStories');if(!bar)return;
-  const {data:stories,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,media_path,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:true});
-  if(error){console.error('Historias:',error);bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div>Tu historia</button><div class="story-loading">No se pudieron cargar las historias</div>';goviBindAddStory();return}
+  const {data:stories,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,media_path,story_text,link_url,created_at,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:true});
+  if(error){console.error('Historias:',error);bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button><span class="story-loading">No se pudieron cargar las historias</span>';const b=$('goviAddStory');if(b)b.onclick=goviOpenStoryComposer;return}
   const rows=stories||[],ids=[...new Set(rows.map(x=>x.user_id))];let profiles={};
   if(ids.length){const {data:p,error:pe}=await supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',ids);if(pe)console.warn(pe);(p||[]).forEach(x=>profiles[x.id]=x)}
   const groups=new Map();rows.forEach(s=>{if(!groups.has(s.user_id))groups.set(s.user_id,{userId:s.user_id,profile:profiles[s.user_id]||{},items:[]});groups.get(s.user_id).items.push(s)});
   goviStoryGroups=[...groups.values()].sort((a,b)=>{if(currentUser&&a.userId===currentUser.id)return -1;if(currentUser&&b.userId===currentUser.id)return 1;return new Date(a.items[0].created_at)-new Date(b.items[0].created_at)});
   bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button>'+goviStoryGroups.map(g=>{const name=g.profile.full_name||'Usuario GOVI',avatar=g.profile.avatar_url?'<img src="'+escapeHTML(g.profile.avatar_url)+'" alt="">':'<span>'+escapeHTML(initials(name))+'</span>';return '<button class="story" type="button" data-story-user="'+escapeHTML(g.userId)+'"><div class="story-ring has-story">'+avatar+'</div><span class="story-name">'+escapeHTML(currentUser&&g.userId===currentUser.id?'Tu historia':name)+'</span></button>'}).join('');
-  goviBindAddStory();
+  $('goviAddStory').onclick=goviOpenStoryComposer;
   bar.querySelectorAll('[data-story-user]').forEach(btn=>btn.addEventListener('click',()=>{const i=goviStoryGroups.findIndex(x=>x.userId===btn.dataset.storyUser);if(i>=0)goviOpenStoryGroup(i,0)}));
 }
-function goviBindAddStory(){const b=$('goviAddStory');if(b)b.onclick=()=>{if(!currentUser){toast('Inicia sesión para publicar una historia');openModal('authModal');return}$('goviStoryInput').click()}}
-async function goviPublishStory(file){
-  if(!currentUser||!file)return;
-  if(!file.type.startsWith('image/')&&!file.type.startsWith('video/')){toast('Elige una foto o un vídeo');return}
-  if(file.size>50*1024*1024){toast('La historia no puede superar los 50 MB');return}
-  toast('Publicando tu historia…');
+async function goviPublishStory(){
+  if(!currentUser){toast('Inicia sesión para publicar');return}
+  const file=$('goviStoryFile').files[0],storyText=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
+  if(!file&&!storyText&&!link){toast('Añade texto, una foto, un vídeo o un enlace');return}
+  if(link&&!/^https?:\/\//i.test(link)){toast('El enlace debe empezar por https:// o http://');return}
+  if(file&&file.size>50*1024*1024){toast('La historia no puede superar los 50 MB');return}
+  const btn=$('goviStoryPublish');btn.disabled=true;btn.textContent='PUBLICANDO…';
+  let path=null,mediaUrl=null,mediaType='text';
   try{
-    const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'')||'bin';
-    const path=currentUser.id+'/stories/'+Date.now()+'-'+crypto.randomUUID()+'.'+ext;
-    const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(upError)throw upError;
-    const {data:urlData}=supabaseClient.storage.from(BUCKET).getPublicUrl(path);
-    const {error:dbError}=await supabaseClient.from('stories').insert({user_id:currentUser.id,media_url:urlData.publicUrl,media_type:file.type.startsWith('video/')?'video':'image',media_path:path,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()});
-    if(dbError){await supabaseClient.storage.from(BUCKET).remove([path]);throw dbError}
-    toast('¡Tu historia ya está publicada!');await goviLoadStories();
+    if(file){
+      mediaType=file.type.startsWith('video/')?'video':'image';
+      const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'')||'bin';
+      path=currentUser.id+'/stories/'+Date.now()+'-'+crypto.randomUUID()+'.'+ext;
+      const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(upError)throw upError;
+      mediaUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    }else if(link)mediaType='link';
+    const payload={user_id:currentUser.id,media_url:mediaUrl,media_type:mediaType,media_path:path,story_text:storyText||null,link_url:link||null,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()};
+    const {error}=await supabaseClient.from('stories').insert(payload);if(error)throw error;
+    $('goviStoryText').value='';$('goviStoryLink').value='';$('goviStoryFile').value='';$('goviStoryFileName').textContent='También puedes publicar solo texto o un enlace.';$('goviStoryComposer').classList.remove('open');
+    toast('¡Historia publicada!');await goviLoadStories();
     const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1);
-  }catch(error){console.error(error);toast('No se pudo publicar: '+error.message)}
+  }catch(error){if(path)await supabaseClient.storage.from(BUCKET).remove([path]);console.error(error);toast('No se pudo publicar: '+error.message)}
+  finally{btn.disabled=false;btn.textContent='PUBLICAR HISTORIA'}
 }
-$('goviStoryInput').addEventListener('change',e=>{const file=e.target.files[0];if(file)goviPublishStory(file);e.target.value=''});
-function goviOpenStoryGroup(groupIndex,itemIndex){
-  goviStoryGroupIndex=groupIndex;goviStoryItemIndex=itemIndex;goviRenderStory();
-  $('goviStoryViewer').style.display='flex';
-}
+function goviOpenStoryGroup(groupIndex,itemIndex){goviStoryGroupIndex=groupIndex;goviStoryItemIndex=itemIndex;goviRenderStory();$('goviStoryViewer').style.display='flex'}
 function goviRenderStory(){
   const group=goviStoryGroups[goviStoryGroupIndex];if(!group)return;
   const item=group.items[goviStoryItemIndex];if(!item)return;
-  const name=group.profile.full_name||'Usuario GOVI';
-  $('goviStoryAuthor').textContent=name;
-  $('goviStoryAvatar').src=group.profile.avatar_url||'';
-  $('goviStoryAvatar').style.visibility=group.profile.avatar_url?'visible':'hidden';
+  $('goviStoryAuthor').textContent=group.profile.full_name||'Usuario GOVI';$('goviStoryAvatar').src=group.profile.avatar_url||'';$('goviStoryAvatar').style.visibility=group.profile.avatar_url?'visible':'hidden';
   $('goviStoryTime').textContent=new Date(item.created_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-  const img=$('goviStoryMedia'),video=$('goviStoryVideo');
-  video.pause();video.removeAttribute('src');video.load();
-  if(item.media_type==='video'){img.style.display='none';video.style.display='block';video.src=item.media_url;video.load()}
-  else{video.style.display='none';img.style.display='block';img.src=item.media_url}
-  $('goviStoryPrev').style.display=(goviStoryItemIndex>0||goviStoryGroupIndex>0)?'block':'none';
-  $('goviStoryNext').style.display=(goviStoryItemIndex<group.items.length-1||goviStoryGroupIndex<goviStoryGroups.length-1)?'block':'none';
-  $('goviStoryDelete').style.display=currentUser&&currentUser.id===group.userId?'block':'none';
+  const img=$('goviStoryMedia'),video=$('goviStoryVideo');video.pause();video.removeAttribute('src');video.load();
+  let content=$('goviStoryContent');if(!content){content=document.createElement('div');content.id='goviStoryContent';$('goviStoryCard').appendChild(content)}
+  content.style.display='none';img.style.display='none';video.style.display='none';
+  if(item.media_type==='video'&&item.media_url){video.style.display='block';video.src=item.media_url;video.load()}
+  else if(item.media_type==='image'&&item.media_url){img.style.display='block';img.src=item.media_url}
+  else{content.style.display='flex';content.innerHTML='<div>'+escapeHTML(item.story_text||'')+'</div>'+(item.link_url?'<a href="'+escapeHTML(item.link_url)+'" target="_blank" rel="noopener noreferrer">'+escapeHTML(item.link_url)+'</a>':'')}
+  $('goviStoryPrev').style.display=(goviStoryItemIndex>0||goviStoryGroupIndex>0)?'block':'none';$('goviStoryNext').style.display=(goviStoryItemIndex<group.items.length-1||goviStoryGroupIndex<goviStoryGroups.length-1)?'block':'none';$('goviStoryDelete').style.display=currentUser&&currentUser.id===group.userId?'block':'none';
 }
 function goviStoryStep(direction){
   const group=goviStoryGroups[goviStoryGroupIndex];if(!group)return;
@@ -401,8 +448,7 @@ function goviStoryStep(direction){
   else{if(goviStoryItemIndex>0)goviStoryItemIndex--;else if(goviStoryGroupIndex>0){goviStoryGroupIndex--;goviStoryItemIndex=goviStoryGroups[goviStoryGroupIndex].items.length-1}else return}
   goviRenderStory();
 }
-$('goviStoryPrev').addEventListener('click',()=>goviStoryStep(-1));
-$('goviStoryNext').addEventListener('click',()=>goviStoryStep(1));
+$('goviStoryPrev').addEventListener('click',()=>goviStoryStep(-1));$('goviStoryNext').addEventListener('click',()=>goviStoryStep(1));
 $('goviStoryClose').addEventListener('click',()=>{$('goviStoryVideo').pause();$('goviStoryViewer').style.display='none'});
 $('goviStoryViewer').addEventListener('click',e=>{if(e.target===$('goviStoryViewer')){$('goviStoryVideo').pause();$('goviStoryViewer').style.display='none'}});
 $('goviStoryDelete').addEventListener('click',async()=>{
@@ -410,9 +456,7 @@ $('goviStoryDelete').addEventListener('click',async()=>{
   if(!confirm('¿Quieres eliminar esta historia?'))return;
   try{const {error}=await supabaseClient.from('stories').delete().eq('id',item.id).eq('user_id',currentUser.id);if(error)throw error;if(item.media_path)await supabaseClient.storage.from(BUCKET).remove([item.media_path]);toast('Historia eliminada');await goviLoadStories();if(goviStoryGroups.length){goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}else $('goviStoryViewer').style.display='none'}catch(error){console.error(error);toast('No se pudo eliminar: '+error.message)}
 });
-let goviStoryTouchX=0;
-$('goviStoryCard').addEventListener('touchstart',e=>{goviStoryTouchX=e.changedTouches[0].screenX},{passive:true});
-$('goviStoryCard').addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-goviStoryTouchX;if(Math.abs(dx)>55)goviStoryStep(dx<0?1:-1)},{passive:true});
+let goviStoryTouchX=0;$('goviStoryCard').addEventListener('touchstart',e=>{goviStoryTouchX=e.changedTouches[0].screenX},{passive:true});$('goviStoryCard').addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-goviStoryTouchX;if(Math.abs(dx)>55)goviStoryStep(dx<0?1:-1)},{passive:true});
 
 /* Zona del perfil */
 const goviProfileView = document.createElement('section');
