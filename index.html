@@ -518,14 +518,33 @@ $('goviCover').style.cursor='zoom-in';
 $('goviCover').addEventListener('click',()=>goviOpenGallery('cover'));
 
 /* Clic en el nombre o la foto de un usuario */
+async function goviOpenUserAvatarGallery(userId){
+  try{
+    const [{data:profile,error:profileError},{data:rows,error:rowsError}]=await Promise.all([
+      supabaseClient.from('profiles').select('id,full_name,avatar_url').eq('id',userId).maybeSingle(),
+      supabaseClient.from('profile_gallery').select('id,user_id,image_url,image_path,image_type,created_at').eq('user_id',userId).eq('image_type','avatar').order('created_at',{ascending:false})
+    ]);
+    if(profileError)throw profileError;if(rowsError)throw rowsError;
+    goviGalleryOwner=userId;goviGalleryType='avatar';
+    goviGalleryItems=(rows||[]).map(x=>({id:x.id,url:x.image_url,path:x.image_path}));
+    if(profile?.avatar_url&&!goviGalleryItems.some(x=>x.url===profile.avatar_url))goviGalleryItems.unshift({id:null,url:profile.avatar_url,path:goviStoragePath(profile.avatar_url)});
+    if(!goviGalleryItems.length){toast('Este usuario todavía no tiene foto de perfil');return}
+    goviGalleryIndex=0;goviRenderGallery();goviPhotoViewer.style.display='flex';
+  }catch(error){console.error(error);toast('No se pudo abrir la foto')}
+}
 $('feed').addEventListener('click',function(e) {
-  const target = e.target.closest('[data-user-id]');
-  if(target) {
-    if(target.classList.contains('comment-avatar') || target.closest('.comment-user')) { const img=target.querySelector('img')||target.closest('.comment-user')?.querySelector('img'); if(img?.src){goviShowProfilePhoto(img.src);return;} }
-    e.preventDefault();
-    e.stopPropagation();
-    openGoviProfile(target.dataset.userId);
+  const target=e.target.closest('[data-user-id]');
+  if(!target)return;
+  e.preventDefault();e.stopPropagation();
+  if(target.classList.contains('comment-avatar')||target.closest('.comment-user')){
+    const img=target.querySelector('img')||target.closest('.comment-user')?.querySelector('img');
+    if(img?.src){goviShowProfilePhoto(img.src);return}
+    goviOpenUserAvatarGallery(target.dataset.userId);return;
   }
+  if(target.classList.contains('avatar')||target.querySelector('img')){
+    goviOpenUserAvatarGallery(target.dataset.userId);return;
+  }
+  openGoviProfile(target.dataset.userId);
 });
 
 /* Añadir varias imágenes a la galería permanente */
