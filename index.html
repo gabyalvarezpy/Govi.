@@ -1916,5 +1916,65 @@ window.addEventListener('popstate',()=>{const el=document.getElementById('goviSt
 #goviStoryComposer #goviStoryPreviewText,#goviStoryComposer #goviStoryPreviewLink{touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;will-change:font-size,left,top}
 #goviStoryComposer #goviStoryText{font-size:16px!important;line-height:1.4!important;touch-action:pan-y!important;user-select:text!important;-webkit-user-select:text!important}
 </style>
+
+<style id="govi-story-controls-hotfix">
+#goviStoryComposer #goviStoryTextTools{display:grid!important;grid-template-columns:1fr 1fr;gap:7px;padding:8px;border:1px solid #a88ad8;border-radius:13px;background:#171020;color:#fff;position:relative;z-index:250}
+#goviStoryComposer #goviStoryTextTools label{font-size:11px;color:#e4d5ff;display:flex;flex-direction:column;gap:4px}
+#goviStoryComposer #goviStoryTextTools input{width:100%;accent-color:#bd91f4}
+#goviStoryComposer #goviStoryTextTools button{border:1px solid #9b79c7;background:#2a1d38;color:#fff;border-radius:9px;padding:7px;font-size:12px}
+#goviStoryComposer #goviStoryPublish{position:fixed!important;top:max(10px,env(safe-area-inset-top))!important;right:58px!important;left:auto!important;bottom:auto!important;z-index:9999!important;display:block!important;visibility:visible!important;pointer-events:auto!important;background:linear-gradient(120deg,#e6caff,#a875d9)!important;color:#1a1023!important;border:0!important;border-radius:999px!important;padding:10px 16px!important;font-weight:900!important}
+#goviStoryComposer #goviStoryComposeClose{position:fixed!important;top:max(8px,env(safe-area-inset-top))!important;right:9px!important;z-index:10000!important}
+#goviStoryComposer #goviStoryStatus{position:fixed!important;z-index:9998!important;left:12px!important;right:12px!important;bottom:12px!important;max-height:22dvh!important;overflow:auto!important}
+#goviStoryComposer #goviStoryPreviewText,#goviStoryComposer #goviStoryPreviewLink{pointer-events:auto!important;cursor:move!important}
+</style>
+<script id="govi-story-controls-hotfix-js">
+(function(){
+ const $=id=>document.getElementById(id),canvas=$('goviStoryPreview'),textEl=$('goviStoryPreviewText');
+ if(!canvas||!textEl)return;
+ const tray=$('goviStoryControlTray');
+ if(tray&&!$('goviStoryTextTools')){
+  const panel=document.createElement('div');panel.id='goviStoryTextTools';
+  panel.innerHTML='<label>Tamaño de letra <input id="goviStorySizeControl" type="range" min="12" max="90" value="30"></label><label>Posición vertical <input id="goviStoryYControl" type="range" min="8" max="95" value="50"></label><label>Posición horizontal <input id="goviStoryXControl" type="range" min="5" max="95" value="50"></label><button id="goviStoryCenterText" type="button">Centrar texto</button>';
+  tray.appendChild(panel);
+  const sync=()=>{const size=+$('goviStorySizeControl').value;textEl.style.fontSize=size+'px';textEl.dataset.size=size;goviStoryPositions.text.x=+$('goviStoryXControl').value;goviStoryPositions.text.y=+$('goviStoryYControl').value;goviApplyStoryEditorStyles();};
+  ['goviStorySizeControl','goviStoryXControl','goviStoryYControl'].forEach(id=>$(id).addEventListener('input',sync));
+  $('goviStoryCenterText').addEventListener('click',()=>{$('goviStoryXControl').value=50;$('goviStoryYControl').value=50;sync()});
+ }
+ // Reposition and resize directly on the text itself with one or two fingers.
+ let pts=new Map(),gesture=null;
+ textEl.style.pointerEvents='auto';textEl.style.touchAction='none';
+ textEl.addEventListener('pointerdown',e=>{
+  if(!textEl.textContent.trim())return;
+  e.preventDefault();e.stopPropagation();
+  try{textEl.setPointerCapture(e.pointerId)}catch(_){}
+  pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size===1)gesture={type:'move',x:e.clientX,y:e.clientY,left:goviStoryPositions.text.x,top:goviStoryPositions.text.y};
+  if(pts.size===2){const p=[...pts.values()];gesture={type:'size',dist:Math.max(1,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y)),size:parseFloat(getComputedStyle(textEl).fontSize)||30};}
+ });
+ textEl.addEventListener('pointermove',e=>{
+  if(!pts.has(e.pointerId)||!gesture)return;
+  e.preventDefault();pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size>=2&&gesture.type==='size'){
+   const p=[...pts.values()],dist=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
+   const size=Math.max(12,Math.min(90,gesture.size*dist/gesture.dist));
+   textEl.style.fontSize=size+'px';textEl.dataset.size=size;
+   if($('goviStorySizeControl'))$('goviStorySizeControl').value=size;
+  }else if(pts.size===1&&gesture.type==='move'){
+   const r=canvas.getBoundingClientRect();
+   goviStoryPositions.text={x:Math.max(5,Math.min(95,gesture.left+(e.clientX-gesture.x)/r.width*100)),y:Math.max(8,Math.min(95,gesture.top+(e.clientY-gesture.y)/r.height*100))};
+   goviApplyStoryEditorStyles();
+   if($('goviStoryXControl'))$('goviStoryXControl').value=goviStoryPositions.text.x;
+   if($('goviStoryYControl'))$('goviStoryYControl').value=goviStoryPositions.text.y;
+  }
+ });
+ const end=e=>{pts.delete(e.pointerId);if(!pts.size)gesture=null;};
+ textEl.addEventListener('pointerup',end);textEl.addEventListener('pointercancel',end);
+ // Ensure the publish control calls the real publisher and surfaces any failure.
+ const pub=$('goviStoryPublish');
+ if(pub){pub.type='button';pub.onclick=e=>{e.preventDefault();if(typeof window.goviPublishStory==='function')window.goviPublishStory();else alert('El módulo de publicación no está disponible. Recarga GOVI.');};}
+ const input=$('goviStoryText');
+ if(input)input.addEventListener('input',()=>{textEl.textContent=input.value;textEl.style.display=input.value.trim()?'block':'none';});
+})();
+</script>
 </body>
 </html>
