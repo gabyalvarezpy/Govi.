@@ -195,7 +195,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}
     <div class="nav-item active" onclick="filterSection('Inicio',this)">⌂ Inicio</div>    
     <div class="nav-item" onclick="filterSection('Fotos',this)">▧ Fotos</div>    
     <div class="nav-item" onclick="filterSection('Vídeos',this)">▷ Vídeos</div>    
-    <div class="nav-item" onclick="filterSection('Mi perfil',this)">♙ Mi perfil</div>    
+    <div class="nav-item" onclick="goviGoToMyProfile(this)">♙ Mi perfil</div>    
     <div class="side-note"><b>Tu comunidad, tus oportunidades.</b><br>Comparte lo que te mueve y crece a tu ritmo.</div>    
   </aside>    
   <main class="content">    
@@ -1127,6 +1127,31 @@ goviCoverInput.addEventListener('change',e=>{
   if(file) goviOpenCropEditor(file,'cover');
   e.target.value='';
 });
+
+/* Acceso directo y aislado al perfil propio */
+window.goviGoToMyProfile = function(el) {
+  if(!currentUser) {
+    toast('Inicia sesión para ver tu perfil');
+    openModal('authModal');
+    return;
+  }
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  if(el) el.classList.add('active');
+  goviProfileId=currentUser.id;
+  $('goviProfileView').style.display='block';
+  $('feed').style.display='block';
+  $('goviProfileName').textContent='Cargando perfil…';
+  $('goviProfileDescription').textContent='Tu mundo. Tu gente.';
+  $('goviProfileControls').innerHTML='';
+  $('goviAvatar').textContent='G';
+  $('goviCover').innerHTML='';
+  $('feed').innerHTML='<p class="demo-note">Cargando tu perfil…</p>';
+  history.replaceState(null,'','#profile-'+currentUser.id);
+  openGoviProfile(currentUser.id).catch(error=>{
+    console.error('Error abriendo Mi perfil:',error);
+    toast('No se pudo abrir tu perfil: '+(error.message||'Error desconocido'));
+  });
+};
 
 /* Navegación */
 window.filterSection = function(section,el) {
