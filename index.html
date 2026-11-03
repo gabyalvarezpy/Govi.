@@ -133,6 +133,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}
     <label class="govi-story-file">📷 Añadir foto o vídeo<input id="goviStoryFile" type="file" accept="image/*,video/*"></label>
     <div id="goviStoryFileName">También puedes publicar solo texto o un enlace.</div>
     <button type="button" id="goviStoryPublish" onclick="window.goviPublishStory()">PUBLICAR HISTORIA</button>
+    <p id="goviStoryStatus" role="status" style="display:none;margin:12px 0 0;padding:12px;border-radius:10px;background:#292116;color:#f4d989;font-size:13px;line-height:1.45;overflow-wrap:anywhere"></p>
   </div>
 </div>
 <div id="goviStoryViewer" role="dialog" aria-label="Historias"><div id="goviStoryCard"><div id="goviStoryTop"><img id="goviStoryAvatar" alt=""><b id="goviStoryAuthor"></b><span id="goviStoryTime"></span><button id="goviStoryClose" type="button">×</button></div><img id="goviStoryMedia" alt="Historia" style="display:none"><video id="goviStoryVideo" controls playsinline style="display:none;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;background:#050505"></video><button id="goviStoryPrev" type="button">‹</button><button id="goviStoryNext" type="button">›</button><button id="goviStoryDelete" type="button" style="display:none">Eliminar historia</button></div></div>
@@ -410,7 +411,7 @@ async function goviPublishStory(){
   if(!file&&!storyText&&!link){toast('Añade texto, una foto, un vídeo o un enlace');return}
   if(link&&!/^https?:\/\//i.test(link)){toast('El enlace debe empezar por https:// o http://');return}
   if(file&&file.size>50*1024*1024){toast('La historia no puede superar los 50 MB');return}
-  const btn=$('goviStoryPublish');btn.disabled=true;btn.textContent='PUBLICANDO…';
+  const btn=$('goviStoryPublish'),status=$('goviStoryStatus');status.style.display='block';status.textContent='Enviando tu historia a GOVI…';btn.disabled=true;btn.textContent='PUBLICANDO…';
   let path=null,mediaUrl=null,mediaType='text';
   try{
     if(file){
@@ -423,9 +424,9 @@ async function goviPublishStory(){
     const payload={user_id:currentUser.id,media_url:mediaUrl,media_type:mediaType,media_path:path,story_text:storyText||null,link_url:link||null,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()};
     const {error}=await supabaseClient.from('stories').insert(payload);if(error)throw error;
     $('goviStoryText').value='';$('goviStoryLink').value='';$('goviStoryFile').value='';$('goviStoryFileName').textContent='También puedes publicar solo texto o un enlace.';$('goviStoryComposer').classList.remove('open');
-    toast('¡Historia publicada!');await goviLoadStories();
+    status.textContent='¡Historia publicada correctamente!';toast('¡Historia publicada!');await goviLoadStories();
     const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1);
-  }catch(error){if(path)await supabaseClient.storage.from(BUCKET).remove([path]);console.error(error);toast('No se pudo publicar: '+error.message)}
+  }catch(error){if(path)await supabaseClient.storage.from(BUCKET).remove([path]);console.error('ERROR AL PUBLICAR HISTORIA:',error);status.style.display='block';status.textContent='ERROR AL PUBLICAR: '+(error?.message||error?.details||error?.hint||'Error desconocido')+' · Código: '+(error?.code||'sin código');}
   finally{btn.disabled=false;btn.textContent='PUBLICAR HISTORIA'}
 }
 window.goviPublishStory=goviPublishStory;
