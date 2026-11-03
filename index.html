@@ -1929,25 +1929,31 @@ window.addEventListener('popstate',()=>{const el=document.getElementById('goviSt
  #goviStoryComposer .govi-story-compose-head,#goviStoryComposer #goviStoryCategoryBar,#goviStoryComposer #goviStoryControlTray{left:calc(50% - min(28.125dvh,50vw) + 8px)!important;right:calc(50% - min(28.125dvh,50vw) + 8px)!important}
 }
 </style>
-<script>
+<script id="govi-story-gallery-fix">
+/* Un solo controlador para abrir la galería de historias sin activar acciones del perfil */
 (function(){
- const $=id=>document.getElementById(id);
- const openFile=()=>{const f=$('goviStoryFile');if(f){f.removeAttribute('disabled');f.click();}};
- document.querySelectorAll('#goviStoryCategoryBar [data-story-tab]').forEach(tab=>{
-  tab.addEventListener('click',e=>{
-   const kind=tab.dataset.storyTab;
-   if(kind==='media'||kind==='gifs'){e.preventDefault();$('goviStoryMediaWrap').hidden=false;openFile();}
-  },true);
- });
- document.querySelectorAll('[data-canvas-action="media"],[data-canvas-action="gif"]').forEach(btn=>{
-  btn.addEventListener('click',e=>{e.preventDefault();$('goviStoryMediaWrap').hidden=false;openFile();},true);
- });
- const file=$('goviStoryFile');
- if(file)file.addEventListener('change',e=>{
-  const f=e.target.files&&e.target.files[0];if(!f)return;
-  $('goviStoryGifFile').value='';
-  $('goviStoryFileName').textContent=f.name;
-  if(typeof goviUpdateStoryPreview==='function')goviUpdateStoryPreview();
+ document.addEventListener('click',function(e){
+  const tab=e.target.closest('#goviStoryCategoryBar [data-story-tab]');
+  const tool=e.target.closest('[data-canvas-action]');
+  const kind=tab?tab.dataset.storyTab:(tool?tool.dataset.canvasAction:null);
+  if(!kind)return;
+  if(kind!=='media'&&kind!=='gifs')return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  const wrap=document.getElementById('goviStoryMediaWrap');
+  if(wrap)wrap.hidden=false;
+  const picker=document.getElementById(kind==='gifs'?'goviStoryGifFile':'goviStoryFile');
+  if(picker){picker.removeAttribute('disabled');picker.click();}
+ },true);
+ const file=document.getElementById('goviStoryFile');
+ if(file)file.addEventListener('change',function(e){
+  const selected=e.target.files&&e.target.files[0];
+  if(!selected)return;
+  const gif=document.getElementById('goviStoryGifFile');
+  if(gif)gif.value='';
+  const name=document.getElementById('goviStoryFileName');
+  if(name)name.textContent=selected.name;
+  if(typeof window.goviUpdateStoryPreview==='function')window.goviUpdateStoryPreview();
  },true);
 })();
 </script>
