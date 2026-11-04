@@ -3870,7 +3870,7 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
    [textNode,linkNode].forEach((el,i)=>{el.style.fontFamily=f;el.style.color=i?(linkColor?.value||'#ffe08a'):(color?.value||'#fff');el.style.textShadow=edge==='none'?'none':edge;el.style.fontSize=size.value+'px';el.style.left=(Number(el.dataset.x)||50)+'%';el.style.top=(Number(el.dataset.y)||(i?80:50))+'%';el.style.transform='translate(-50%,-50%)';el.style.zIndex='22';});
    [image,video].forEach(el=>{el.style.transform='translate('+mediaX+'px,'+mediaY+'px) scale('+mediaZoom*(Number(zoom?.value)||100)/100+')';el.style.transformOrigin='center center'});
   }
-  function update(){const t=text.value.trim(),u=link.value.trim();textNode.textContent=t;textNode.style.display=t?'block':'none';linkNode.textContent=u;linkNode.href=/^https?:\\/\\//i.test(u)?u:'#';linkNode.style.display=u?'block':'none';apply()}
+  function update(){const t=text.value.trim(),u=link.value.trim();textNode.textContent=t;textNode.style.display=t?'block':'none';linkNode.textContent=u;linkNode.href=/^https?:\/\//i.test(u)?u:'#';linkNode.style.display=u?'block':'none';apply()}
   add('＋ Foto / vídeo',()=>{file.value='';file.click()});
   add('Aa Escribir',()=>{textWrap.hidden=false;linkWrap.hidden=true;text.focus();text.scrollIntoView({block:'nearest',behavior:'smooth'})});
   add('🔗 Enlace',()=>{linkWrap.hidden=false;textWrap.hidden=true;link.focus();link.scrollIntoView({block:'nearest',behavior:'smooth'})});
