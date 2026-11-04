@@ -3910,6 +3910,13 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
 </script>
 
 
+<style id="govi-story-editor-cleanup-v9">
+/* Mantener el botón antiguo de cargar foto/vídeo y retirar controles duplicados que no responden. */
+#goviStoryComposer .govi-v7-tools button:not(:first-child){display:none!important}
+#goviStoryComposer .govi-v7-style,
+#goviStoryComposer .govi-v7-emojis,
+#goviStoryComposer .govi-v7-fields{display:none!important}
+</style>
 <style id="govi-story-editor-repair-v8">
 #goviStoryComposer #goviStoryRepairV8{position:relative!important;z-index:2147483001!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;background:#090909!important;color:#fff!important;padding:10px!important;border-top:1px solid #ffffff28!important;max-height:43dvh!important;overflow:auto!important;touch-action:pan-y!important}
 #goviStoryRepairV8 *{pointer-events:auto!important;box-sizing:border-box!important}
