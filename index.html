@@ -3842,6 +3842,8 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
   const root=$('goviStoryComposer'),stage=root?.querySelector('.govi-story-v3-stage'),panel=root?.querySelector('.govi-story-v3-panel'),actions=root?.querySelector('.govi-story-v3-actions'),preview=$('goviStoryPreview');
   if(!root||!stage||!panel||!actions||!preview||root.dataset.goviV7==='ready')return;
   root.dataset.goviV7='ready';
+  panel.querySelectorAll('.govi-v4-emojis,.govi-v4-tools,.govi-v4-hint,.govi-v5-fields,.govi-v5-emojis,.govi-v5-tools,.govi-v5-style,.govi-v5-hint').forEach(n=>n.remove());
+  stage.querySelectorAll('.govi-v5-sticker').forEach(n=>n.remove());
   function clone(id){const old=$(id);if(!old)return null;const fresh=old.cloneNode(true);old.replaceWith(fresh);return fresh}
   const text=clone('goviStoryText'),link=clone('goviStoryLink'),file=clone('goviStoryFile');
   const image=clone('goviStoryPreviewImage'),video=clone('goviStoryPreviewVideo'),textNode=clone('goviStoryPreviewText'),linkNode=clone('goviStoryPreviewLink');
