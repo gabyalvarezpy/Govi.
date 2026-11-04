@@ -3961,7 +3961,7 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
   const linkNode=document.getElementById('goviStoryPreviewLink');
   if(!root||!stage||!panel||!file||!video||!image||!textNode||panel.querySelector('#goviStoryRepairV8'))return;
   const ui=document.createElement('section');ui.id='goviStoryRepairV8';
-  ui.innerHTML='<div class="r8-row"><button type="button" data-a="text">Aa Escribir</button><button type="button" data-a="emoji">😊 Emojis ('+EMOJI.length+')</button><button type="button" data-a="sound">🔊 Activar sonido</button><button type="button" data-a="play">▶ Reproducir</button><button type="button" data-a="clear">Limpiar texto</button></div><textarea id="goviR8Text" placeholder="Escribí tu historia aquí..."></textarea><div class="r8-row"><label>Tipografía <select id="goviR8Font"><option value="Arial,sans-serif">Clásica</option><option value="Trebuchet MS,sans-serif">Redondeada</option><option value="Georgia,serif">Elegante</option><option value="cursive">Manuscrita</option><option value="Impact,sans-serif">Impacto</option></select></label><label>Color <input id="goviR8Color" type="color" value="#ffffff"></label><label>Contorno <select id="goviR8Edge"><option value="0 2px 8px #000">Negro</option><option value="1px 1px 0 #000,-1px -1px 0 #000">Contorno negro</option><option value="1px 1px 0 #fff,-1px -1px 0 #fff">Contorno blanco</option><option value="0 0 12px #ff4fd8">Brillo rosa</option><option value="none">Sin contorno</option></select></label><label>Tamaño <input id="goviR8Size" type="range" min="14" max="72" value="32"></label></div><div class="r8-emojis" id="goviR8Emojis"></div><div class="r8-row"><small>Los controles anteriores quedan reemplazados por este panel funcional.</small></div>';
+  ui.innerHTML='<div class="r8-row"><button type="button" data-a="text">Aa Escribir</button><button type="button" data-a="smaller">A− Achicar</button><button type="button" data-a="bigger">A+ Agrandar</button><button type="button" data-a="emoji">😊 Emojis ('+EMOJI.length+')</button><button type="button" data-a="sound">🔊 Activar sonido</button><button type="button" data-a="play">▶ Reproducir</button><button type="button" data-a="clear">Limpiar texto</button></div><textarea id="goviR8Text" placeholder="Escribí tu historia aquí..."></textarea><div class="r8-row"><label>Tipografía <select id="goviR8Font"><option value="Arial,sans-serif">Clásica</option><option value="Trebuchet MS,sans-serif">Redondeada</option><option value="Georgia,serif">Elegante</option><option value="cursive">Manuscrita</option><option value="Impact,sans-serif">Impacto</option></select></label><label>Color <input id="goviR8Color" type="color" value="#ffffff"></label><label>Contorno <select id="goviR8Edge"><option value="0 2px 8px #000">Negro</option><option value="1px 1px 0 #000,-1px -1px 0 #000">Contorno negro</option><option value="1px 1px 0 #fff,-1px -1px 0 #fff">Contorno blanco</option><option value="0 0 12px #ff4fd8">Brillo rosa</option><option value="none">Sin contorno</option></select></label><label>Tamaño <input id="goviR8Size" type="range" min="14" max="72" value="32"></label></div><div class="r8-emojis" id="goviR8Emojis"></div><div class="r8-row"><small>Los controles anteriores quedan reemplazados por este panel funcional.</small></div>';
   panel.appendChild(ui);
   const $=id=>document.getElementById(id),txt=$('goviR8Text'),font=$('goviR8Font'),color=$('goviR8Color'),edge=$('goviR8Edge'),size=$('goviR8Size'),emojiBox=$('goviR8Emojis');
   let x=50,y=50;
@@ -3971,8 +3971,8 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
    textNode.style.display=value?'block':'none';
    textNode.style.position='absolute';textNode.style.left=x+'%';textNode.style.top=y+'%';textNode.style.transform='translate(-50%,-50%)';
    textNode.style.maxWidth='88%';textNode.style.padding='8px 12px';textNode.style.textAlign='center';textNode.style.fontWeight='850';
-   textNode.style.fontFamily=font.value;textNode.style.color=color.value;textNode.style.fontSize=size.value+'px';
-   textNode.style.textShadow=edge.value==='none'?'none':edge.value;
+   textNode.style.setProperty('font-family',font.value,'important');textNode.style.setProperty('color',color.value,'important');textNode.style.setProperty('font-size',size.value+'px','important');
+   textNode.style.setProperty('text-shadow',edge.value==='none'?'none':edge.value,'important');
    const original=$('goviStoryText');if(original){original.value=value;original.dispatchEvent(new Event('input',{bubbles:true}))}
   }
   txt.addEventListener('input',sync);
@@ -3983,6 +3983,8 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
    e.preventDefault();e.stopPropagation();
    switch(b.dataset.a){
     case 'text':txt.focus();txt.scrollIntoView({block:'nearest'});break;
+    case 'smaller':size.value=String(Math.max(Number(size.min),Number(size.value)-4));sync();break;
+    case 'bigger':size.value=String(Math.min(Number(size.max),Number(size.value)+4));sync();break;
     case 'emoji':emojiBox.classList.toggle('open');break;
     case 'clear':txt.value='';sync();break;
     case 'sound':
