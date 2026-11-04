@@ -4044,6 +4044,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
    const b=e.target.closest('button[data-a]');if(!b)return;
    e.preventDefault();e.stopPropagation();
    switch(b.dataset.a){
+    case 'close':document.getElementById('goviStoryComposeClose')?.click();break;
     case 'media':file.value='';file.click();break;
     case 'text':txt.focus();txt.scrollIntoView({block:'nearest'});break;
     case 'smaller':size.value=String(Math.max(Number(size.min),Number(size.value)-4));sync();break;
