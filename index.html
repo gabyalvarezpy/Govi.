@@ -3809,3 +3809,93 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix,{once:true});else fix();
 })();
 </script>
+
+
+<!-- GOVI STORY EDITOR V7: controles independientes y gestos táctiles -->
+<style id="govi-story-v7-css">
+#goviStoryComposer .govi-story-v3-stage{touch-action:pan-y!important;position:relative!important}
+#goviStoryComposer #goviStoryPreview{pointer-events:none!important;overflow:hidden!important}
+#goviStoryComposer #goviStoryPreviewImage,#goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;background:#000!important}
+#goviStoryComposer #goviStoryPreviewText,#goviStoryComposer #goviStoryPreviewLink,#goviStoryComposer .govi-v7-sticker{pointer-events:auto!important;position:absolute!important;z-index:22!important;touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;cursor:move!important;max-width:90%!important}
+#goviStoryComposer .govi-v7-sticker{font-size:44px!important;line-height:1!important;transform:translate(-50%,-50%)!important;padding:3px!important;background:#0002!important;border:1px dashed #ffffff75!important;border-radius:8px!important}
+#goviStoryComposer .govi-v7-sticker.is-selected,#goviStoryComposer #goviStoryPreviewText.is-selected,#goviStoryComposer #goviStoryPreviewLink.is-selected{outline:2px solid #c084fc!important}
+#goviStoryComposer .govi-v7-fields{display:flex!important;flex-direction:column!important;gap:8px!important;margin:9px 0!important}
+#goviStoryComposer .govi-v7-fields textarea,#goviStoryComposer .govi-v7-fields input{display:block!important;position:relative!important;width:100%!important;min-height:46px!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;touch-action:auto!important;z-index:30!important;padding:11px!important;border:1px solid #777!important;border-radius:10px!important;background:#191919!important;color:#fff!important;font-size:16px!important}
+#goviStoryComposer .govi-v7-fields textarea{min-height:76px!important;resize:vertical!important}
+#goviStoryComposer .govi-v7-style{display:flex!important;flex-wrap:wrap!important;gap:9px!important;align-items:center!important;margin:9px 0!important}
+#goviStoryComposer .govi-v7-style label{display:flex!important;align-items:center!important;gap:5px!important;color:#eee!important;font-size:12px!important}
+#goviStoryComposer .govi-v7-style select{max-width:150px!important;background:#191919!important;color:#fff!important;border:1px solid #777!important;border-radius:7px!important;padding:7px!important}
+#goviStoryComposer .govi-v7-style input[type=range]{width:100px!important}
+#goviStoryComposer .govi-v7-style input[type=color]{width:34px!important;height:30px!important}
+#goviStoryComposer .govi-v7-tools,#goviStoryComposer .govi-v7-emojis{display:flex!important;flex-wrap:wrap!important;gap:7px!important;margin:8px 0!important}
+#goviStoryComposer .govi-v7-tools button,#goviStoryComposer .govi-v7-emojis button{min-height:38px!important;padding:7px 10px!important;border:1px solid #ffffff35!important;border-radius:9px!important;background:#ffffff12!important;color:#fff!important}
+#goviStoryComposer .govi-v7-emojis{max-height:145px!important;overflow:auto!important}
+#goviStoryComposer .govi-v7-emojis button{font-size:23px!important;min-width:40px!important}
+#goviStoryComposer .govi-v7-fields [hidden],#goviStoryComposer .govi-v7-emojis[hidden]{display:none!important}
+#goviStoryComposer .govi-story-v3-panel{max-height:48dvh!important;overflow-y:auto!important}
+</style>
+<script id="govi-story-v7-js">
+(function(){
+ const $=id=>document.getElementById(id);
+ const emojiList=('😀 😃 😄 😁 😆 😅 😂 🤣 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😋 😛 😜 🤪 🤗 🤭 🫢 🫣 🤫 🤔 🫡 😎 🤓 🧐 😕 😟 🙁 ☹️ 😮 😯 😲 😳 🥺 🥹 😢 😭 😱 😩 😫 😤 😡 🤬 😈 👻 👽 🤖 💩 🤡 🎃 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❤️‍🔥 💖 💗 💓 💞 💕 💘 💝 💟 💌 💋 💯 💥 💫 💦 🕊️ ⭐ 🌟 ✨ ⚡ 🔥 🌈 ☀️ 🌙 🌍 🌎 🌏 🌸 🌹 🌺 🌻 🌼 🌷 🌱 🌲 🌴 🌵 🍀 🍁 🍂 🍃 🍄 🐶 🐱 🐭 🐰 🦊 🐻 🐼 🐯 🦁 🐷 🐸 🐵 🐔 🐧 🦄 🐝 🦋 🐢 🐬 🐳 🍎 🍊 🍋 🍉 🍇 🍓 🫐 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🍆 🥦 🥕 🌽 🌶️ 🥒 🥐 🍞 🧀 🍳 🥞 🥓 🍔 🍟 🍕 🌮 🌯 🍜 🍝 🍣 🍱 🍿 🍩 🍪 🎂 🍰 🧁 🍫 🍬 🍭 🍦 ☕ 🧉 🥤 🍺 🥂 🍷 ⚽ 🏀 🏈 ⚾ 🎾 🏆 🥇 🥈 🥉 🎮 🎧 🎤 🎹 🎸 📸 📷 📱 💻 💡 📚 ✏️ 📝 📌 📍 🔔 🚀 🛸 ✈️ 🚗 🚌 🚲 🏍️ 🏖️ 🏝️ 🏙️ 🏡 🏠 🏰 💰 💵 💶 💸 💳 💎 👑 🎁 🎀 🎈 🎉 🎊 🪩 🥳 💪 👏 🙌 🤝 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👋 🫶 🙏 💃 🕺 🧑‍🚀 🇵🇾 🇪🇸').split(/\s+/);
+ function init(){
+  const root=$('goviStoryComposer'),stage=root?.querySelector('.govi-story-v3-stage'),panel=root?.querySelector('.govi-story-v3-panel'),actions=root?.querySelector('.govi-story-v3-actions'),preview=$('goviStoryPreview');
+  if(!root||!stage||!panel||!actions||!preview||root.dataset.goviV7==='ready')return;
+  root.dataset.goviV7='ready';
+  function clone(id){const old=$(id);if(!old)return null;const fresh=old.cloneNode(true);old.replaceWith(fresh);return fresh}
+  const text=clone('goviStoryText'),link=clone('goviStoryLink'),file=clone('goviStoryFile');
+  const image=clone('goviStoryPreviewImage'),video=clone('goviStoryPreviewVideo'),textNode=clone('goviStoryPreviewText'),linkNode=clone('goviStoryPreviewLink');
+  if(!text||!link||!file||!image||!video||!textNode||!linkNode)return;
+  video.controls=true;video.playsInline=true;video.setAttribute('controls','');video.setAttribute('playsinline','');
+  const textWrap=$('goviStoryTextWrap'),linkWrap=$('goviStoryLinkWrap'),fields=document.createElement('div');fields.className='govi-v7-fields';
+  textWrap.hidden=true;linkWrap.hidden=true;fields.append(textWrap,linkWrap);
+  const font=$('goviStoryFont'),color=$('goviStoryColor'),linkColor=$('goviStoryLinkColor'),outline=$('goviStoryOutline'),zoom=$('goviStoryImageScale');
+  let size=$('goviStoryTextSize');
+  if(!size){size=document.createElement('input');size.type='range';size.id='goviStoryTextSize';size.min='12';size.max='100';size.value='32'}
+  if(font){[['Trebuchet MS, sans-serif','Redondeada'],['cursive','Manuscrita']].forEach(([v,t])=>{if(![...font.options].some(o=>o.value===v))font.add(new Option(t,v))})}
+  if(outline){[['1px 1px 0 #000, -1px -1px 0 #000','Contorno negro'],['1px 1px 0 #fff, -1px -1px 0 #fff','Contorno blanco'],['0 0 10px #fff','Brillo blanco'],['0 0 12px #ff4fd8','Brillo rosa'],['0 3px 8px #000','Sombra fuerte'],['none','Sin contorno']].forEach(([v,t])=>{if(![...outline.options].some(o=>o.value===v))outline.add(new Option(t,v))})}
+  const style=document.createElement('div');style.className='govi-v7-style';
+  const label=(name,node)=>{if(!node)return;const l=document.createElement('label');l.append(document.createTextNode(name),node);style.append(l)};
+  label('Letra',font);label('Color texto',color);label('Color enlace',linkColor);label('Contorno',outline);label('Tamaño',size);label('Zoom foto',zoom);
+  const tools=document.createElement('div');tools.className='govi-v7-tools';
+  const add=(name,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=name;b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fn()});tools.append(b);return b};
+  actions.replaceChildren();
+  const emojiBox=document.createElement('div');emojiBox.className='govi-v7-emojis';emojiBox.hidden=true;
+  const stickers=[];let selected=null,mediaZoom=1,mediaX=0,mediaY=0;
+  function select(el){if(selected)selected.classList.remove('is-selected');selected=el;if(el)el.classList.add('is-selected')}
+  function apply(){
+   const f=font?.value||'Arial,sans-serif',edge=outline?.value||'0 2px 5px #000';
+   [textNode,linkNode].forEach((el,i)=>{el.style.fontFamily=f;el.style.color=i?(linkColor?.value||'#ffe08a'):(color?.value||'#fff');el.style.textShadow=edge==='none'?'none':edge;el.style.fontSize=size.value+'px';el.style.left=(Number(el.dataset.x)||50)+'%';el.style.top=(Number(el.dataset.y)||(i?80:50))+'%';el.style.transform='translate(-50%,-50%)';el.style.zIndex='22';});
+   [image,video].forEach(el=>{el.style.transform='translate('+mediaX+'px,'+mediaY+'px) scale('+mediaZoom*(Number(zoom?.value)||100)/100+')';el.style.transformOrigin='center center'});
+  }
+  function update(){const t=text.value.trim(),u=link.value.trim();textNode.textContent=t;textNode.style.display=t?'block':'none';linkNode.textContent=u;linkNode.href=/^https?:\\/\\//i.test(u)?u:'#';linkNode.style.display=u?'block':'none';apply()}
+  add('＋ Foto / vídeo',()=>{file.value='';file.click()});
+  add('Aa Escribir',()=>{textWrap.hidden=false;linkWrap.hidden=true;text.focus();text.scrollIntoView({block:'nearest',behavior:'smooth'})});
+  add('🔗 Enlace',()=>{linkWrap.hidden=false;textWrap.hidden=true;link.focus();link.scrollIntoView({block:'nearest',behavior:'smooth'})});
+  add('😊 Emojis',()=>{emojiBox.hidden=!emojiBox.hidden});
+  add('Borrar seleccionado',()=>{if(!selected)return;if(selected.classList.contains('govi-v7-sticker')){const i=stickers.indexOf(selected);if(i>=0)stickers.splice(i,1);selected.remove()}else if(selected===textNode){text.value='';update()}else if(selected===linkNode){link.value='';update()}select(null)});
+  add('Quitar foto/vídeo',()=>{video.pause();video.removeAttribute('src');video.load();image.removeAttribute('src');video.style.display='none';image.style.display='none';file.value='';$('goviStoryFileName').textContent='Sin foto ni vídeo'});
+  add('▶ Reproducir vídeo',async()=>{try{video.controls=true;video.muted=false;await video.play()}catch(e){toast('No se pudo reproducir este vídeo en el navegador')}});
+  add('🔊 Sonido',()=>{video.muted=!video.muted;toast(video.muted?'Vídeo silenciado':'Sonido activado')});
+  panel.append(fields,emojiBox,tools,style);
+  emojiList.forEach(ch=>{const b=document.createElement('button');b.type='button';b.textContent=ch;b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const el=document.createElement('div');el.className='govi-v7-sticker';el.textContent=ch;el.dataset.x='50';el.dataset.y='50';stage.append(el);stickers.push(el);select(el);move(el)});emojiBox.append(b)});
+  function move(el){
+   const pts=new Map();let g=null;
+   el.style.left=(Number(el.dataset.x)||50)+'%';el.style.top=(Number(el.dataset.y)||50)+'%';
+   el.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();e.stopPropagation();select(el);try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const r=stage.getBoundingClientRect();g={x:e.clientX,y:e.clientY,px:Number(el.dataset.x)||50,py:Number(el.dataset.y)||50,w:r.width,h:r.height,font:parseFloat(getComputedStyle(el).fontSize)||32,dist:0};if(pts.size===2){const p=[...pts.values()];g.dist=Math.max(1,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y))}});
+   el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!g)return;e.preventDefault();pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const p=[...pts.values()];if(p.length>=2){const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);el.style.fontSize=Math.max(14,Math.min(120,g.font*d/Math.max(1,g.dist||d)))+'px'}else{const r=stage.getBoundingClientRect(),x=Math.max(2,Math.min(98,g.px+(e.clientX-g.x)/r.width*100)),y=Math.max(2,Math.min(98,g.py+(e.clientY-g.y)/r.height*100));el.dataset.x=x;el.dataset.y=y;el.style.left=x+'%';el.style.top=y+'%'}});
+   const end=e=>{pts.delete(e.pointerId);if(!pts.size)g=null;else if(pts.size===1){const p=[...pts.values()][0];g={x:p.x,y:p.y,px:Number(el.dataset.x)||50,py:Number(el.dataset.y)||50,font:parseFloat(getComputedStyle(el).fontSize)||32,dist:1}}};
+   el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();select(el)});
+  }
+  move(textNode);move(linkNode);
+  text.addEventListener('input',update);link.addEventListener('input',update);
+  [font,color,linkColor,outline,size,zoom].filter(Boolean).forEach(el=>{el.addEventListener('input',apply);el.addEventListener('change',apply)});
+  function showFile(f){if(!f)return;const url=URL.createObjectURL(f);if(window.goviStoryV7Url)URL.revokeObjectURL(window.goviStoryV7Url);window.goviStoryV7Url=url;mediaX=0;mediaY=0;mediaZoom=1;if(f.type.startsWith('video/')){image.style.display='none';video.style.display='block';video.pause();video.src=url;video.muted=true;video.loop=false;video.controls=true;video.load()}else if(f.type.startsWith('image/')){video.pause();video.removeAttribute('src');video.load();video.style.display='none';image.style.display='block';image.src=url}preview.style.display='block';const empty=stage.querySelector('.govi-story-v3-empty');if(empty)empty.style.display='none';$('goviStoryFileName').textContent=f.name;apply()}
+  file.addEventListener('change',e=>showFile(e.target.files?.[0]));
+  [image,video].forEach(el=>{const pts=new Map();let g=null;el.addEventListener('pointerdown',e=>{if(el.style.display==='none'||!el.getAttribute('src'))return;if(el===video&&e.clientY>el.getBoundingClientRect().bottom-58)return;e.preventDefault();e.stopPropagation();try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});g={x:e.clientX,y:e.clientY,px:mediaX,py:mediaY,z:mediaZoom,dist:0};if(pts.size===2){const p=[...pts.values()];g.dist=Math.max(1,Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y))}});el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!g)return;e.preventDefault();pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const p=[...pts.values()];if(p.length>=2){const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);mediaZoom=Math.max(.5,Math.min(3,g.z*d/Math.max(1,g.dist||d)))}else{mediaX=g.px+e.clientX-g.x;mediaY=g.py+e.clientY-g.y}apply()});const end=e=>{pts.delete(e.pointerId);if(!pts.size)g=null;else if(pts.size===1){const p=[...pts.values()][0];g={x:p.x,y:p.y,px:mediaX,py:mediaY,z:mediaZoom,dist:1}}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)});
+  document.addEventListener('keydown',e=>{if(!root.classList.contains('open'))return;if((e.key==='Delete'||e.key==='Backspace')&&selected&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();if(selected.classList.contains('govi-v7-sticker')){const i=stickers.indexOf(selected);if(i>=0)stickers.splice(i,1);selected.remove()}else if(selected===textNode){text.value='';update()}else if(selected===linkNode){link.value='';update()}select(null)}});
+  window.goviUpdateStoryPreview=update;window.goviApplyStoryEditorStyles=apply;update();apply();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
