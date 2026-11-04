@@ -4005,78 +4005,58 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
 @media(min-width:700px){#goviStoryComposer .govi-story-compose-card{justify-content:center!important}#goviStoryComposer .govi-story-v3-stage{max-height:calc(100dvh - 300px)!important;width:auto!important;height:calc(100dvh - 300px)!important}#goviStoryComposer .govi-story-v3-panel{border-radius:20px 20px 0 0!important}}
 @media(max-height:700px){#goviStoryComposer .govi-story-v3-stage{max-height:calc(100dvh - 245px)!important}#goviStoryComposer .govi-story-v3-panel{max-height:225px!important}#goviStoryComposer .govi-ig-style{padding:5px 0}}
 </style>
-<script id="govi-story-editor-repair-v8">
+<style id="govi-story-touch-fixes">
+#goviStoryComposer .govi-ig-toolbar .govi-ig-tool[data-a="sound"]{display:none!important}
+#goviStoryComposer .r8-emojis{position:fixed!important;left:14px!important;right:14px!important;bottom:260px!important;z-index:2147483600!important;max-height:36dvh!important;overflow:auto!important;padding:10px!important;background:#17121eeF!important;border:1px solid #d5aa5c88!important;border-radius:16px!important;box-shadow:0 15px 50px #000c!important}
+#goviStoryComposer .r8-emojis.open{display:grid!important}
+#goviStoryComposer .r8-emojis button{min-height:42px!important;font-size:25px!important;background:#ffffff12!important;border-radius:10px!important}
+#goviStoryComposer #goviStoryPreviewText{touch-action:none!important;pointer-events:auto!important;z-index:230!important}
+#goviStoryComposer .govi-r8-sticker{pointer-events:auto!important}
+#goviStoryComposer #goviStorySoundToggle{display:none;place-items:center}
+</style><script id="govi-story-editor-repair-v8">
 (function(){
  const EMOJI="😀 😃 😄 😁 😆 😅 😂 🤣 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😋 😛 😜 🤪 🤗 🤭 🫢 🫣 🤫 🤔 🫡 😎 🤓 🧐 😕 😟 🙁 ☹️ 😮 😯 😲 😳 🥺 🥹 😢 😭 😱 😩 😫 😤 😡 🤬 😈 👻 👽 🤖 💩 🤡 🎃 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❤️‍🔥 💖 💗 💓 💞 💕 💘 💝 💟 💌 💋 💯 💥 💫 💦 🕊️ ⭐ 🌟 ✨ ⚡ 🔥 🌈 ☀️ 🌙 🌍 🌎 🌏 🌸 🌹 🌺 🌻 🌼 🌷 🌱 🌲 🌴 🌵 🍀 🍁 🍂 🍃 🍄 🐶 🐱 🐭 🐰 🦊 🐻 🐼 🐯 🦁 🐷 🐸 🐵 🐔 🐧 🦄 🐝 🦋 🐢 🐬 🐳 🍎 🍊 🍋 🍉 🍇 🍓 🫐 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🍆 🥦 🥕 🌽 🌶️ 🥒 🥐 🍞 🧀 🍳 🥞 🥓 🍔 🍟 🍕 🌮 🌯 🍜 🍝 🍣 🍱 🍿 🍩 🍪 🎂 🍰 🧁 🍫 🍬 🍭 🍦 ☕ 🧉 🥤 🍺 🥂 🍷 ⚽ 🏀 🏈 ⚾ 🎾 🏆 🥇 🥈 🥉 🎮 🎧 🎤 🎹 🎸 📸 📷 📱 💻 💡 📚 ✏️ 📝 📌 📍 🔔 🚀 🛸 ✈️ 🚗 🚌 🚲 🏍️ 🏖️ 🏝️ 🏙️ 🏡 🏠 🏰 💰 💵 💶 💸 💳 💎 👑 🎁 🎀 🎈 🎉 🎊 🪩 🥳 💪 👏 🙌 🤝 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👋 🫶 🙏 💃 🕺 🧑‍🚀 🇵🇾 🇪🇸".split(/\s+/);
  function init(){
-  const root=document.getElementById('goviStoryComposer');
-  const stage=root?.querySelector('.govi-story-v3-stage');
-  const panel=root?.querySelector('.govi-story-v3-panel');
-  const file=document.getElementById('goviStoryFile');
-  const video=document.getElementById('goviStoryPreviewVideo');
-  const image=document.getElementById('goviStoryPreviewImage');
-  const textNode=document.getElementById('goviStoryPreviewText');
-  const linkNode=document.getElementById('goviStoryPreviewLink');
+  const root=document.getElementById('goviStoryComposer'),stage=root?.querySelector('.govi-story-v3-stage'),panel=root?.querySelector('.govi-story-v3-panel');
+  const file=document.getElementById('goviStoryFile'),video=document.getElementById('goviStoryPreviewVideo'),image=document.getElementById('goviStoryPreviewImage'),textNode=document.getElementById('goviStoryPreviewText');
   if(!root||!stage||!panel||!file||!video||!image||!textNode||panel.querySelector('#goviStoryRepairV8'))return;
   const ui=document.createElement('section');ui.id='goviStoryRepairV8';
-  ui.innerHTML='<div class="govi-ig-top"><div class="govi-ig-brand"><span class="govi-ig-mark">G</span><span><b>Tu historia</b><small>GOVI · MOMENTOS QUE CONECTAN</small></span></div><button type="button" class="govi-ig-close" data-a="close" aria-label="Cerrar">×</button></div><div class="govi-ig-toolbar"><button type="button" class="govi-ig-tool active" data-a="media"><span>▧</span><small>Galería</small></button><button type="button" class="govi-ig-tool" data-a="text"><span>Aa</span><small>Texto</small></button><button type="button" class="govi-ig-tool" data-a="emoji"><span>☺</span><small>Stickers</small></button><button type="button" class="govi-ig-tool" data-a="sound"><span>♫</span><small>Audio</small></button><button type="button" class="govi-ig-tool" data-a="clear"><span>⌫</span><small>Limpiar</small></button></div><div class="govi-ig-compose"><div class="govi-ig-input-wrap"><span>Aa</span><textarea id="goviR8Text" placeholder="Escribe algo para tu historia..."></textarea></div><div class="govi-ig-style"><label>FUENTE<select id="goviR8Font"><option value="Arial,sans-serif">Clásica</option><option value="Trebuchet MS,sans-serif">Redondeada</option><option value="Georgia,serif">Elegante</option><option value="cursive">Manuscrita</option><option value="Impact,sans-serif">Impacto</option></select></label><label>COLOR<input id="goviR8Color" type="color" value="#ffffff"></label><label>TAMAÑO<input id="goviR8Size" type="range" min="14" max="110" value="32"></label><label>EFECTO<select id="goviR8Edge"><option value="0 2px 8px #000">Sombra</option><option value="1px 1px 0 #000,-1px -1px 0 #000">Contorno</option><option value="0 0 12px #ff4fd8">Neón</option><option value="none">Ninguno</option></select></label></div><div class="r8-emojis" id="goviR8Emojis"></div><div class="govi-ig-footer"><span>✦ Arrastra y pellizca los elementos en la vista</span><button type="button" class="govi-ig-publish" data-a="publish">Compartir historia <b>➜</b></button></div></div>';
+  ui.innerHTML='<div class="govi-ig-top"><div class="govi-ig-brand"><span class="govi-ig-mark">G</span><span><b>Tu historia</b><small>GOVI · MOMENTOS QUE CONECTAN</small></span></div><button type="button" class="govi-ig-close" data-a="close" aria-label="Cerrar">×</button></div><div class="govi-ig-toolbar"><button type="button" class="govi-ig-tool active" data-a="media"><span>▧</span><small>Galería</small></button><button type="button" class="govi-ig-tool" data-a="text"><span>Aa</span><small>Texto</small></button><button type="button" class="govi-ig-tool" data-a="emoji"><span>☺</span><small>Stickers</small></button><button type="button" class="govi-ig-tool" data-a="clear"><span>⌫</span><small>Limpiar</small></button></div><div class="govi-ig-compose"><div class="govi-ig-input-wrap"><span>Aa</span><textarea id="goviR8Text" placeholder="Escribe algo para tu historia..."></textarea></div><div class="govi-ig-style"><label>FUENTE<select id="goviR8Font"><option value="Arial,sans-serif">Clásica</option><option value="Trebuchet MS,sans-serif">Redondeada</option><option value="Georgia,serif">Elegante</option><option value="cursive">Manuscrita</option><option value="Impact,sans-serif">Impacto</option></select></label><label>COLOR<input id="goviR8Color" type="color" value="#ffffff"></label><label>TAMAÑO<input id="goviR8Size" type="range" min="14" max="110" value="32"></label><label>EFECTO<select id="goviR8Edge"><option value="0 2px 8px #000">Sombra</option><option value="1px 1px 0 #000,-1px -1px 0 #000">Contorno</option><option value="0 0 12px #ff4fd8">Neón</option><option value="none">Ninguno</option></select></label></div><div class="r8-emojis" id="goviR8Emojis"></div><div class="govi-ig-footer"><span>✦ Mueve y pellizca con los dedos para ajustar</span><button type="button" class="govi-ig-publish" data-a="publish">Compartir historia <b>➜</b></button></div></div>';
   const hidden=document.createElement('div');hidden.id='goviStoryLegacyFields';hidden.hidden=true;
-  ['goviStoryTextWrap','goviStoryLinkWrap','goviStoryFile','goviStoryGifFile','goviStoryAudioFile','goviStoryFont','goviStoryColor','goviStoryLinkColor','goviStoryOutline','goviStoryImageScale','goviStoryFileName','goviStoryPublish'].forEach(id=>{const node=document.getElementById(id);if(node)hidden.appendChild(node)});
+  ['goviStoryTextWrap','goviStoryLinkWrap','goviStoryFile','goviStoryGifFile','goviStoryAudioFile','goviStoryFont','goviStoryColor','goviStoryLinkColor','goviStoryOutline','goviStoryImageScale','goviStoryFileName','goviStoryPublish'].forEach(id=>{const n=document.getElementById(id);if(n)hidden.appendChild(n)});
   const statusNode=document.getElementById('goviStoryStatus');panel.replaceChildren(ui,hidden);if(statusNode)ui.appendChild(statusNode);
   const $=id=>document.getElementById(id),txt=$('goviR8Text'),font=$('goviR8Font'),color=$('goviR8Color'),edge=$('goviR8Edge'),size=$('goviR8Size'),emojiBox=$('goviR8Emojis');
   let x=50,y=50,stickers=[],mediaState={x:0,y:0,zoom:1};
-  function applyMedia(){[image,video].forEach(el=>{el.style.transform='translate('+mediaState.x+'px,'+mediaState.y+'px) scale('+mediaState.zoom+')';});}
-  function addSticker(emoji){const s={emoji,x:50,y:50,size:46},el=document.createElement('span');el.className='govi-r8-sticker';el.textContent=emoji;el.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:46px;z-index:95;touch-action:none;user-select:none';stage.appendChild(el);s.el=el;stickers.push(s);const pts=new Map();let g=null;el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();el.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)g={x:e.clientX,y:e.clientY,px:s.x,py:s.y};else if(pts.size===2){const q=[...pts.values()];g={zoom:1,d:Math.hypot(q[0].x-q[1].x,q[0].y-q[1].y),size:s.size};}});el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===2){const q=[...pts.values()],d=Math.hypot(q[0].x-q[1].x,q[0].y-q[1].y);s.size=Math.max(18,Math.min(180,g.size*d/g.d));el.style.fontSize=s.size+'px';}else if(pts.size===1){const q=stage.getBoundingClientRect();s.x=Math.max(2,Math.min(98,g.px+(e.clientX-g.x)/q.width*100));s.y=Math.max(2,Math.min(98,g.py+(e.clientY-g.y)/q.height*100));el.style.left=s.x+'%';el.style.top=s.y+'%';}});const done=e=>{pts.delete(e.pointerId);g=null};el.addEventListener('pointerup',done);el.addEventListener('pointercancel',done);}
-  function sync(){
-   const value=txt.value;
-   textNode.textContent=value;
-   textNode.style.display=value?'block':'none';
-   textNode.style.position='absolute';textNode.style.left=x+'%';textNode.style.top=y+'%';textNode.style.transform='translate(-50%,-50%)';
-   textNode.style.maxWidth='88%';textNode.style.padding='8px 12px';textNode.style.textAlign='center';textNode.style.fontWeight='850';
-   textNode.style.setProperty('font-family',font.value,'important');textNode.style.setProperty('color',color.value,'important');textNode.style.setProperty('font-size',size.value+'px','important');
-   textNode.style.setProperty('text-shadow',edge.value==='none'?'none':edge.value,'important');
-   const original=$('goviStoryText');if(original){original.value=value;original.dispatchEvent(new Event('input',{bubbles:true}))}
+  const sound=document.createElement('button');sound.type='button';sound.id='goviStorySoundToggle';sound.textContent='🔔';sound.setAttribute('aria-label','Activar o silenciar sonido');sound.style.cssText='display:none;position:absolute;top:14px;right:14px;z-index:300;width:44px;height:44px;border:1px solid #ffffff70;border-radius:50%;background:#090909b8;color:white;font-size:21px;backdrop-filter:blur(12px);touch-action:manipulation';
+  stage.appendChild(sound);
+  function applyMedia(){[image,video].forEach(el=>{el.style.transform='translate('+mediaState.x+'px,'+mediaState.y+'px) scale('+mediaState.zoom+')';el.style.transformOrigin='center center'});}
+  function sync(){textNode.textContent=txt.value;textNode.style.display=txt.value?'block':'none';textNode.style.position='absolute';textNode.style.left=x+'%';textNode.style.top=y+'%';textNode.style.transform='translate(-50%,-50%)';textNode.style.maxWidth='88%';textNode.style.padding='8px 12px';textNode.style.textAlign='center';textNode.style.fontWeight='850';textNode.style.whiteSpace='pre-wrap';textNode.style.setProperty('font-family',font.value,'important');textNode.style.setProperty('color',color.value,'important');textNode.style.setProperty('font-size',size.value+'px','important');textNode.style.setProperty('text-shadow',edge.value==='none'?'none':edge.value,'important');const original=$('goviStoryText');if(original){original.value=txt.value;original.dispatchEvent(new Event('input',{bubbles:true}))}}
+  function bindMoveResize(el,getPos,setPos,getSize,setSize,min,max){
+   const pts=new Map();let gesture=null;
+   el.style.touchAction='none';
+   el.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();e.stopPropagation();try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const pos=getPos(),rect=stage.getBoundingClientRect();if(pts.size===1)gesture={kind:'move',x:e.clientX,y:e.clientY,px:pos.x,py:pos.y,w:rect.width,h:rect.height};else if(pts.size===2){const a=[...pts.values()];gesture={kind:'scale',distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),size:getSize()}}});
+   el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!gesture)return;e.preventDefault();pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...pts.values()];if(a.length>=2&&gesture.kind==='scale'){const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);setSize(Math.max(min,Math.min(max,gesture.size*d/gesture.distance)))}else if(a.length===1&&gesture.kind==='move'){const rect=stage.getBoundingClientRect();setPos({x:Math.max(2,Math.min(98,gesture.px+(e.clientX-gesture.x)/rect.width*100)),y:Math.max(2,Math.min(98,gesture.py+(e.clientY-gesture.y)/rect.height*100))})}});
+   const end=e=>{pts.delete(e.pointerId);if(!pts.size){gesture=null;return}const a=[...pts.values()][0],pos=getPos(),rect=stage.getBoundingClientRect();gesture={kind:'move',x:a.x,y:a.y,px:pos.x,py:pos.y,w:rect.width,h:rect.height}};
+   el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
   }
-  txt.addEventListener('input',sync);
-  [font,color,edge,size].forEach(el=>{el.addEventListener('input',sync);el.addEventListener('change',sync)});
-  EMOJI.forEach(ch=>{const b=document.createElement('button');b.type='button';b.textContent=ch;b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();addSticker(ch)});emojiBox.appendChild(b)});
-  ui.addEventListener('click',async e=>{
-   const b=e.target.closest('button[data-a]');if(!b)return;
-   e.preventDefault();e.stopPropagation();
-   switch(b.dataset.a){
-    case 'close':document.getElementById('goviStoryComposeClose')?.click();break;
-    case 'media':file.value='';file.click();break;
-    case 'text':txt.focus();txt.scrollIntoView({block:'nearest'});break;
-    case 'smaller':size.value=String(Math.max(Number(size.min),Number(size.value)-4));sync();break;
-    case 'bigger':size.value=String(Math.min(Number(size.max),Number(size.value)+4));sync();break;
-    case 'emoji':emojiBox.classList.toggle('open');break;
-    case 'clear':txt.value='';sync();break;
-    case 'publish':document.getElementById('goviStoryPublish')?.click();break;
-    case 'sound':
-     video.controls=true;video.muted=false;video.defaultMuted=false;video.volume=1;
-     try{await video.play();b.textContent='🔊 Sonido activado'}catch(err){b.textContent='🔊 Toca el vídeo para oírlo'}
-     break;
-    case 'play':
-     video.controls=true;video.muted=false;video.volume=1;
-     try{await video.play()}catch(err){video.muted=true;await video.play().catch(()=>{});b.textContent='▶ Toca el vídeo para activar sonido'}
-     break;
-   }
-  },true);
-  file.addEventListener('change',()=>{
-   const f=file.files?.[0];if(!f)return;
-   if(f.type.startsWith('video/')){
-    video.muted=false;video.defaultMuted=false;video.volume=1;video.controls=true;video.playsInline=true;
-    video.addEventListener('loadedmetadata',()=>{video.muted=false;video.volume=1;},{once:true});
-   }
-  });
-  let textPts=new Map(),textG=null;
-  textNode.addEventListener('pointerdown',e=>{if(!txt.value)return;e.preventDefault();textNode.setPointerCapture(e.pointerId);textPts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(textPts.size===1)textG={x:e.clientX,y:e.clientY,px:x,py:y};else if(textPts.size===2){const q=[...textPts.values()];textG={d:Math.hypot(q[0].x-q[1].x,q[0].y-q[1].y),size:Number(size.value)};}});
-  textNode.addEventListener('pointermove',e=>{if(!textPts.has(e.pointerId))return;textPts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(textPts.size===2){const q=[...textPts.values()],d=Math.hypot(q[0].x-q[1].x,q[0].y-q[1].y);size.value=Math.max(14,Math.min(110,textG.size*d/textG.d));sync();}else if(textPts.size===1){const q=stage.getBoundingClientRect();x=Math.max(3,Math.min(97,textG.px+(e.clientX-textG.x)/q.width*100));y=Math.max(3,Math.min(97,textG.py+(e.clientY-textG.y)/q.height*100));sync();}});
-  ['pointerup','pointercancel'].forEach(n=>textNode.addEventListener(n,e=>{textPts.delete(e.pointerId);textG=null;}));
-  [image,video].forEach(el=>{el.style.pointerEvents='auto';el.style.touchAction='none';const pts=new Map();let g=null;el.addEventListener('pointerdown',e=>{if(el.style.display==='none')return;e.preventDefault();el.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)g={x:e.clientX,y:e.clientY,px:mediaState.x,py:mediaState.y};else if(pts.size===2){const q=[...pts.values()];g={d:Math.hypot(q[0].x-q[1].x,q[0].y-q[1].y),zoom:mediaState.zoom};}});el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===2){const q=[...pts.values()],d=Math.hypot(q[0].x-q[1].x,q[0].y-q[1].y);mediaState.zoom=Math.max(1,Math.min(4,g.zoom*d/g.d));applyMedia();}else if(pts.size===1){mediaState.x=g.px+e.clientX-g.x;mediaState.y=g.py+e.clientY-g.y;applyMedia();}});['pointerup','pointercancel'].forEach(n=>el.addEventListener(n,e=>{pts.delete(e.pointerId);g=null;}));});
+  function addSticker(emoji){const s={emoji,x:50,y:50,size:46},el=document.createElement('span');el.className='govi-r8-sticker';el.textContent=emoji;el.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:46px;line-height:1.2;z-index:220;min-width:40px;min-height:40px;display:grid;place-items:center;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab';stage.appendChild(el);s.el=el;stickers.push(s);bindMoveResize(el,()=>({x:s.x,y:s.y}),p=>{s.x=p.x;s.y=p.y;el.style.left=s.x+'%';el.style.top=s.y+'%'},()=>s.size,v=>{s.size=v;el.style.fontSize=v+'px'},18,180)}
+  txt.addEventListener('input',sync);[font,color,edge,size].forEach(el=>{el.addEventListener('input',sync);el.addEventListener('change',sync)});
+  EMOJI.forEach(ch=>{const b=document.createElement('button');b.type='button';b.textContent=ch;b.setAttribute('aria-label','Añadir '+ch);b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();addSticker(ch)});emojiBox.appendChild(b)});
+  ui.addEventListener('click',async e=>{const b=e.target.closest('button[data-a]');if(!b)return;e.preventDefault();e.stopPropagation();switch(b.dataset.a){
+   case 'close':document.getElementById('goviStoryComposeClose')?.click();break;
+   case 'media':file.value='';file.click();break;
+   case 'text':txt.focus();break;
+   case 'emoji':emojiBox.classList.toggle('open');break;
+   case 'clear':txt.value='';sync();stickers.forEach(s=>s.el.remove());stickers=[];break;
+   case 'publish':document.getElementById('goviStoryPublish')?.click();break;
+  }},true);
+  sound.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();if(video.style.display==='none'||!video.getAttribute('src'))return;video.muted=!video.muted;video.defaultMuted=video.muted;sound.textContent=video.muted?'🔕':'🔔';if(!video.muted){try{await video.play()}catch(_){}}});
+  file.addEventListener('change',()=>{const f=file.files?.[0];if(!f)return;mediaState={x:0,y:0,zoom:1};applyMedia();if(f.type.startsWith('video/')){sound.style.display='grid';sound.style.placeItems='center';video.controls=false;video.muted=true;video.defaultMuted=true;video.volume=1;video.playsInline=true;video.addEventListener('loadedmetadata',()=>{video.muted=true;video.defaultMuted=true;video.play().catch(()=>{})},{once:true});sound.textContent='🔕'}else{sound.style.display='none';video.pause()}});
+  bindMoveResize(textNode,()=>({x,y}),p=>{x=p.x;y=p.y;sync()},()=>Number(size.value),v=>{size.value=String(Math.max(14,Math.min(110,v)));sync()},14,110);
+  const pts=new Map();let mediaGesture=null;
+  [image,video].forEach(el=>{el.style.pointerEvents='auto';el.style.touchAction='none';el.addEventListener('pointerdown',e=>{if(el.style.display==='none'||!el.getAttribute('src'))return;if(e.target===sound)return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)mediaGesture={kind:'move',x:e.clientX,y:e.clientY,px:mediaState.x,py:mediaState.y};else if(pts.size===2){const a=[...pts.values()];mediaGesture={kind:'scale',distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),zoom:mediaState.zoom}}});el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!mediaGesture)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...pts.values()];if(a.length===2&&mediaGesture.kind==='scale'){const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);mediaState.zoom=Math.max(1,Math.min(4,mediaGesture.zoom*d/mediaGesture.distance))}else if(a.length===1&&mediaGesture.kind==='move'){mediaState.x=mediaGesture.px+e.clientX-mediaGesture.x;mediaState.y=mediaGesture.py+e.clientY-mediaGesture.y}applyMedia()});const end=e=>{pts.delete(e.pointerId);if(!pts.size){mediaGesture=null;return}const a=[...pts.values()][0];mediaGesture={kind:'move',x:a.x,y:a.y,px:mediaState.x,py:mediaState.y}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)});
   window.goviGetStoryEditorMeta=()=>({text:{x,y,fontFamily:font.value,color:color.value,textShadow:edge.value,fontSize:size.value+'px'},link:{x:50,y:80,fontFamily:'Arial,sans-serif',color:'#ffe08a',textShadow:'0 2px 8px #000',fontSize:'17px'},stickers:stickers.map(s=>({emoji:s.emoji,x:s.x,y:s.y,fontSize:s.size+'px'})),media:{zoom:mediaState.zoom,x:mediaState.x,y:mediaState.y}});
-  sync();
-  console.info('GOVI Story Repair V8 listo',EMOJI.length,'emojis');
+  sync();console.info('GOVI Story Editor táctil listo',EMOJI.length);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
