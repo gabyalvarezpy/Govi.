@@ -4015,6 +4015,11 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
 #goviStoryComposer #goviStoryPreviewText{touch-action:none!important;pointer-events:auto!important;z-index:230!important}
 #goviStoryComposer .govi-r8-sticker{pointer-events:auto!important}
 #goviStoryComposer #goviStorySoundToggle{display:none;place-items:center}
+</style><style id="govi-story-emoji-click-fix">
+#goviStoryComposer #goviR8Emojis{position:relative;z-index:2147483002!important;pointer-events:auto!important;isolation:isolate}
+#goviStoryComposer #goviR8Emojis button[data-sticker-emoji]{position:relative;z-index:1;pointer-events:auto!important;touch-action:manipulation!important;cursor:pointer!important}
+#goviStoryComposer #goviStoryPreview{isolation:isolate}
+#goviStoryComposer #goviStoryPreview .govi-r8-sticker{z-index:2147483000!important;pointer-events:auto!important}
 </style><script id="govi-story-editor-repair-v8">
 (function(){
  const EMOJI="😀 😃 😄 😁 😆 😅 😂 🤣 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😋 😛 😜 🤪 🤗 🤭 🫢 🫣 🤫 🤔 🫡 😎 🤓 🧐 😕 😟 🙁 ☹️ 😮 😯 😲 😳 🥺 🥹 😢 😭 😱 😩 😫 😤 😡 🤬 😈 👻 👽 🤖 💩 🤡 🎃 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❤️‍🔥 💖 💗 💓 💞 💕 💘 💝 💟 💌 💋 💯 💥 💫 💦 🕊️ ⭐ 🌟 ✨ ⚡ 🔥 🌈 ☀️ 🌙 🌍 🌎 🌏 🌸 🌹 🌺 🌻 🌼 🌷 🌱 🌲 🌴 🌵 🍀 🍁 🍂 🍃 🍄 🐶 🐱 🐭 🐰 🦊 🐻 🐼 🐯 🦁 🐷 🐸 🐵 🐔 🐧 🦄 🐝 🦋 🐢 🐬 🐳 🍎 🍊 🍋 🍉 🍇 🍓 🫐 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🍆 🥦 🥕 🌽 🌶️ 🥒 🥐 🍞 🧀 🍳 🥞 🥓 🍔 🍟 🍕 🌮 🌯 🍜 🍝 🍣 🍱 🍿 🍩 🍪 🎂 🍰 🧁 🍫 🍬 🍭 🍦 ☕ 🧉 🥤 🍺 🥂 🍷 ⚽ 🏀 🏈 ⚾ 🎾 🏆 🥇 🥈 🥉 🎮 🎧 🎤 🎹 🎸 📸 📷 📱 💻 💡 📚 ✏️ 📝 📌 📍 🔔 🚀 🛸 ✈️ 🚗 🚌 🚲 🏍️ 🏖️ 🏝️ 🏙️ 🏡 🏠 🏰 💰 💵 💶 💸 💳 💎 👑 🎁 🎀 🎈 🎉 🎊 🪩 🥳 💪 👏 🙌 🤝 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👋 🫶 🙏 💃 🕺 🧑‍🚀 🇵🇾 🇪🇸".split(/\s+/);
@@ -4041,9 +4046,10 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
    const end=e=>{pts.delete(e.pointerId);if(!pts.size){gesture=null;return}const a=[...pts.values()][0],pos=getPos(),rect=stage.getBoundingClientRect();gesture={kind:'move',x:a.x,y:a.y,px:pos.x,py:pos.y,w:rect.width,h:rect.height}};
    el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
   }
-  function addSticker(emoji){const s={emoji,x:50,y:50,size:46},el=document.createElement('span');el.className='govi-r8-sticker';el.textContent=emoji;el.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:46px;line-height:1.2;z-index:220;min-width:40px;min-height:40px;display:grid;place-items:center;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab';stage.appendChild(el);s.el=el;stickers.push(s);bindMoveResize(el,()=>({x:s.x,y:s.y}),p=>{s.x=p.x;s.y=p.y;el.style.left=s.x+'%';el.style.top=s.y+'%'},()=>s.size,v=>{s.size=v;el.style.fontSize=v+'px'},18,180)}
+  function addSticker(emoji){const s={emoji,x:50,y:50,size:46},el=document.createElement('span');el.className='govi-r8-sticker';el.textContent=emoji;el.setAttribute('role','img');el.setAttribute('aria-label','Sticker '+emoji);el.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:46px;line-height:1.2;z-index:2147483000;min-width:48px;min-height:48px;display:grid;place-items:center;touch-action:none;pointer-events:auto!important;user-select:none;-webkit-user-select:none;cursor:grab';const canvas=document.getElementById('goviStoryPreview')||stage;canvas.appendChild(el);s.el=el;stickers.push(s);bindMoveResize(el,()=>({x:s.x,y:s.y}),p=>{s.x=p.x;s.y=p.y;el.style.left=s.x+'%';el.style.top=s.y+'%'},()=>s.size,v=>{s.size=v;el.style.fontSize=v+'px'},18,180);emojiBox.classList.remove('open');console.info('GOVI sticker añadido:',emoji)}
   txt.addEventListener('input',sync);[font,color,edge,size].forEach(el=>{el.addEventListener('input',sync);el.addEventListener('change',sync)});
-  EMOJI.forEach(ch=>{const b=document.createElement('button');b.type='button';b.textContent=ch;b.setAttribute('aria-label','Añadir '+ch);b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();addSticker(ch)});emojiBox.appendChild(b)});
+  EMOJI.forEach(ch=>{const b=document.createElement('button');b.type='button';b.textContent=ch;b.setAttribute('aria-label','Añadir '+ch);b.dataset.stickerEmoji=ch;emojiBox.appendChild(b)});
+  emojiBox.addEventListener('click',e=>{const b=e.target.closest('button[data-sticker-emoji]');if(!b)return;e.preventDefault();e.stopPropagation();addSticker(b.dataset.stickerEmoji)},true);
   ui.addEventListener('click',async e=>{const b=e.target.closest('button[data-a]');if(!b)return;e.preventDefault();e.stopPropagation();switch(b.dataset.a){
    case 'close':document.getElementById('goviStoryComposeClose')?.click();break;
    case 'media':file.value='';file.click();break;
