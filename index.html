@@ -3957,6 +3957,54 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
 #goviStories .story-add .story-ring{background:linear-gradient(145deg,#f0d58a,#b88a39)!important}
 #goviStories .story-name{font-size:11px!important;font-weight:650!important}
 </style>
+<style id="govi-story-instagram-redesign">
+/* GOVI story composer: complete visual redesign */
+html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#30213c 0%,#100d18 48%,#050507 100%)!important}
+#goviStoryComposer .govi-story-compose-card{background:transparent!important;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)!important;gap:0!important}
+#goviStoryComposer .govi-story-compose-head{display:none!important}
+#goviStoryComposer .govi-story-v3-stage{flex:1 1 auto!important;min-height:0!important;width:min(100%,460px)!important;max-height:calc(100dvh - 270px)!important;aspect-ratio:9/16!important;align-self:center!important;margin:0 auto!important;border-radius:22px!important;overflow:hidden!important;background:#17131d!important;box-shadow:0 18px 65px #0009,0 0 0 1px #ffffff25!important}
+#goviStoryComposer #goviStoryPreview{border-radius:22px!important;background:linear-gradient(145deg,#20192b,#0d0b12)!important}
+#goviStoryComposer #goviStoryPreviewImage,#goviStoryComposer #goviStoryPreviewVideo{border-radius:22px!important;object-fit:cover!important}
+#goviStoryComposer .govi-story-v3-empty{font-size:14px!important;color:#e7dff0!important;background:linear-gradient(160deg,#2b2038aa,#0a0910cc)!important}
+#goviStoryComposer .govi-story-v3-panel{flex:0 0 auto!important;max-height:270px!important;overflow-y:auto!important;width:min(100%,520px)!important;align-self:center!important;padding:0 16px max(12px,env(safe-area-inset-bottom))!important;background:linear-gradient(180deg,#17131f,#0b0a10)!important;border:0!important;border-top:1px solid #ffffff16!important}
+#goviStoryComposer #goviStoryRepairV8{padding:10px 0 0!important;background:transparent!important;max-height:none!important;overflow:visible!important;border:0!important}
+#goviStoryComposer #goviStoryRepairV8 *{box-sizing:border-box!important}
+#goviStoryComposer .govi-ig-top{height:52px;display:flex;align-items:center;justify-content:space-between;color:#fff;padding:0 17px}
+#goviStoryComposer .govi-ig-brand{display:flex;align-items:center;gap:10px}
+#goviStoryComposer .govi-ig-mark{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#f8d98c,#b17c34);color:#1b1420;font-weight:950;font-size:20px;box-shadow:0 4px 18px #d7a84c55}
+#goviStoryComposer .govi-ig-brand b{display:block;font-size:15px;letter-spacing:.2px}
+#goviStoryComposer .govi-ig-brand small{display:block;color:#a99eaf;font-size:9px;letter-spacing:1.4px;margin-top:2px}
+#goviStoryComposer .govi-ig-close{width:34px;height:34px;border:1px solid #ffffff20;border-radius:50%;background:#ffffff12;color:white;font-size:24px;line-height:1}
+#goviStoryComposer .govi-ig-toolbar{display:flex;justify-content:space-around;gap:7px;padding:7px 12px 10px}
+#goviStoryComposer .govi-ig-tool{width:20%;min-height:55px;border:1px solid #ffffff16!important;border-radius:14px!important;background:#ffffff0b!important;color:#f6f0fa!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:5px!important}
+#goviStoryComposer .govi-ig-tool.active{border-color:#d5aa5c!important;background:linear-gradient(145deg,#d5aa5c28,#ffffff0a)!important}
+#goviStoryComposer .govi-ig-tool span{font-size:22px;font-weight:750;line-height:1.1}
+#goviStoryComposer .govi-ig-tool small{font-size:10px;color:#d0c6d6}
+#goviStoryComposer .govi-ig-compose{padding:0 2px}
+#goviStoryComposer .govi-ig-input-wrap{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:#ffffff0c;border:1px solid #ffffff17}
+#goviStoryComposer .govi-ig-input-wrap>span{font-weight:850;color:#d7b36f;font-size:18px}
+#goviStoryComposer #goviR8Text{width:100%;min-height:38px;max-height:66px;resize:vertical;border:0!important;outline:0!important;background:transparent!important;color:#fff!important;padding:6px 0!important;font-size:14px!important}
+#goviStoryComposer #goviR8Text::placeholder{color:#968b9e}
+#goviStoryComposer .govi-ig-style{display:grid;grid-template-columns:1fr .65fr 1.2fr 1fr;gap:8px;padding:9px 0}
+#goviStoryComposer .govi-ig-style label{display:flex;flex-direction:column;gap:5px;color:#9d91a5;font-size:8px;letter-spacing:1px;font-weight:800}
+#goviStoryComposer .govi-ig-style select{width:100%;min-width:0;height:32px;border:1px solid #ffffff20!important;border-radius:9px!important;background:#211b29!important;color:#fff!important;padding:4px 6px!important;font-size:10px!important}
+#goviStoryComposer .govi-ig-style input[type=color]{width:100%;height:32px;min-height:32px;padding:3px!important;border-radius:9px!important;background:#211b29!important}
+#goviStoryComposer .govi-ig-style input[type=range]{width:100%;height:32px;min-height:32px;padding:0!important;accent-color:#d7b36f}
+#goviStoryComposer .r8-emojis{display:none;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;max-height:115px;overflow:auto;padding:7px;border:1px solid #ffffff17;border-radius:12px;background:#ffffff0b}
+#goviStoryComposer .r8-emojis.open{display:grid}
+#goviStoryComposer .r8-emojis button{min-height:35px!important;padding:2px!important;border:0!important;border-radius:8px!important;background:#ffffff0c!important;font-size:22px!important}
+#goviStoryComposer .govi-ig-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0 7px}
+#goviStoryComposer .govi-ig-footer>span{font-size:9px;color:#a99eb0;max-width:45%}
+#goviStoryComposer .govi-ig-publish{min-height:42px!important;border:0!important;border-radius:13px!important;padding:0 17px!important;background:linear-gradient(110deg,#f2d18a,#bf8d43)!important;color:#1b1420!important;font-weight:900!important;font-size:12px!important;box-shadow:0 7px 20px #d4a54b35}
+#goviStoryComposer .govi-ig-publish b{font-size:16px;margin-left:8px}
+#goviStoryComposer #goviStoryStatus{font-size:11px!important;color:#f3d58f!important;padding:4px 0!important}
+#goviStories .story{border:0!important;background:transparent!important;min-width:76px!important;padding:5px!important;gap:7px!important}
+#goviStories .story-ring{width:70px!important;height:70px!important;padding:3px!important;border-radius:50%!important;background:linear-gradient(135deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5)!important;box-shadow:0 4px 16px #d6297640!important}
+#goviStories .story-add .story-ring{background:linear-gradient(145deg,#f0d58a,#b88a39)!important}
+#goviStories .story-name{font-size:11px!important;font-weight:700!important;color:inherit!important}
+@media(min-width:700px){#goviStoryComposer .govi-story-compose-card{justify-content:center!important}#goviStoryComposer .govi-story-v3-stage{max-height:calc(100dvh - 300px)!important;width:auto!important;height:calc(100dvh - 300px)!important}#goviStoryComposer .govi-story-v3-panel{border-radius:20px 20px 0 0!important}}
+@media(max-height:700px){#goviStoryComposer .govi-story-v3-stage{max-height:calc(100dvh - 245px)!important}#goviStoryComposer .govi-story-v3-panel{max-height:225px!important}#goviStoryComposer .govi-ig-style{padding:5px 0}}
+</style>
 <script id="govi-story-editor-repair-v8">
 (function(){
  const EMOJI="😀 😃 😄 😁 😆 😅 😂 🤣 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😋 😛 😜 🤪 🤗 🤭 🫢 🫣 🤫 🤔 🫡 😎 🤓 🧐 😕 😟 🙁 ☹️ 😮 😯 😲 😳 🥺 🥹 😢 😭 😱 😩 😫 😤 😡 🤬 😈 👻 👽 🤖 💩 🤡 🎃 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❤️‍🔥 💖 💗 💓 💞 💕 💘 💝 💟 💌 💋 💯 💥 💫 💦 🕊️ ⭐ 🌟 ✨ ⚡ 🔥 🌈 ☀️ 🌙 🌍 🌎 🌏 🌸 🌹 🌺 🌻 🌼 🌷 🌱 🌲 🌴 🌵 🍀 🍁 🍂 🍃 🍄 🐶 🐱 🐭 🐰 🦊 🐻 🐼 🐯 🦁 🐷 🐸 🐵 🐔 🐧 🦄 🐝 🦋 🐢 🐬 🐳 🍎 🍊 🍋 🍉 🍇 🍓 🫐 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🍆 🥦 🥕 🌽 🌶️ 🥒 🥐 🍞 🧀 🍳 🥞 🥓 🍔 🍟 🍕 🌮 🌯 🍜 🍝 🍣 🍱 🍿 🍩 🍪 🎂 🍰 🧁 🍫 🍬 🍭 🍦 ☕ 🧉 🥤 🍺 🥂 🍷 ⚽ 🏀 🏈 ⚾ 🎾 🏆 🥇 🥈 🥉 🎮 🎧 🎤 🎹 🎸 📸 📷 📱 💻 💡 📚 ✏️ 📝 📌 📍 🔔 🚀 🛸 ✈️ 🚗 🚌 🚲 🏍️ 🏖️ 🏝️ 🏙️ 🏡 🏠 🏰 💰 💵 💶 💸 💳 💎 👑 🎁 🎀 🎈 🎉 🎊 🪩 🥳 💪 👏 🙌 🤝 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👋 🫶 🙏 💃 🕺 🧑‍🚀 🇵🇾 🇪🇸".split(/\s+/);
@@ -3971,7 +4019,7 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
   const linkNode=document.getElementById('goviStoryPreviewLink');
   if(!root||!stage||!panel||!file||!video||!image||!textNode||panel.querySelector('#goviStoryRepairV8'))return;
   const ui=document.createElement('section');ui.id='goviStoryRepairV8';
-  ui.innerHTML='<div class="r8-row"><button type="button" class="r8-primary" data-a="media">＋ Foto / vídeo</button><button type="button" data-a="emoji">😊 Stickers</button><button type="button" data-a="text">Aa Escribir</button><button type="button" data-a="smaller">A− Achicar</button><button type="button" data-a="bigger">A+ Agrandar</button><button type="button" data-a="emoji">😊 Emojis ('+EMOJI.length+')</button><button type="button" data-a="sound">🔊 Activar sonido</button><button type="button" data-a="play">▶ Reproducir</button><button type="button" data-a="clear">Limpiar texto</button></div><textarea id="goviR8Text" placeholder="Escribí tu historia aquí..."></textarea><div class="r8-row"><label>Tipografía <select id="goviR8Font"><option value="Arial,sans-serif">Clásica</option><option value="Trebuchet MS,sans-serif">Redondeada</option><option value="Georgia,serif">Elegante</option><option value="cursive">Manuscrita</option><option value="Impact,sans-serif">Impacto</option></select></label><label>Color <input id="goviR8Color" type="color" value="#ffffff"></label><label>Contorno <select id="goviR8Edge"><option value="0 2px 8px #000">Negro</option><option value="1px 1px 0 #000,-1px -1px 0 #000">Contorno negro</option><option value="1px 1px 0 #fff,-1px -1px 0 #fff">Contorno blanco</option><option value="0 0 12px #ff4fd8">Brillo rosa</option><option value="none">Sin contorno</option></select></label><label>Tamaño <input id="goviR8Size" type="range" min="14" max="72" value="32"></label></div><div class="r8-emojis" id="goviR8Emojis"></div><div class="r8-row"><button type="button" class="r8-primary" data-a="publish">➤ PUBLICAR HISTORIA</button></div>';
+  ui.innerHTML='<div class="govi-ig-top"><div class="govi-ig-brand"><span class="govi-ig-mark">G</span><span><b>Tu historia</b><small>GOVI · MOMENTOS QUE CONECTAN</small></span></div><button type="button" class="govi-ig-close" data-a="close" aria-label="Cerrar">×</button></div><div class="govi-ig-toolbar"><button type="button" class="govi-ig-tool active" data-a="media"><span>▧</span><small>Galería</small></button><button type="button" class="govi-ig-tool" data-a="text"><span>Aa</span><small>Texto</small></button><button type="button" class="govi-ig-tool" data-a="emoji"><span>☺</span><small>Stickers</small></button><button type="button" class="govi-ig-tool" data-a="sound"><span>♫</span><small>Audio</small></button><button type="button" class="govi-ig-tool" data-a="clear"><span>⌫</span><small>Limpiar</small></button></div><div class="govi-ig-compose"><div class="govi-ig-input-wrap"><span>Aa</span><textarea id="goviR8Text" placeholder="Escribe algo para tu historia..."></textarea></div><div class="govi-ig-style"><label>FUENTE<select id="goviR8Font"><option value="Arial,sans-serif">Clásica</option><option value="Trebuchet MS,sans-serif">Redondeada</option><option value="Georgia,serif">Elegante</option><option value="cursive">Manuscrita</option><option value="Impact,sans-serif">Impacto</option></select></label><label>COLOR<input id="goviR8Color" type="color" value="#ffffff"></label><label>TAMAÑO<input id="goviR8Size" type="range" min="14" max="110" value="32"></label><label>EFECTO<select id="goviR8Edge"><option value="0 2px 8px #000">Sombra</option><option value="1px 1px 0 #000,-1px -1px 0 #000">Contorno</option><option value="0 0 12px #ff4fd8">Neón</option><option value="none">Ninguno</option></select></label></div><div class="r8-emojis" id="goviR8Emojis"></div><div class="govi-ig-footer"><span>✦ Arrastra y pellizca los elementos en la vista</span><button type="button" class="govi-ig-publish" data-a="publish">Compartir historia <b>➜</b></button></div></div>';
   const hidden=document.createElement('div');hidden.id='goviStoryLegacyFields';hidden.hidden=true;
   ['goviStoryTextWrap','goviStoryLinkWrap','goviStoryFile','goviStoryGifFile','goviStoryAudioFile','goviStoryFont','goviStoryColor','goviStoryLinkColor','goviStoryOutline','goviStoryImageScale','goviStoryFileName','goviStoryPublish'].forEach(id=>{const node=document.getElementById(id);if(node)hidden.appendChild(node)});
   const statusNode=document.getElementById('goviStoryStatus');panel.replaceChildren(ui,hidden);if(statusNode)ui.appendChild(statusNode);
