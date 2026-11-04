@@ -1120,6 +1120,8 @@ document.querySelectorAll('.govi-story-choice').forEach(button=>button.addEventL
 
 async function goviLoadStories(){
   const bar=$('goviStories');if(!bar)return;
+  /* Las historias dejan de mostrarse al cumplir 24 h; al volver el dueño, también se purgan sus filas y archivos vencidos. */
+  if(currentUser){try{const now=new Date().toISOString();const {data:expired}=await supabaseClient.from('stories').select('id,media_path,story_audio_path').eq('user_id',currentUser.id).lt('expires_at',now);if(expired?.length){await supabaseClient.from('stories').delete().eq('user_id',currentUser.id).lt('expires_at',now);const paths=expired.flatMap(s=>[s.media_path,s.story_audio_path]).filter(Boolean);if(paths.length)await supabaseClient.storage.from(BUCKET).remove(paths);}}catch(cleanError){console.warn('Limpieza de historias vencidas pendiente:',cleanError)}}
   const {data:stories,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,media_path,story_text,link_url,story_audio_url,story_audio_path,created_at,expires_at').gt('expires_at',new Date().toISOString()).gt('created_at',new Date(Date.now()-86400000).toISOString()).order('created_at',{ascending:true});
   if(error){console.error('Historias:',error);bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button><span class="story-loading">No se pudieron cargar las historias</span>';const b=$('goviAddStory');if(b)b.onclick=goviOpenStoryComposer;return}
   const rows=stories||[],ids=[...new Set(rows.map(x=>x.user_id))];let profiles={};
