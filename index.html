@@ -3678,3 +3678,111 @@ html body #goviStoryComposer .govi-story-compose-card{position:relative!importan
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+
+
+<!-- GOVI STORY EDITOR V5: editor táctil reconstruido -->
+<style id="govi-story-v5-css">
+html body #goviStoryComposer .govi-story-v3-stage{touch-action:none!important;isolation:isolate!important}
+html body #goviStoryComposer #goviStoryPreview{pointer-events:none!important}
+html body #goviStoryComposer #goviStoryPreviewImage,html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!important;touch-action:none!important;user-select:none!important;-webkit-user-select:none!important}
+html body #goviStoryComposer #goviStoryPreviewText,html body #goviStoryComposer #goviStoryPreviewLink,.govi-v5-sticker{pointer-events:auto!important;touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;cursor:move!important}
+html body #goviStoryComposer .govi-story-v3-panel{max-height:43dvh!important;overflow-y:auto!important}
+html body #goviStoryComposer .govi-v5-fields{display:flex!important;flex-direction:column!important;gap:7px!important;margin:8px 0!important}
+html body #goviStoryComposer .govi-v5-fields [hidden]{display:none!important}
+html body #goviStoryComposer .govi-v5-fields textarea,html body #goviStoryComposer .govi-v5-fields input[type=url]{display:block!important;width:100%!important;min-height:46px!important;opacity:1!important;pointer-events:auto!important;position:relative!important;z-index:40!important;touch-action:auto!important;font-size:16px!important;background:#191919!important;color:#fff!important;border:1px solid #777!important;border-radius:10px!important;padding:10px!important}
+html body #goviStoryComposer .govi-v5-tools,html body #goviStoryComposer .govi-v5-style{display:flex!important;gap:7px!important;align-items:center!important;flex-wrap:wrap!important;margin:8px 0!important}
+html body #goviStoryComposer .govi-v5-tools button{padding:8px 10px!important;border:1px solid #ffffff35!important;border-radius:10px!important;background:#222!important;color:#fff!important}
+html body #goviStoryComposer .govi-v5-style label{display:flex!important;align-items:center!important;gap:5px!important;color:#eee!important;font-size:11px!important}
+html body #goviStoryComposer .govi-v5-style select{max-width:120px!important;background:#191919!important;color:#fff!important;border:1px solid #777!important;padding:6px!important}
+html body #goviStoryComposer .govi-v5-style input[type=color]{width:30px!important;height:28px!important}
+html body #goviStoryComposer .govi-v5-emojis{display:flex!important;flex-wrap:wrap!important;gap:5px!important;max-height:120px!important;overflow:auto!important;padding:7px 0!important}
+html body #goviStoryComposer .govi-v5-emojis[hidden]{display:none!important}
+html body #goviStoryComposer .govi-v5-emojis button{font-size:22px!important;min-width:38px!important;min-height:38px!important;border:1px solid #ffffff25!important;border-radius:9px!important;background:#ffffff12!important;color:#fff!important}
+html body #goviStoryComposer .govi-v5-sticker{position:absolute!important;z-index:15!important;transform:translate(-50%,-50%)!important;font-size:42px!important;line-height:1!important;padding:5px!important;background:#0002!important;border:1px dashed #ffffff65!important;border-radius:8px!important}
+html body #goviStoryComposer .govi-v5-sticker.selected{outline:2px solid #c084fc!important}
+html body #goviStoryComposer .govi-v5-hint{font-size:10px!important;color:#aaa!important;margin:4px 0!important}
+html body #goviStoryComposer #goviStoryPreviewVideo{object-fit:contain!important;background:#000!important}
+@media(max-width:600px){html body #goviStoryComposer .govi-story-v3-panel{max-height:46dvh!important}}
+</style>
+<script id="govi-story-v5-js">
+(function(){
+ const $=id=>document.getElementById(id);
+ const emojis='😀 😃 😄 😁 😆 😅 😂 🙂 🙃 😉 😊 😍 🥰 😘 😗 😙 😚 😋 😛 😜 🤪 🤗 🤭 🫢 🫣 🤫 🤔 🫡 🤐 🤨 😐 😑 😶 🫥 😏 😒 🙄 😬 🤥 😌 😔 😪 🤤 😴 😷 🤒 🤕 🤢 🤮 🤧 🥵 🥶 🥴 😵 🤯 🤠 🥳 🥸 😎 🤓 🧐 😕 🫤 😟 🙁 ☹️ 😮 😯 😲 😳 🥺 🥹 😦 😧 😨 😰 😥 😢 😭 😱 😖 😣 😞 😓 😩 😫 🥱 😤 😡 😠 🤬 ❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❤️‍🔥 💖 💗 💓 💞 💕 💘 💝 💟 💌 💋 💯 💢 💥 💫 💦 💨 🕊️ ⭐ 🌟 ✨ ⚡ 🔥 🌈 ☀️ 🌙 🌍 🌎 🌏 🌸 🌹 🌻 🌺 🌴 🍀 🌵 🎉 🎊 🎂 🎁 🥂 🍻 🍺 ☕ 🧉 🍀 ⚽ 🏆 🎮 🎧 🎤 📸 📱 💻 🚀 ✈️ 🚗 🏍️ 🏖️ 🏙️ 🏡 💰 💎 👑 🎯 💪 👏 🙌 🤝 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👋 🫶 🙏 💃 🕺 🧑‍🚀 👽'.split(' ');
+ function init(){
+  const root=$('goviStoryComposer'),stage=root?.querySelector('.govi-story-v3-stage'),panel=root?.querySelector('.govi-story-v3-panel'),actions=root?.querySelector('.govi-story-v3-actions'),preview=$('goviStoryPreview');
+  if(!root||!stage||!panel||!actions||!preview||root.dataset.goviV5==='ready')return;
+  root.dataset.goviV5='ready';
+  const text=$('goviStoryText'),link=$('goviStoryLink'),textWrap=$('goviStoryTextWrap'),linkWrap=$('goviStoryLinkWrap');
+  const image=$('goviStoryPreviewImage'),video=$('goviStoryPreviewVideo'),textNode=$('goviStoryPreviewText'),linkNode=$('goviStoryPreviewLink');
+  const positions={text:{x:50,y:50},link:{x:50,y:82}};
+  const stickers=[];
+  let selected=null,mediaZoom=1,mediaX=0,mediaY=0,mediaPointers=new Map(),mediaGesture=null;
+  // Sustituye por completo los botones anteriores y elimina los manejadores que insertaban la estrella fija.
+  actions.replaceChildren();
+  const button=(label,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fn()});actions.appendChild(b);return b};
+  const fields=document.createElement('div');fields.className='govi-v5-fields';
+  textWrap.hidden=true;linkWrap.hidden=true;fields.append(textWrap,linkWrap);
+  const tools=document.createElement('div');tools.className='govi-v5-tools';
+  const style=document.createElement('div');style.className='govi-v5-style';
+  const emojiBox=document.createElement('div');emojiBox.className='govi-v5-emojis';emojiBox.hidden=true;
+  const hint=document.createElement('p');hint.className='govi-v5-hint';hint.textContent='Arrastra texto, enlace, stickers o foto. Usa dos dedos para cambiar el tamaño.';
+  function addTool(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fn()});tools.appendChild(b)}
+  button('＋ Foto / vídeo',()=>{$('goviStoryFile').value='';$('goviStoryFile').click()});
+  button('Aa Texto',()=>{textWrap.hidden=false;text.focus();fields.scrollIntoView({block:'nearest',behavior:'smooth'})});
+  button('😊 Emojis',()=>{emojiBox.hidden=!emojiBox.hidden;});
+  button('🔗 Enlace',()=>{linkWrap.hidden=false;link.focus();fields.scrollIntoView({block:'nearest',behavior:'smooth'})});
+  addTool('Borrar seleccionado',()=>{if(selected?.classList.contains('govi-v5-sticker')){selected.remove();const i=stickers.indexOf(selected);if(i>=0)stickers.splice(i,1);selected=null;}else if(selected===textNode){text.value='';updatePreview();}else if(selected===linkNode){link.value='';updatePreview();}});
+  addTool('Quitar foto/vídeo',()=>{image.removeAttribute('src');video.pause();video.removeAttribute('src');video.load();image.style.display='none';video.style.display='none';$('goviStoryFile').value='';$('goviStoryFileName').textContent='Sin foto ni vídeo';});
+  const label=(txt,node)=>{const l=document.createElement('label');l.append(document.createTextNode(txt),node);style.appendChild(l)};
+  label('Letra',$('goviStoryFont'));label('Color texto',$('goviStoryColor'));label('Color enlace',$('goviStoryLinkColor'));label('Contorno',$('goviStoryOutline'));label('Tamaño',$('goviStoryTextSize'));label('Zoom foto',$('goviStoryImageScale'));
+  panel.append(fields,emojiBox,tools,style,hint);
+  emojis.forEach(ch=>{const b=document.createElement('button');b.type='button';b.textContent=ch;b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const el=document.createElement('div');el.className='govi-v5-sticker';el.textContent=ch;el.dataset.x='50';el.dataset.y='50';stage.appendChild(el);stickers.push(el);select(el);dragElement(el,'sticker');});emojiBox.appendChild(b)});
+  function select(el){if(selected)selected.classList.remove('selected');selected=el;if(selected)selected.classList.add('selected')}
+  function updatePreview(){
+   textNode.textContent=text.value.trim();textNode.style.display=text.value.trim()?'block':'none';
+   linkNode.textContent=link.value.trim();linkNode.href=/^https?:\/\//i.test(link.value.trim())?link.value.trim():'#';linkNode.style.display=link.value.trim()?'block':'none';
+   applyStyles();
+  }
+  function applyStyles(){
+   const font=$('goviStoryFont').value,outline=$('goviStoryOutline').value;
+   textNode.style.fontFamily=font;textNode.style.color=$('goviStoryColor').value;textNode.style.textShadow=outline==='none'?'none':outline;
+   linkNode.style.fontFamily=font;linkNode.style.color=$('goviStoryLinkColor').value;linkNode.style.textShadow=outline==='none'?'none':outline;
+   [textNode,linkNode].forEach((el,i)=>{el.style.position='absolute';el.style.left=positions[i?'link':'text'].x+'%';el.style.top=positions[i?'link':'text'].y+'%';el.style.transform='translate(-50%,-50%)';el.style.zIndex='18';el.style.display=(i?link.value.trim():text.value.trim())?'block':'none';});
+   [image,video].forEach(el=>{el.style.transform='translate('+mediaX+'px,'+mediaY+'px) scale('+mediaZoom*Number($('goviStoryImageScale').value)/100+')';el.style.transformOrigin='center center';});
+  }
+  window.goviUpdateStoryPreview=updatePreview;window.goviApplyStoryEditorStyles=applyStyles;
+  text.addEventListener('input',updatePreview);link.addEventListener('input',updatePreview);
+  ['goviStoryFont','goviStoryColor','goviStoryLinkColor','goviStoryOutline','goviStoryTextSize','goviStoryImageScale'].forEach(id=>$(id).addEventListener('input',()=>{if(id==='goviStoryTextSize'){textNode.style.fontSize=$('goviStoryTextSize').value+'px'}applyStyles()}));
+  function dragElement(el,kind){
+   if(el.dataset.v5drag)return;el.dataset.v5drag='1';el.style.touchAction='none';
+   let pts=new Map(),gesture=null;
+   el.addEventListener('pointerdown',e=>{if(e.target!==el)return;e.preventDefault();e.stopPropagation();select(el);try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const r=stage.getBoundingClientRect();gesture={x:e.clientX,y:e.clientY,px:kind==='sticker'?Number(el.dataset.x):positions[kind].x,py:kind==='sticker'?Number(el.dataset.y):positions[kind].y,w:r.width,h:r.height,font:parseFloat(getComputedStyle(el).fontSize)||40};});
+   el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!gesture)return;e.preventDefault();pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1){const r=stage.getBoundingClientRect(),x=Math.max(3,Math.min(97,gesture.px+(e.clientX-gesture.x)/r.width*100)),y=Math.max(4,Math.min(96,gesture.py+(e.clientY-gesture.y)/r.height*100));if(kind==='sticker'){el.dataset.x=x;el.dataset.y=y;el.style.left=x+'%';el.style.top=y+'%';}else{positions[kind]={x,y};applyStyles();}}else if(pts.size>=2){const p=[...pts.values()],dist=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);el.style.fontSize=Math.max(14,Math.min(120,gesture.font*dist/120))+'px';}});
+   const end=e=>{pts.delete(e.pointerId);if(!pts.size)gesture=null};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+   if(kind==='sticker'){el.style.left='50%';el.style.top='50%';}
+  }
+  dragElement(textNode,'text');dragElement(linkNode,'link');
+  [textNode,linkNode].forEach(el=>el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();select(el)}));
+  // Foto y vídeo: gesto de arrastre y pellizco, controles nativos de reproducción.
+  [image,video].forEach(el=>{
+   el.addEventListener('pointerdown',e=>{if(el.style.display==='none'||!el.getAttribute('src')||e.target===video&&e.offsetY>video.clientHeight-48)return;e.preventDefault();e.stopPropagation();try{el.setPointerCapture(e.pointerId)}catch(_){}mediaPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});mediaGesture={x:e.clientX,y:e.clientY,px:mediaX,py:mediaY,dist:mediaPointers.size===2?Math.hypot(...[]):0,zoom:mediaZoom};});
+   el.addEventListener('pointermove',e=>{if(!mediaPointers.has(e.pointerId))return;e.preventDefault();mediaPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});const pts=[...mediaPointers.values()];if(pts.length===1){mediaX=mediaGesture.px+(e.clientX-mediaGesture.x);mediaY=mediaGesture.py+(e.clientY-mediaGesture.y);}else if(pts.length===2){const d=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);if(!mediaGesture.startDist)mediaGesture.startDist=d;mediaZoom=Math.max(.5,Math.min(3,mediaGesture.zoom*d/Math.max(1,mediaGesture.startDist)));}applyStyles();});
+   const end=e=>{mediaPointers.delete(e.pointerId);if(!mediaPointers.size)mediaGesture=null;};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+  });
+  function showFile(file){
+   if(!file)return;const url=URL.createObjectURL(file);if(window.goviStoryV5Url)URL.revokeObjectURL(window.goviStoryV5Url);window.goviStoryV5Url=url;mediaX=0;mediaY=0;mediaZoom=1;
+   if(file.type.startsWith('video/')){image.style.display='none';video.style.display='block';video.controls=true;video.muted=false;video.loop=false;video.playsInline=true;video.src=url;video.load();video.onloadedmetadata=()=>{video.currentTime=0;};video.play().catch(()=>{});}
+   else if(file.type.startsWith('image/')){video.pause();video.removeAttribute('src');video.load();video.style.display='none';image.style.display='block';image.src=url;}
+   $('goviStoryPreview').style.display='block';const empty=stage.querySelector('.govi-story-v3-empty');if(empty)empty.style.display='none';$('goviStoryFileName').textContent=file.name;applyStyles();
+  }
+  $('goviStoryFile').addEventListener('change',e=>showFile(e.target.files?.[0]));
+  $('goviStoryGifFile')?.addEventListener('change',e=>showFile(e.target.files?.[0]));
+  // Controles de borrar con teclado y de selección.
+  document.addEventListener('keydown',e=>{if(!root.classList.contains('open'))return;if((e.key==='Delete'||e.key==='Backspace')&&selected&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();if(selected.classList.contains('govi-v5-sticker')){selected.remove();stickers.splice(stickers.indexOf(selected),1);}else if(selected===textNode){text.value='';updatePreview()}else if(selected===linkNode){link.value='';updatePreview()}selected=null;}});
+  // Mantiene los campos visibles y editables en Android.
+  [text,link].forEach(el=>{el.readOnly=false;el.disabled=false;el.removeAttribute('readonly');el.style.pointerEvents='auto';});
+  textWrap.hidden=true;linkWrap.hidden=true;updatePreview();applyStyles();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
