@@ -3934,7 +3934,9 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
 })();
 </script>
 <style id="govi-story-editor-repair-v8">
-#goviStoryComposer #goviStoryRepairV8{position:relative!important;z-index:2147483001!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;background:#090909!important;color:#fff!important;padding:10px!important;border-top:1px solid #ffffff28!important;max-height:43dvh!important;overflow:auto!important;touch-action:pan-y!important}
+#goviStoryComposer #goviStoryRepairV8{position:relative!important;z-index:2147483001!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;background:#090909!important;color:#fff!important;padding:10px!important;border-top:1px solid #ffffff28!important;max-height:42dvh!important;overflow:auto!important;touch-action:pan-y!important}
+#goviStoryComposer #goviStoryLegacyFields{display:none!important}
+#goviStoryComposer .govi-story-v3-actions,#goviStoryComposer .govi-story-v3-fields,#goviStoryComposer .govi-story-v3-style,#goviStoryComposer #goviStoryFileName,#goviStoryComposer #goviStoryPublish,#goviStoryComposer #goviStoryStatus{display:none!important}
 #goviStoryRepairV8 *{pointer-events:auto!important;box-sizing:border-box!important}
 #goviStoryRepairV8 .r8-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:7px 0}
 #goviStoryRepairV8 button,#goviStoryRepairV8 select,#goviStoryRepairV8 input,#goviStoryRepairV8 textarea{font:inherit;color:#fff;background:#202024;border:1px solid #ffffff38;border-radius:10px;padding:9px;min-height:40px}
@@ -3962,7 +3964,9 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
   if(!root||!stage||!panel||!file||!video||!image||!textNode||panel.querySelector('#goviStoryRepairV8'))return;
   const ui=document.createElement('section');ui.id='goviStoryRepairV8';
   ui.innerHTML='<div class="r8-row"><button type="button" data-a="text">Aa Escribir</button><button type="button" data-a="smaller">A− Achicar</button><button type="button" data-a="bigger">A+ Agrandar</button><button type="button" data-a="emoji">😊 Emojis ('+EMOJI.length+')</button><button type="button" data-a="sound">🔊 Activar sonido</button><button type="button" data-a="play">▶ Reproducir</button><button type="button" data-a="clear">Limpiar texto</button></div><textarea id="goviR8Text" placeholder="Escribí tu historia aquí..."></textarea><div class="r8-row"><label>Tipografía <select id="goviR8Font"><option value="Arial,sans-serif">Clásica</option><option value="Trebuchet MS,sans-serif">Redondeada</option><option value="Georgia,serif">Elegante</option><option value="cursive">Manuscrita</option><option value="Impact,sans-serif">Impacto</option></select></label><label>Color <input id="goviR8Color" type="color" value="#ffffff"></label><label>Contorno <select id="goviR8Edge"><option value="0 2px 8px #000">Negro</option><option value="1px 1px 0 #000,-1px -1px 0 #000">Contorno negro</option><option value="1px 1px 0 #fff,-1px -1px 0 #fff">Contorno blanco</option><option value="0 0 12px #ff4fd8">Brillo rosa</option><option value="none">Sin contorno</option></select></label><label>Tamaño <input id="goviR8Size" type="range" min="14" max="72" value="32"></label></div><div class="r8-emojis" id="goviR8Emojis"></div><div class="r8-row"><small>Los controles anteriores quedan reemplazados por este panel funcional.</small></div>';
-  panel.appendChild(ui);
+  const hidden=document.createElement('div');hidden.id='goviStoryLegacyFields';hidden.hidden=true;
+  ['goviStoryTextWrap','goviStoryLinkWrap','goviStoryFile','goviStoryGifFile','goviStoryAudioFile','goviStoryFont','goviStoryColor','goviStoryLinkColor','goviStoryOutline','goviStoryImageScale','goviStoryFileName','goviStoryPublish','goviStoryStatus'].forEach(id=>{const node=document.getElementById(id);if(node)hidden.appendChild(node)});
+  panel.replaceChildren(ui,hidden);
   const $=id=>document.getElementById(id),txt=$('goviR8Text'),font=$('goviR8Font'),color=$('goviR8Color'),edge=$('goviR8Edge'),size=$('goviR8Size'),emojiBox=$('goviR8Emojis');
   let x=50,y=50;
   function sync(){
