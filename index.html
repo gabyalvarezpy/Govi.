@@ -1177,8 +1177,9 @@ async function goviPublishStory(){
     const payload={user_id:currentUser.id,media_url:mediaUrl,media_type:mediaType,media_path:path,story_text:window.goviGetStoryEditorMeta?('__GOVI_STORY_META_V1__'+JSON.stringify({text:storyText||'',meta:window.goviGetStoryEditorMeta()})):(storyText||null),link_url:link||null,story_audio_url:audioUrl,story_audio_path:audioPath,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()};
     let insertResult=await supabaseClient.from('stories').insert(payload);if(insertResult.error&&/story_audio_(url|path)|column .* does not exist|schema cache/i.test(insertResult.error.message||'')){const fallback={...payload};delete fallback.story_audio_url;delete fallback.story_audio_path;insertResult=await supabaseClient.from('stories').insert(fallback);}if(insertResult.error)throw insertResult.error;
     textInput.value='';linkInput.value='';if(fileInput)fileInput.value='';if(gifInput)gifInput.value='';if($('goviStoryAudioFile'))$('goviStoryAudioFile').value='';if($('goviStoryFileName'))$('goviStoryFileName').textContent='Selecciona una foto o un vídeo.';goviUpdateStoryPreview();document.querySelectorAll('.govi-story-choice').forEach(b=>b.setAttribute('aria-pressed','false'));['goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>$(id).hidden=true);goviCloseStoryComposer();
-    status.textContent='¡Historia publicada correctamente!';toast('¡Historia publicada!');await goviLoadStories();
-    const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1);
+    status.textContent='¡Historia publicada correctamente!';toast('¡Historia publicada!');
+    // No bloquear el botón esperando a que se recarguen todas las historias.
+    goviLoadStories().then(()=>{const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1)}).catch(err=>console.warn('La historia se publicó, pero no se pudo actualizar la lista:',err));
   }catch(error){
     console.error('ERROR AL PUBLICAR HISTORIA:',error);
     const detail=error?.message||error?.details||error?.hint||String(error)||'Error desconocido';
