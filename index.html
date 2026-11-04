@@ -3450,7 +3450,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 #goviStoryComposer #goviStoryCleanStickers{display:none!important;gap:7px!important;flex-wrap:wrap!important;padding:8px 0!important}
 #goviStoryComposer #goviStoryCleanStickers.open{display:flex!important}
 #goviStoryComposer #goviStoryCleanStickers button{padding:6px 9px!important;border:1px solid #ffffff25!important;border-radius:9px!important;background:#ffffff12!important;color:#fff!important;font-size:23px!important}
-#goviStoryComposer #goviStoryFile,#goviStoryComposer #goviStoryGifFile,#goviStoryComposer #goviStoryAudioFile{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+#goviStoryComposer #goviStoryFile,#goviStoryComposer #goviStoryGifFile,#goviStoryComposer #goviStoryAudioFile{display:block!important;position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
 #goviStoryComposer #goviStoryFileName{padding:5px 0!important;color:#ccc!important;text-align:center!important;font-size:11px!important}
 #goviStoryComposer #goviStoryPublish{width:100%!important;min-height:46px!important;margin:7px 0 0!important;padding:12px!important;border:0!important;border-radius:22px!important;background:linear-gradient(45deg,#a855f7,#ec4899)!important;color:#fff!important;font-weight:800!important}
 #goviStoryComposer #goviStoryStatus{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;max-height:60px!important;margin:5px 0!important}
@@ -3463,7 +3463,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   const composer=$('goviStoryComposer'),card=composer?.querySelector('.govi-story-compose-card'),canvas=$('goviStoryPreview');
   if(!composer||!card||!canvas||$('goviStoryCleanPanel'))return;
   const oldTray=$('goviStoryControlTray'),oldDetails=$('goviStoryControlDetails'),oldToolbar=$('goviStoryStoryToolbar');
-  [oldTray,oldDetails,oldToolbar,$('goviStoryCategoryBar'),$('goviStoryChoices')].forEach(n=>n?.remove());
+  [oldDetails,oldToolbar,$('goviStoryCategoryBar'),$('goviStoryChoices')].forEach(n=>{if(n)n.style.setProperty('display','none','important')});
   const header=$('goviStoryComposer').querySelector('.govi-story-compose-head');
   const fileName=$('goviStoryFileName'),publish=$('goviStoryPublish'),status=$('goviStoryStatus');
   const panel=document.createElement('section');panel.id='goviStoryCleanPanel';
@@ -3492,6 +3492,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   if(publish)panel.appendChild(publish);
   if(status)panel.appendChild(status);
   card.appendChild(panel);
+  ['goviStoryFile','goviStoryGifFile','goviStoryAudioFile'].forEach(id=>{const input=$(id);if(input)panel.appendChild(input)});
   if(header)header.querySelector('button')?.addEventListener('click',()=>window.goviCloseStoryComposer?.());
   const file=$('goviStoryFile'),gif=$('goviStoryGifFile'),img=$('goviStoryPreviewImage'),video=$('goviStoryPreviewVideo');
   function showMedia(f){
