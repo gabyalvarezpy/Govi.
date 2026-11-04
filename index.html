@@ -3622,3 +3622,59 @@ html body #goviStoryComposer .govi-story-compose-card{position:relative!importan
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});else build();
 })();
 </script>
+
+
+<!-- GOVI STORY EDITOR V4: herramientas táctiles, emojis y eliminación -->
+<style id="govi-story-v4-css">
+#goviStoryComposer .govi-story-v3-stage{touch-action:none!important}
+#goviStoryComposer #goviStoryPreviewImage,#goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!important;touch-action:none!important;cursor:grab!important}
+#goviStoryComposer #goviStoryPreviewText,#goviStoryComposer #goviStoryPreviewLink{pointer-events:auto!important;touch-action:none!important;user-select:none!important;-webkit-user-select:none!important}
+#goviStoryComposer .govi-v4-tools{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:8px}
+#goviStoryComposer .govi-v4-tools button,#goviStoryComposer .govi-v4-emojis button{border:1px solid #ffffff30;border-radius:9px;background:#ffffff12;color:#fff;padding:7px 10px;font-size:13px}
+#goviStoryComposer .govi-v4-emojis{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+#goviStoryComposer .govi-v4-emojis button{font-size:20px;padding:5px 8px}
+#goviStoryComposer .govi-v4-hint{font-size:10px;color:#aaa;margin:6px 0 0}
+</style>
+<script id="govi-story-v4-js">
+(function(){
+ const $=id=>document.getElementById(id);
+ function init(){
+  const root=$('goviStoryComposer'),stage=root?.querySelector('.govi-story-v3-stage'),panel=root?.querySelector('.govi-story-v3-panel'),actions=root?.querySelector('.govi-story-v3-actions');
+  if(!root||!stage||!panel||!actions||root.dataset.goviV4==='ready')return;
+  root.dataset.goviV4='ready';
+  const text=$('goviStoryText'),link=$('goviStoryLink'),textWrap=$('goviStoryTextWrap'),linkWrap=$('goviStoryLinkWrap');
+  const media=$('goviStoryPreviewImage'),video=$('goviStoryPreviewVideo');
+  // Reemplaza el botón de emoji que insertaba una estrella fija por un selector real.
+  const oldEmoji=[...actions.querySelectorAll('button')].find(b=>b.textContent.includes('Emoji'));
+  if(oldEmoji)oldEmoji.replaceWith(oldEmoji.cloneNode(true));
+  const emojiAction=[...actions.querySelectorAll('button')].find(b=>b.textContent.includes('Emoji'));
+  const emojiBox=document.createElement('div');emojiBox.className='govi-v4-emojis';emojiBox.hidden=true;
+  ['😀','😂','😍','😎','🥹','❤️','💕','🔥','🙏','👏','💪','🎉','🥳','✨','🌍','📍'].forEach(ch=>{
+   const b=document.createElement('button');b.type='button';b.textContent=ch;
+   b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();textWrap.hidden=false;panel.querySelector('.govi-story-v3-fields')?.classList.add('open');text.value+=(text.value?' ':'')+ch;text.dispatchEvent(new Event('input',{bubbles:true}));text.focus();});
+   emojiBox.appendChild(b);
+  });
+  if(emojiAction)emojiAction.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();emojiBox.hidden=!emojiBox.hidden;});
+  const tools=document.createElement('div');tools.className='govi-v4-tools';
+  const tool=(label,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fn()});tools.appendChild(b)};
+  tool('Borrar texto',()=>{text.value='';text.dispatchEvent(new Event('input',{bubbles:true}));});
+  tool('Borrar enlace',()=>{link.value='';link.dispatchEvent(new Event('input',{bubbles:true}));});
+  tool('Quitar foto/vídeo',()=>{media.removeAttribute('src');video.removeAttribute('src');media.style.display='none';video.style.display='none';video.pause?.();$('goviStoryFile').value='';$('goviStoryFileName').textContent='Sin archivo seleccionado';const empty=stage.querySelector('.govi-story-v3-empty');if(empty)empty.style.display='flex';});
+  const hint=document.createElement('p');hint.className='govi-v4-hint';hint.textContent='Toca un elemento para editarlo. Arrastra el texto, enlace o foto con un dedo.';
+  panel.append(emojiBox,tools,hint);
+  // Permite escribir con el teclado móvil y actualiza el lienzo.
+  [text,link].forEach(el=>{el.readOnly=false;el.disabled=false;el.style.pointerEvents='auto';el.addEventListener('focus',()=>{el.scrollIntoView({block:'nearest',behavior:'smooth'})});});
+  // Arrastrar la foto/vídeo dentro del lienzo; el zoom sigue controlado por el deslizador existente.
+  let drag=null,panX=0,panY=0;
+  const currentMedia=()=>video.style.display!=='none'&&video.getAttribute('src')?video:media;
+  [media,video].forEach(el=>{
+   el.addEventListener('pointerdown',e=>{if(el.style.display==='none'||!el.getAttribute('src'))return;e.preventDefault();e.stopPropagation();drag={id:e.pointerId,x:e.clientX,y:e.clientY,px:panX,py:panY};try{el.setPointerCapture(e.pointerId)}catch(_){}});
+   el.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;e.preventDefault();panX=drag.px+(e.clientX-drag.x);panY=drag.py+(e.clientY-drag.y);el.style.setProperty('--govi-story-pan-x',panX+'px');el.style.setProperty('--govi-story-pan-y',panY+'px');});
+   const end=e=>{if(drag&&drag.id===e.pointerId)drag=null};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+  });
+  // Asegura que los botones no disparen el cierre del editor.
+  [emojiBox,tools].forEach(el=>el.addEventListener('pointerdown',e=>e.stopPropagation()));
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
