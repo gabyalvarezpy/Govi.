@@ -3786,3 +3786,26 @@ html body #goviStoryComposer #goviStoryPreviewVideo{object-fit:contain!important
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+
+<!-- GOVI STORY EDITOR V6: reproducción de vídeo sin bloquear controles -->
+<style id="govi-story-v6-css">
+html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!important;z-index:3!important;object-fit:contain!important;background:#000!important}
+</style>
+<script id="govi-story-v6-js">
+(function(){
+ function fix(){
+  const root=document.getElementById('goviStoryComposer'),panel=root?.querySelector('.govi-story-v3-panel'),tools=panel?.querySelector('.govi-v5-tools'),video=document.getElementById('goviStoryPreviewVideo');
+  if(!root||!panel||!tools||!video||root.dataset.goviV6==='ready')return;
+  root.dataset.goviV6='ready';
+  // Los controles nativos del vídeo deben recibir el toque; no se interceptan para arrastrar.
+  video.addEventListener('pointerdown',e=>e.stopImmediatePropagation(),true);
+  video.addEventListener('touchstart',e=>e.stopImmediatePropagation(),true);
+  const b=document.createElement('button');b.type='button';b.textContent='▶ Reproducir vídeo';
+  b.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();try{video.controls=true;video.muted=false;await video.play();b.textContent='⏸ Vídeo en reproducción';}catch(err){b.textContent='▶ Toca el vídeo para reproducir';}});
+  video.addEventListener('play',()=>b.textContent='⏸ Vídeo en reproducción');
+  video.addEventListener('pause',()=>b.textContent='▶ Reproducir vídeo');
+  tools.insertBefore(b,tools.firstChild);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fix,{once:true});else fix();
+})();
+</script>
