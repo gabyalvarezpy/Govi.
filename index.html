@@ -3917,6 +3917,22 @@ html body #goviStoryComposer #goviStoryPreviewVideo{pointer-events:auto!importan
 #goviStoryComposer .govi-v7-emojis,
 #goviStoryComposer .govi-v7-fields{display:none!important}
 </style>
+<script id="govi-story-audio-fix-v10">
+(function(){
+ const video=document.getElementById('goviStoryPreviewVideo');
+ const root=document.getElementById('goviStoryComposer');
+ if(!video||!root||root.dataset.goviAudioFix10)return;
+ root.dataset.goviAudioFix10='ready';
+ function unlock(){video.muted=false;video.defaultMuted=false;video.removeAttribute('muted');video.volume=1;}
+ ['loadedmetadata','loadeddata','canplay','playing'].forEach(ev=>video.addEventListener(ev,unlock));
+ const file=document.getElementById('goviStoryFile');
+ file?.addEventListener('change',()=>{const f=file.files&&file.files[0];if(f&&f.type.startsWith('video/')){unlock();video.controls=true;video.playsInline=true;}});
+ root.addEventListener('click',e=>{
+  const b=e.target.closest('#goviStoryRepairV8 button[data-a="sound"],#goviStoryRepairV8 button[data-a="play"]');
+  if(!b)return;unlock();if(video.readyState>=2)video.play().catch(()=>{});
+ },true);
+})();
+</script>
 <style id="govi-story-editor-repair-v8">
 #goviStoryComposer #goviStoryRepairV8{position:relative!important;z-index:2147483001!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;background:#090909!important;color:#fff!important;padding:10px!important;border-top:1px solid #ffffff28!important;max-height:43dvh!important;overflow:auto!important;touch-action:pan-y!important}
 #goviStoryRepairV8 *{pointer-events:auto!important;box-sizing:border-box!important}
