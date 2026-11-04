@@ -1163,7 +1163,7 @@ async function goviPublishStory(){
   if(file&&file.type.startsWith('video/')){
     try{const duration=await new Promise((resolve,reject)=>{const v=document.createElement('video');v.preload='metadata';v.onloadedmetadata=()=>{URL.revokeObjectURL(v.src);resolve(v.duration)};v.onerror=()=>reject(new Error('No se pudo leer la duración del vídeo'));v.src=URL.createObjectURL(file)});if(duration>30.25){toast('El vídeo debe durar 30 segundos o menos');return}}catch(err){toast(err.message);return}
   }
-  const btn=$('goviStoryPublish'),status=$('goviStoryStatus');if(!btn||!status){toast('No se encontró el control de publicación. Recarga GOVI e inténtalo otra vez.');return}status.style.display='block';status.textContent='Enviando tu historia a GOVI…';btn.disabled=true;btn.textContent='PUBLICANDO…';
+  const btn=document.querySelector('#goviStoryRepairV8 [data-a="publish"]')||$('goviStoryPublish'),status=$('goviStoryStatus');if(!btn||!status){toast('No se encontró el control de publicación. Recarga GOVI e inténtalo otra vez.');return}status.style.display='block';status.textContent='Enviando tu historia a GOVI…';btn.disabled=true;btn.textContent='PUBLICANDO…';
   let path=null,mediaUrl=null,mediaType='text',audioPath=null,audioUrl=null;
   try{
     if(file){
@@ -1184,7 +1184,7 @@ async function goviPublishStory(){
     const detail=error?.message||error?.details||error?.hint||String(error)||'Error desconocido';
     status.style.display='block';status.textContent='ERROR AL PUBLICAR: '+detail+' · Código: '+(error?.code||'sin código');toast('No se pudo publicar: '+detail);
     if(path||audioPath){try{await supabaseClient.storage.from(BUCKET).remove([path,audioPath].filter(Boolean));}catch(cleanupError){console.error('ERROR AL LIMPIAR ARCHIVO:',cleanupError);}}
-  }finally{btn.disabled=false;btn.textContent='PUBLICAR HISTORIA'}
+  }finally{btn.disabled=false;btn.textContent=btn.matches?.('#goviStoryRepairV8 [data-a="publish"]')?'Compartir historia ➜':'PUBLICAR HISTORIA'}
 }
 window.goviPublishStory=goviPublishStory;
 function goviOpenStoryGroup(groupIndex,itemIndex){goviStoryGroupIndex=groupIndex;goviStoryItemIndex=itemIndex;goviRenderStory();$('goviStoryViewer').style.display='flex'}
@@ -4079,7 +4079,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
    case 'undo':undo();break;
    case 'preview':setPreview(true);break;
    case 'clear':saveUndo();txt.value='';sync();stickers.forEach(s=>s.el.remove());stickers=[];break;
-   case 'publish':if(window.goviPublishStory)window.goviPublishStory();else toast('No se pudo iniciar la publicación. Recarga GOVI e inténtalo otra vez.');break;
+   case 'publish':if(b.dataset.busy==='1')break;b.dataset.busy='1';b.disabled=true;b.textContent='PUBLICANDO…';Promise.resolve(window.goviPublishStory?.()).catch(err=>{console.error('GOVI: fallo al iniciar publicación',err);toast('No se pudo iniciar: '+(err?.message||'error inesperado'))}).finally(()=>{b.dataset.busy='0';b.disabled=false;if(b.isConnected)b.innerHTML='Compartir historia <b>➜</b>'});break;
   }},true);
   sound.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();if(video.style.display==='none'||!video.getAttribute('src'))return;video.muted=!video.muted;video.defaultMuted=video.muted;sound.textContent=video.muted?'🔕':'🔔';if(!video.muted){try{await video.play()}catch(_){}}});
   file.addEventListener('change',()=>{const f=file.files?.[0];if(!f)return;mediaState={x:0,y:0,zoom:1};applyMedia();if(f.type.startsWith('video/')){sound.style.display='grid';sound.style.placeItems='center';video.controls=false;video.muted=true;video.defaultMuted=true;video.volume=1;video.playsInline=true;video.addEventListener('loadedmetadata',()=>{video.muted=true;video.defaultMuted=true;video.play().catch(()=>{})},{once:true});sound.textContent='🔕'}else{sound.style.display='none';video.pause()}});
