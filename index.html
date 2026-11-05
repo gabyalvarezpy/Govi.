@@ -1386,9 +1386,13 @@ async function goviPublishStory(){
     return;
   }
   showStoryStatus('Sesión confirmada. Preparando tu historia…');
+  // Leer directamente los controles que usa el editor V8. Los campos antiguos
+  // pueden estar ocultos o reubicados y no deben bloquear la publicación.
+  const editorPayload=typeof window.goviGetStoryEditorPayload==='function'?window.goviGetStoryEditorPayload():{};
   const fileInput=$('goviStoryFile'),gifInput=$('goviStoryGifFile'),textInput=$('goviStoryText'),linkInput=$('goviStoryLink');
-  if(!fileInput||!textInput||!linkInput){showStoryStatus('El editor no terminó de cargar. Cierra la historia y vuelve a abrirla.');return}
-  const file=fileInput.files?.[0]||gifInput?.files?.[0],storyText=(textInput.value||'').trim(),link=(linkInput.value||'').trim();
+  const file=editorPayload.file||fileInput?.files?.[0]||gifInput?.files?.[0]||null;
+  const storyText=String(editorPayload.text??textInput?.value??'').trim();
+  const link=String(editorPayload.link??linkInput?.value??'').trim();
   showStoryStatus('Sesión confirmada. Revisando foto y texto…');
   if(!file&&!storyText&&!link){const st=$('goviStoryStatus');if(st){st.style.display='block';st.textContent='Tu historia está vacía. Escribe un texto o añade una foto, un vídeo o un enlace.';}toast('Añade texto, una foto, un vídeo o un enlace');return}
   if(link&&!/^https?:\/\//i.test(link)){toast('El enlace debe empezar por https:// o http://');return}
@@ -4323,6 +4327,8 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   const pts=new Map();let mediaGesture=null;
   [image,video].forEach(el=>{el.style.pointerEvents='auto';el.style.touchAction='none';el.addEventListener('pointerdown',e=>{if(el.style.display==='none'||!el.getAttribute('src'))return;if(e.target===sound)return;if(!pts.size)saveUndo();e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)mediaGesture={kind:'move',x:e.clientX,y:e.clientY,px:mediaState.x,py:mediaState.y};else if(pts.size===2){const a=[...pts.values()];mediaGesture={kind:'scale',distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),zoom:mediaState.zoom}}});el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!mediaGesture)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...pts.values()];if(a.length===2&&mediaGesture.kind==='scale'){const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);mediaState.zoom=Math.max(1,Math.min(4,mediaGesture.zoom*d/mediaGesture.distance))}else if(a.length===1&&mediaGesture.kind==='move'){mediaState.x=mediaGesture.px+e.clientX-mediaGesture.x;mediaState.y=mediaGesture.py+e.clientY-mediaGesture.y}applyMedia()});const end=e=>{pts.delete(e.pointerId);if(!pts.size){mediaGesture=null;return}const a=[...pts.values()][0];mediaGesture={kind:'move',x:a.x,y:a.y,px:mediaState.x,py:mediaState.y}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)});
   window.goviGetStoryEditorMeta=()=>({text:{x,y,fontFamily:font.value,color:color.value,textShadow:edge.value,fontSize:size.value+'px'},link:{x:50,y:80,fontFamily:'Arial,sans-serif',color:'#ffe08a',textShadow:'0 2px 8px #000',fontSize:'17px'},stickers:stickers.map(s=>({emoji:s.emoji,x:s.x,y:s.y,fontSize:s.size+'px'})),media:{zoom:mediaState.zoom,x:mediaState.x,y:mediaState.y}});
+  // Puente explícito entre el editor visual y el publicador Supabase.
+  window.goviGetStoryEditorPayload=()=>({file:file.files?.[0]||null,gifFile:$('goviStoryGifFile')?.files?.[0]||null,text:txt.value||'',link:$('goviStoryLink')?.value||''});
   previewBar.addEventListener('click',e=>{const b=e.target.closest('[data-preview-action]');if(!b)return;if(b.dataset.previewAction==='edit')setPreview(false);else if(b.dataset.previewAction==='publish'){setPreview(false);launchPublish(b)}});stage.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});stage.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});sync();console.info('GOVI Story Editor táctil listo',EMOJI.length);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
