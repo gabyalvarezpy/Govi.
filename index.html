@@ -1231,18 +1231,18 @@ $('goviStoryComposeClose').addEventListener('click',()=>{const c=$('goviStoryCom
 $('goviStoryComposer').addEventListener('click',e=>{if(e.target===$('goviStoryComposer'))goviCloseStoryComposer()});
 let goviStoryPositions={text:{x:50,y:50},link:{x:50,y:82}},goviStoryObjectUrls=[];
 function goviApplyStoryEditorStyles(){
-  const font=$('goviStoryFont').value,outline=$('goviStoryOutline').value,scale=Number($('goviStoryImageScale').value)/100;
+  const font=$('goviStoryFont')?.value||'Arial,sans-serif',outline=$('goviStoryOutline')?.value||'0 2px 8px #000',scale=Number($('goviStoryImageScale')?.value||100)/100;
   const text=$('goviStoryPreviewText'),link=$('goviStoryPreviewLink');
-  [text,link].forEach((el,i)=>{el.style.fontFamily=font;el.style.color=i===0?$('goviStoryColor').value:$('goviStoryLinkColor').value;el.style.textShadow=outline==='none'?'none':outline;el.style.position='absolute';el.style.left=(i===0?goviStoryPositions.text.x:goviStoryPositions.link.x)+'%';el.style.top=(i===0?goviStoryPositions.text.y:goviStoryPositions.link.y)+'%';el.style.transform='translate(-50%,-50%)';el.style.maxWidth='88%';el.style.zIndex='5';el.style.touchAction='none'});
-  ['goviStoryPreviewImage','goviStoryPreviewVideo'].forEach(id=>{const media=$(id);media.style.transform='translate(var(--govi-story-pan-x,0px),var(--govi-story-pan-y,0px)) scale('+scale+')';media.style.transformOrigin='center center';});
+  [text,link].forEach((el,i)=>{if(!el)return;el.style.fontFamily=font;el.style.color=i===0?($('goviStoryColor')?.value||'#fff'):($('goviStoryLinkColor')?.value||'#ffe08a');el.style.textShadow=outline==='none'?'none':outline;el.style.position='absolute';el.style.left=(i===0?(goviStoryPositions?.text?.x??50):(goviStoryPositions?.link?.x??50))+'%';el.style.top=(i===0?(goviStoryPositions?.text?.y??50):(goviStoryPositions?.link?.y??80))+'%';el.style.transform='translate(-50%,-50%)';el.style.maxWidth='88%';el.style.zIndex='5';el.style.touchAction='none'});
+  ['goviStoryPreviewImage','goviStoryPreviewVideo'].forEach(id=>{const media=$(id);if(!media)return;media.style.transform='translate(var(--govi-story-pan-x,0px),var(--govi-story-pan-y,0px)) scale('+scale+')';media.style.transformOrigin='center center';});
 }
 function goviUpdateStoryPreview(){
-  const txt=$('goviStoryText').value.trim(),link=$('goviStoryLink').value.trim();
-  const box=$('goviStoryPreview');
-  $('goviStoryPreviewText').textContent=txt;
-  $('goviStoryPreviewText').style.display=txt?'block':'none';
-  const a=$('goviStoryPreviewLink');a.textContent=link;a.href=link||'#';a.style.display=link?'block':'none';
-  box.style.display='block';goviApplyStoryEditorStyles();
+  const txt=($('goviStoryText')?.value||''),link=($('goviStoryLink')?.value||'');
+  const box=$('goviStoryPreview'),previewText=$('goviStoryPreviewText'),a=$('goviStoryPreviewLink');
+  if(previewText){previewText.textContent=txt;previewText.style.display=txt?'block':'none'}
+  if(a){a.textContent=link;a.href=link||'#';a.style.display=link?'block':'none'}
+  if(box)box.style.display='block';
+  try{goviApplyStoryEditorStyles()}catch(error){console.warn('GOVI: no se pudieron actualizar los estilos de vista previa',error)}
 }/* Categorías del editor de historias GOVI */
 document.querySelectorAll('[data-story-tab]').forEach(tab=>tab.addEventListener('click',()=>{
  document.querySelectorAll('[data-story-tab]').forEach(x=>x.classList.toggle('active',x===tab));
