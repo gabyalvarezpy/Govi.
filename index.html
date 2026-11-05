@@ -1153,6 +1153,8 @@ async function goviLoadStories(){
 })();
 
 async function goviPublishStory(){
+  // Confirmar visualmente que el publicador real ha arrancado antes de consultar Supabase.
+  const startStatus=$('goviStoryStatus');if(startStatus){startStatus.style.display='block';startStatus.textContent='Comprobando tu sesión…';}
   // Revalidar la sesión directamente con Supabase evita depender de un estado local desactualizado.
   try{const {data:{session:storySession},error:storySessionError}=await supabaseClient.auth.getSession();if(storySessionError)throw storySessionError;currentUser=storySession?.user||null;}catch(sessionCheckError){console.error('GOVI: no se pudo comprobar la sesión',sessionCheckError);const st=$('goviStoryStatus');if(st){st.style.display='block';st.textContent='No se pudo comprobar tu sesión: '+(sessionCheckError.message||'Error de conexión');}return}
   if(!currentUser){const st=$('goviStoryStatus');if(st){st.style.display='block';st.textContent='No encontramos una sesión activa en Supabase. Cierra sesión, vuelve a entrar y prueba otra vez.';}$('goviStoryComposer').classList.remove('open');toast('No encontramos una sesión activa. Vuelve a iniciar sesión.');openModal('authModal');return}
