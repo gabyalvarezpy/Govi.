@@ -1394,23 +1394,16 @@ async function goviPublishStory(){
   const storyText=String(editorPayload.text??textInput?.value??'').trim();
   const link=String(editorPayload.link??linkInput?.value??'').trim();
   showStoryStatus('Sesión confirmada. Revisando foto y texto…');
-  if(!file&&!storyText&&!link){const st=$('goviStoryStatus');if(st){st.style.display='block';st.textContent='Tu historia está vacía. Escribe un texto o añade una foto, un vídeo o un enlace.';}toast('Añade texto, una foto, un vídeo o un enlace');return}
-  if(link&&!/^https?:\/\//i.test(link)){toast('El enlace debe empezar por https:// o http://');return}
-  if(file&&file.size>50*1024*1024){toast('La historia no puede superar los 50 MB');return}
-  if(file&&file.type.startsWith('video/')){
-    showStoryStatus('Preparando el vídeo…');
-    let objectUrl=null;
-    try{
-      const duration=await Promise.race([
-        new Promise((resolve,reject)=>{const v=document.createElement('video');v.preload='metadata';objectUrl=URL.createObjectURL(file);v.onloadedmetadata=()=>resolve(v.duration);v.onerror=()=>reject(new Error('No se pudo leer la duración del vídeo'));v.src=objectUrl;}),
-        new Promise(resolve=>setTimeout(()=>resolve(null),5000))
-      ]);
-      if(duration!==null&&duration>30.25){if(objectUrl)URL.revokeObjectURL(objectUrl);showStoryStatus('El vídeo dura más de 30 segundos. Elige uno más corto.');return}
-      if(duration===null)console.warn('GOVI: no se pudo leer la duración del vídeo a tiempo; se continúa con la subida.');
-    }catch(err){console.warn('GOVI: no se pudo validar la duración del vídeo; se continúa con la subida.',err)}
-    finally{if(objectUrl)URL.revokeObjectURL(objectUrl)}
+  if(!file&&!storyText&&!link){showStoryStatus('Tu historia está vacía. Escribe texto o añade una foto, un vídeo o un enlace.');toast('Añade contenido a tu historia');return}
+  if(link&&!/^https?:\/\//i.test(link)){showStoryStatus('El enlace debe empezar por https:// o http://');toast('Revisa el enlace');return}
+  if(file){
+    const sizeMB=(file.size/1048576).toFixed(1);
+    showStoryStatus('Archivo detectado: '+file.name+' · '+sizeMB+' MB. Preparando subida…');
+    if(file.size>50*1024*1024){showStoryStatus('El archivo pesa '+sizeMB+' MB. El máximo permitido es 50 MB.');toast('El archivo supera los 50 MB');return}
   }
-  const btn=document.querySelector('#goviStoryRepairV8 [data-a="publish"]')||$('goviStoryPublish'),status=$('goviStoryStatus');if(!btn||!status){showStoryStatus('No se encontró el botón o el estado de publicación.');return}showStoryStatus(file?'Subiendo tu foto a GOVI…':'Guardando tu historia…');btn.disabled=true;btn.textContent='PUBLICANDO…';
+  // No inspeccionar metadatos del vídeo antes de subir: algunos móviles tardan
+  // demasiado en resolverlos. La validación no debe bloquear el botón Compartir.
+  const btn=document.querySelector('#goviStoryRepairV8 [data-a="publish"]')||$('goviStoryPublish'),status=$('goviStoryStatus');if(!btn||!status){showStoryStatus('No se encontró el botón o el estado de publicación.');return}showStoryStatus(file?'Subiendo '+(file.type.startsWith('video/')?'tu vídeo':'tu foto')+' a GOVI…':'Guardando tu historia…');btn.disabled=true;btn.textContent='PUBLICANDO…';
   let path=null,mediaUrl=null,mediaType='text',audioPath=null,audioUrl=null;
   try{
     if(file){
