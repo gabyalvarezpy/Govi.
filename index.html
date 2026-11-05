@@ -4704,3 +4704,27 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   },true);
 })();
 </script>
+
+
+<script id="govi-story-open-click-recovery">
+(function(){
+  if(window.__goviStoryOpenClickRecovery)return;
+  window.__goviStoryOpenClickRecovery=true;
+  document.addEventListener('click',function(event){
+    const button=event.target instanceof Element?event.target.closest('#goviStories [data-story-user]'):null;
+    if(!button)return;
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+    try{
+      const userId=button.getAttribute('data-story-user');
+      const index=(window.goviStoryGroups||[]).findIndex(group=>group.userId===userId);
+      if(index<0){toast('No se encontró esta historia. Actualiza GOVI e inténtalo otra vez.');return;}
+      goviOpenStoryGroup(index,0);
+      const viewer=document.getElementById('goviStoryViewer');
+      if(viewer){viewer.style.display='flex';viewer.setAttribute('aria-hidden','false');}
+    }catch(error){
+      console.error('GOVI: no se pudo abrir el visor de historias',error);
+      toast('No se pudo abrir la historia. Recarga GOVI e inténtalo otra vez.');
+    }
+  },true);
+})();
+</script>
