@@ -1578,6 +1578,66 @@ $('goviStoryDelete').addEventListener('click',async()=>{
 });
 let goviStoryTouchX=0;$('goviStoryCard').addEventListener('touchstart',e=>{goviStoryTouchX=e.changedTouches[0].screenX},{passive:true});$('goviStoryCard').addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-goviStoryTouchX;if(Math.abs(dx)>55)goviStoryStep(dx<0?1:-1)},{passive:true});
 
+
+/* GOVI: delegación robusta de controles del visor de historias */
+(function(){
+  const viewer=document.getElementById('goviStoryViewer');
+  if(!viewer)return;
+  // Los controles viven dentro de varias capas del visor. Capturamos el toque
+  // en document para que ninguna capa visual intercepte su acción.
+  const stop=()=>{try{goviStopStoryPlayback()}catch(_){}};
+  async function deleteCurrentStory(button){
+    const group=goviStoryGroups[goviStoryGroupIndex],item=group?.items[goviStoryItemIndex];
+    if(!currentUser||!group||group.userId!==currentUser.id||!item){toast('No se pudo identificar tu historia.');return}
+    if(!confirm('¿Quieres eliminar esta historia?'))return;
+    button.disabled=true;button.textContent='Eliminando…';
+    try{
+      const {error}=await supabaseClient.from('stories').delete().eq('id',item.id).eq('user_id',currentUser.id);
+      if(error)throw error;
+      const paths=[item.media_path,item.story_audio_path].filter(Boolean);
+      group.items.splice(goviStoryItemIndex,1);
+      if(!group.items.length){
+        goviStoryGroups.splice(goviStoryGroupIndex,1);
+        if(!goviStoryGroups.length){closeToProfile();toast('Historia eliminada');}
+        else{goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}
+      }else{goviStoryItemIndex=Math.min(goviStoryItemIndex,group.items.length-1);goviRenderStory()}
+      goviLoadStories().catch(err=>console.warn('No se pudo actualizar historias',err));
+      if(paths.length)supabaseClient.storage.from(BUCKET).remove(paths).catch(err=>console.warn(err));
+      toast('Historia eliminada');
+    }catch(error){console.error('GOVI eliminar historia:',error);toast('No se pudo eliminar: '+(error.message||'Error desconocido'))}
+    finally{button.disabled=false;button.textContent='Eliminar historia'}
+  }
+  function closeToProfile(){
+    stop();viewer.style.display='none';window.__goviStoryHistoryEntry=false;
+    if(currentUser&&typeof window.goviGoToMyProfile==='function'){
+      history.replaceState({goviProfile:true},'','#profile-'+currentUser.id);
+      window.goviGoToMyProfile(null);
+    }
+  }
+  document.addEventListener('click',function(e){
+    const target=e.target instanceof Element?e.target:null;if(!target)return;
+    const button=target.closest('#goviStoryClose,#goviStoryDelete,#goviStoryReturnProfile');
+    if(!button||!viewer.contains(button))return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    if(button.id==='goviStoryClose'){stop();viewer.style.display='none';window.__goviStoryHistoryEntry=false;return}
+    if(button.id==='goviStoryReturnProfile'){closeToProfile();return}
+    if(button.id==='goviStoryDelete'){deleteCurrentStory(button);return}
+  },true);
+  // Elevar los botones y habilitar los eventos táctiles de forma explícita.
+  const style=document.createElement('style');style.id='govi-story-controls-hit-area';
+  style.textContent=`
+    #goviStoryViewer{pointer-events:auto!important}
+    #goviStoryCard{position:relative!important;isolation:isolate!important}
+    #goviStoryTop{pointer-events:none!important;z-index:900!important}
+    #goviStoryTop #goviStoryClose{position:relative!important;z-index:999!important;pointer-events:auto!important;touch-action:manipulation!important}
+    #goviStoryDelete,#goviStoryReturnProfile{position:absolute!important;bottom:14px!important;z-index:999!important;pointer-events:auto!important;touch-action:manipulation!important;display:block!important;visibility:visible!important}
+    #goviStoryDelete{right:12px!important;left:auto!important}
+    #goviStoryReturnProfile{left:12px!important;right:auto!important}
+    #goviStoryContent{pointer-events:none!important;z-index:5!important}
+    #goviStoryPrev,#goviStoryNext{z-index:800!important;pointer-events:auto!important;touch-action:manipulation!important}
+  `;
+  document.head.appendChild(style);
+})();
 /* Zona del perfil */
 const goviProfileView = document.createElement('section');
 goviProfileView.id = 'goviProfileView';
