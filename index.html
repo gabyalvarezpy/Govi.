@@ -1153,11 +1153,13 @@ async function goviLoadStories(){
 })();
 
 async function goviPublishStory(){
-  if(!currentUser){$('goviStoryComposer').classList.remove('open');toast('Tu sesión no está activa. Inicia sesión y vuelve a intentarlo.');openModal('authModal');return}
+  // Revalidar la sesión directamente con Supabase evita depender de un estado local desactualizado.
+  try{const {data:{session:storySession},error:storySessionError}=await supabaseClient.auth.getSession();if(storySessionError)throw storySessionError;currentUser=storySession?.user||null;}catch(sessionCheckError){console.error('GOVI: no se pudo comprobar la sesión',sessionCheckError);const st=$('goviStoryStatus');if(st){st.style.display='block';st.textContent='No se pudo comprobar tu sesión: '+(sessionCheckError.message||'Error de conexión');}return}
+  if(!currentUser){const st=$('goviStoryStatus');if(st){st.style.display='block';st.textContent='No encontramos una sesión activa en Supabase. Cierra sesión, vuelve a entrar y prueba otra vez.';}$('goviStoryComposer').classList.remove('open');toast('No encontramos una sesión activa. Vuelve a iniciar sesión.');openModal('authModal');return}
   const fileInput=$('goviStoryFile'),gifInput=$('goviStoryGifFile'),textInput=$('goviStoryText'),linkInput=$('goviStoryLink');
   if(!fileInput||!textInput||!linkInput){toast('El editor no terminó de cargar. Cierra la historia y vuelve a abrirla.');return}
   const file=fileInput.files?.[0]||gifInput?.files?.[0],storyText=(textInput.value||'').trim(),link=(linkInput.value||'').trim();
-  if(!file&&!storyText&&!link){toast('Añade texto, una foto, un vídeo o un enlace');return}
+  if(!file&&!storyText&&!link){const st=$('goviStoryStatus');if(st){st.style.display='block';st.textContent='Tu historia está vacía. Escribe un texto o añade una foto, un vídeo o un enlace.';}toast('Añade texto, una foto, un vídeo o un enlace');return}
   if(link&&!/^https?:\/\//i.test(link)){toast('El enlace debe empezar por https:// o http://');return}
   if(file&&file.size>50*1024*1024){toast('La historia no puede superar los 50 MB');return}
   if(file&&file.type.startsWith('video/')){
