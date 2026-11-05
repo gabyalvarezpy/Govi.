@@ -1416,8 +1416,20 @@ async function goviPublishStory(){
     const audioFile=$('goviStoryAudioFile')?.files?.[0];if(audioFile){if(audioFile.size>15*1024*1024)throw new Error('La música no puede superar 15 MB');audioPath=currentUser.id+'/stories/audio-'+Date.now()+'-'+crypto.randomUUID()+'.'+(audioFile.name.split('.').pop()||'mp3').toLowerCase();const {error:audioError}=await supabaseClient.storage.from(BUCKET).upload(audioPath,audioFile,{cacheControl:'3600',upsert:false,contentType:audioFile.type});if(audioError)throw audioError;audioUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(audioPath).data.publicUrl}
     const payload={user_id:currentUser.id,media_url:mediaUrl,media_type:mediaType,media_path:path,story_text:window.goviGetStoryEditorMeta?('__GOVI_STORY_META_V1__'+JSON.stringify({text:storyText||'',meta:window.goviGetStoryEditorMeta()})):(storyText||null),link_url:link||null,story_audio_url:audioUrl,story_audio_path:audioPath,expires_at:new Date(Date.now()+24*60*60*1000).toISOString()};
     let insertResult=await supabaseClient.from('stories').insert(payload);if(insertResult.error&&/story_audio_(url|path)|column .* does not exist|schema cache/i.test(insertResult.error.message||'')){const fallback={...payload};delete fallback.story_audio_url;delete fallback.story_audio_path;insertResult=await supabaseClient.from('stories').insert(fallback);}if(insertResult.error)throw insertResult.error;
-    if(textInput)textInput.value='';if(linkInput)linkInput.value='';if(fileInput)fileInput.value='';if(gifInput)gifInput.value='';if($('goviStoryAudioFile'))$('goviStoryAudioFile').value='';if($('goviStoryFileName'))$('goviStoryFileName').textContent='Selecciona una foto o un vídeo.';goviUpdateStoryPreview();document.querySelectorAll('.govi-story-choice').forEach(b=>b.setAttribute('aria-pressed','false'));['goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>$(id).hidden=true);goviCloseStoryComposer();
-    status.textContent='¡Historia publicada correctamente!';toast('¡Historia publicada!');
+    // La historia ya está guardada en Supabase: confirmar inmediatamente.
+    status.style.display='block';status.textContent='¡Historia publicada correctamente!';toast('¡Historia publicada!');
+    try{
+      if(textInput)textInput.value='';
+      if(linkInput)linkInput.value='';
+      if(fileInput)fileInput.value='';
+      if(gifInput)gifInput.value='';
+      if($('goviStoryAudioFile'))$('goviStoryAudioFile').value='';
+      if($('goviStoryFileName'))$('goviStoryFileName').textContent='Selecciona una foto o un vídeo.';
+      if(typeof goviUpdateStoryPreview==='function')goviUpdateStoryPreview();
+      document.querySelectorAll('.govi-story-choice').forEach(b=>b.setAttribute('aria-pressed','false'));
+      ['goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>{const el=$(id);if(el)el.hidden=true});
+      goviCloseStoryComposer();
+    }catch(cleanupError){console.warn('GOVI: la historia se guardó, pero no se pudo limpiar el editor:',cleanupError)}
     // No bloquear el botón esperando a que se recarguen todas las historias.
     goviLoadStories().then(()=>{const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1)}).catch(err=>console.warn('La historia se publicó, pero no se pudo actualizar la lista:',err));
   }catch(error){
