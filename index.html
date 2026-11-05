@@ -1459,8 +1459,30 @@ async function goviPublishStory(){
       ['goviStoryTextWrap','goviStoryLinkWrap','goviStoryMediaWrap'].forEach(id=>{const el=$(id);if(el)el.hidden=true});
       goviCloseStoryComposer();
     }catch(cleanupError){console.warn('GOVI: la historia se guardó, pero no se pudo limpiar el editor:',cleanupError)}
-    // No bloquear el botón esperando a que se recarguen todas las historias.
-    goviLoadStories().then(()=>{const i=goviStoryGroups.findIndex(x=>x.userId===currentUser.id);if(i>=0)goviOpenStoryGroup(i,goviStoryGroups[i].items.length-1)}).catch(err=>console.warn('La historia se publicó, pero no se pudo actualizar la lista:',err));
+    // Cerrar el editor y abrir exactamente la historia que acaba de guardarse.
+    const composer=$('goviStoryComposer');
+    if(composer){composer.classList.remove('open');composer.style.display='none';}
+    try{
+      await goviLoadStories();
+      const groupIndex=goviStoryGroups.findIndex(group=>group.userId===currentUser.id);
+      if(groupIndex>=0){
+        const items=goviStoryGroups[groupIndex].items;
+        let itemIndex=items.findIndex(item=>item.media_url===mediaUrl&&item.story_text===payload.story_text&&item.created_at);
+        if(itemIndex<0)itemIndex=items.length-1;
+        if(itemIndex>=0){
+          goviOpenStoryGroup(groupIndex,itemIndex);
+          const viewer=$('goviStoryViewer');
+          if(viewer)viewer.style.display='flex';
+        }else{
+          toast('La historia se publicó. Actualiza la lista para verla.');
+        }
+      }else{
+        toast('La historia se publicó. Actualiza la lista para verla.');
+      }
+    }catch(refreshError){
+      console.warn('La historia se publicó, pero no se pudo abrir automáticamente:',refreshError);
+      toast('Historia publicada. No se pudo abrir el visor automáticamente.');
+    }
   }catch(error){
     console.error('ERROR AL PUBLICAR HISTORIA:',error);
     const detail=error?.message||error?.details||error?.hint||String(error)||'Error desconocido';
