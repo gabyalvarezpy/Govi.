@@ -1359,28 +1359,44 @@ async function goviLoadStories(){
 })();
 
 async function goviPublishStory(){
-  // Usar la sesión que refreshSession mantiene sincronizada con el listener de Supabase.
-  // Evita bloquear el editor esperando otra llamada getSession() en móviles.
+  // Comprobar la sesión de Supabase con límite de espera y mostrar cada etapa.
   const startStatus=$('goviStoryStatus');
-  if(startStatus){startStatus.style.display='block';startStatus.textContent='Comprobando tu sesión…';}
-  if(!currentUser){
-    const st=$('goviStoryStatus');
-    if(st){st.style.display='block';st.textContent='Tu sesión no está activa. Inicia sesión nuevamente para publicar.';}
+  const showStoryStatus=(message)=>{if(startStatus){startStatus.hidden=false;startStatus.style.display='block';startStatus.textContent=message;}};
+  showStoryStatus('Conectando con GOVI…');
+  let activeSession=null;
+  try{
+    const sessionResult=await Promise.race([
+      supabaseClient.auth.getSession(),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('La conexión con Supabase tardó más de 12 segundos. Comprueba tu conexión e inténtalo otra vez.')),12000))
+    ]);
+    if(sessionResult.error)throw sessionResult.error;
+    activeSession=sessionResult.data?.session||null;
+    if(activeSession?.user)currentUser=activeSession.user;
+  }catch(sessionError){
+    console.error('GOVI: comprobación de sesión fallida',sessionError);
+    showStoryStatus('No se pudo comprobar la sesión: '+(sessionError.message||'error de conexión'));
+    toast('No se pudo conectar con GOVI. Inténtalo otra vez.');
+    return;
+  }
+  if(!currentUser||!activeSession?.user){
+    showStoryStatus('Tu sesión no está activa. Inicia sesión nuevamente para publicar.');
     $('goviStoryComposer').classList.remove('open');
     toast('Inicia sesión para publicar tu historia.');
     openModal('authModal');
     return;
   }
+  showStoryStatus('Sesión confirmada. Preparando tu historia…');
   const fileInput=$('goviStoryFile'),gifInput=$('goviStoryGifFile'),textInput=$('goviStoryText'),linkInput=$('goviStoryLink');
-  if(!fileInput||!textInput||!linkInput){toast('El editor no terminó de cargar. Cierra la historia y vuelve a abrirla.');return}
+  if(!fileInput||!textInput||!linkInput){showStoryStatus('El editor no terminó de cargar. Cierra la historia y vuelve a abrirla.');return}
   const file=fileInput.files?.[0]||gifInput?.files?.[0],storyText=(textInput.value||'').trim(),link=(linkInput.value||'').trim();
+  showStoryStatus('Sesión confirmada. Revisando foto y texto…');
   if(!file&&!storyText&&!link){const st=$('goviStoryStatus');if(st){st.style.display='block';st.textContent='Tu historia está vacía. Escribe un texto o añade una foto, un vídeo o un enlace.';}toast('Añade texto, una foto, un vídeo o un enlace');return}
   if(link&&!/^https?:\/\//i.test(link)){toast('El enlace debe empezar por https:// o http://');return}
   if(file&&file.size>50*1024*1024){toast('La historia no puede superar los 50 MB');return}
   if(file&&file.type.startsWith('video/')){
     try{const duration=await new Promise((resolve,reject)=>{const v=document.createElement('video');v.preload='metadata';v.onloadedmetadata=()=>{URL.revokeObjectURL(v.src);resolve(v.duration)};v.onerror=()=>reject(new Error('No se pudo leer la duración del vídeo'));v.src=URL.createObjectURL(file)});if(duration>30.25){toast('El vídeo debe durar 30 segundos o menos');return}}catch(err){toast(err.message);return}
   }
-  const btn=document.querySelector('#goviStoryRepairV8 [data-a="publish"]')||$('goviStoryPublish'),status=$('goviStoryStatus');if(!btn||!status){toast('No se encontró el control de publicación. Recarga GOVI e inténtalo otra vez.');return}status.style.display='block';status.textContent='Enviando tu historia a GOVI…';btn.disabled=true;btn.textContent='PUBLICANDO…';
+  const btn=document.querySelector('#goviStoryRepairV8 [data-a="publish"]')||$('goviStoryPublish'),status=$('goviStoryStatus');if(!btn||!status){showStoryStatus('No se encontró el botón o el estado de publicación.');return}showStoryStatus(file?'Subiendo tu foto a GOVI…':'Guardando tu historia…');btn.disabled=true;btn.textContent='PUBLICANDO…';
   let path=null,mediaUrl=null,mediaType='text',audioPath=null,audioUrl=null;
   try{
     if(file){
