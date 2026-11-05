@@ -809,7 +809,20 @@ body{display:block!important;margin:0!important;padding:0!important;overflow-x:h
 #goviStoryDelete{right:14px!important;bottom:14px!important;z-index:40!important}
 #goviStoryContent{z-index:6!important}
 </style>
-</head>    
+<style id="govi-story-controls-link-swipe">
+#goviStoryReturnProfile{left:12px!important;right:auto!important;bottom:14px!important;z-index:80!important;display:block!important;visibility:visible!important;pointer-events:auto!important}
+#goviStoryDelete{right:12px!important;left:auto!important;bottom:14px!important;z-index:80!important;pointer-events:auto!important}
+#goviStoryPrev,#goviStoryNext{position:absolute!important;top:50%!important;transform:translateY(-50%)!important;z-index:75!important;display:grid!important;place-items:center!important;width:42px!important;height:64px!important;border-radius:14px!important;background:#0008!important;color:#fff!important;border:1px solid #ffffff40!important;font-size:36px!important;pointer-events:auto!important}
+#goviStoryPrev{left:6px!important}#goviStoryNext{right:6px!important}
+#goviStoryCard{touch-action:pan-y!important}
+#goviStoryRepairV8 .govi-ig-toolbar{overflow-x:auto!important;flex-wrap:nowrap!important}
+#goviStoryRepairV8 .govi-ig-link-panel{display:flex;flex-direction:column;gap:5px;padding:10px 12px;margin:7px 0;border:1px solid #d4af3755;border-radius:12px;background:#15121b}
+#goviStoryRepairV8 .govi-ig-link-panel[hidden]{display:none!important}
+#goviStoryRepairV8 .govi-ig-link-panel label{font-size:10px;letter-spacing:1px;color:#e6c875;font-weight:800}
+#goviStoryRepairV8 .govi-ig-link-panel input{width:100%;min-height:42px;background:#24202b;color:#fff;border:1px solid #ffffff35;border-radius:10px;padding:10px}
+#goviStoryRepairV8 .govi-ig-link-panel small,#goviStoryRepairV8 .govi-ig-video-limit{font-size:11px;color:#bdb5c6}
+#goviStoryRepairV8 .govi-ig-video-limit{padding:4px 2px}
+</style></head>    
 <body>    
 <header class="topbar govi-topbar">
   <a class="brand govi-brand" href="#" onclick="filterSection('Inicio',document.querySelector('.nav-item'));return false" aria-label="GOVI inicio">
@@ -1468,17 +1481,22 @@ function goviCloseStoryViewer(){
 function goviReturnToMyProfile(){
   goviStopStoryPlayback();
   const viewer=$('goviStoryViewer');if(viewer)viewer.style.display='none';
-  if(window.__goviStoryHistoryEntry){window.__goviStoryHistoryEntry=false;if(location.hash==='#govi-story')history.back()}
-  const profileNav=document.querySelector('.nav-item[onclick*="goviGoToMyProfile"]');
-  if(typeof window.goviGoToMyProfile==='function')window.goviGoToMyProfile(profileNav);
+  window.__goviStoryHistoryEntry=false;
+  // No usar history.back(): en móviles puede abandonar la app/página si el
+  // historial interno no conserva la entrada del visor.
+  if(currentUser)history.replaceState({goviProfile:true},'','#profile-'+currentUser.id);
+  if(typeof window.goviGoToMyProfile==='function')window.goviGoToMyProfile(null);
+  else if(typeof window.filterSection==='function')window.filterSection('Mi perfil',null);
 }
 window.addEventListener('popstate',()=>{
   const viewer=$('goviStoryViewer');
-  if(viewer&&viewer.style.display==='flex'){
+  if(viewer&&getComputedStyle(viewer).display!=='none'){
     window.__goviStoryHistoryEntry=false;
     goviStopStoryPlayback();viewer.style.display='none';
-    const profileNav=document.querySelector('.nav-item[onclick*="goviGoToMyProfile"]');
-    if(typeof window.goviGoToMyProfile==='function')window.goviGoToMyProfile(profileNav);
+    if(currentUser&&typeof window.goviGoToMyProfile==='function'){
+      history.replaceState({goviProfile:true},'','#profile-'+currentUser.id);
+      window.goviGoToMyProfile(null);
+    }
   }
 });
 $('goviStoryReturnProfile')?.addEventListener('click',goviReturnToMyProfile);
@@ -1524,7 +1542,22 @@ function goviStoryStep(direction){
   else{if(goviStoryItemIndex>0)goviStoryItemIndex--;else if(goviStoryGroupIndex>0){goviStoryGroupIndex--;goviStoryItemIndex=goviStoryGroups[goviStoryGroupIndex].items.length-1}else return}
   goviRenderStory();
 }
-$('goviStoryPrev').addEventListener('click',()=>goviStoryStep(-1));$('goviStoryNext').addEventListener('click',()=>goviStoryStep(1));
+$('goviStoryPrev').addEventListener('click',()=>goviStoryStep(-1));$('goviStoryNext').addEventListener('click',()=>goviStoryStep(1));// Navegación táctil entre historias: deslizar horizontalmente cambia de historia.
+(function(){
+ const card=$('goviStoryCard');if(!card||card.dataset.swipeReady)return;card.dataset.swipeReady='1';
+ let startX=0,startY=0,tracking=false;
+ card.addEventListener('touchstart',e=>{
+   if(e.touches.length!==1||e.target.closest('button,a,input,audio,video')){tracking=false;return}
+   startX=e.touches[0].clientX;startY=e.touches[0].clientY;tracking=true;
+ },{passive:true});
+ card.addEventListener('touchend',e=>{
+   if(!tracking||!e.changedTouches.length)return;tracking=false;
+   const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;
+   if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.25)return;
+   goviStoryStep(dx<0?1:-1);
+ },{passive:true});
+})();
+
 $('goviStoryClose').addEventListener('click',goviCloseStoryViewer);
 $('goviStoryViewer').addEventListener('click',e=>{if(e.target===$('goviStoryViewer'))goviCloseStoryViewer()});
 $('goviStoryDelete').addEventListener('click',async()=>{
@@ -4382,7 +4415,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   const file=document.getElementById('goviStoryFile'),video=document.getElementById('goviStoryPreviewVideo'),image=document.getElementById('goviStoryPreviewImage'),textNode=document.getElementById('goviStoryPreviewText');
   if(!root||!stage||!panel||!file||!video||!image||!textNode||panel.querySelector('#goviStoryRepairV8'))return;
   const ui=document.createElement('section');ui.id='goviStoryRepairV8';
-  ui.innerHTML='<div class="govi-ig-top"><div class="govi-ig-brand"><span class="govi-ig-mark">G</span><span><b>Tu historia</b><small>GOVI · MOMENTOS QUE CONECTAN</small></span></div><button type="button" class="govi-ig-close" data-a="close" aria-label="Cerrar">×</button></div><div class="govi-ig-toolbar"><button type="button" class="govi-ig-tool active" data-a="media"><span>▧</span><small>Galería</small></button><button type="button" class="govi-ig-tool" data-a="text"><span>Aa</span><small>Texto</small></button><button type="button" class="govi-ig-tool" data-a="emoji"><span>☺</span><small>Stickers</small></button><button type="button" class="govi-ig-tool" data-a="clear"><span>⌫</span><small>Limpiar</small></button></div><div class="govi-ig-compose"><div class="govi-ig-input-wrap"><span>Aa</span><textarea id="goviR8Text" placeholder="Escribe algo para tu historia..."></textarea></div><div class="govi-ig-style"><label>FUENTE<select id="goviR8Font"><option value="Arial,sans-serif">Clásica</option><option value="Trebuchet MS,sans-serif">Redondeada</option><option value="Georgia,serif">Elegante</option><option value="cursive">Manuscrita</option><option value="Impact,sans-serif">Impacto</option></select></label><label>COLOR<input id="goviR8Color" type="color" value="#ffffff"></label><label>TAMAÑO<input id="goviR8Size" type="range" min="14" max="110" value="32"></label><label>EFECTO<select id="goviR8Edge"><option value="0 2px 8px #000">Sombra</option><option value="1px 1px 0 #000,-1px -1px 0 #000">Contorno</option><option value="0 0 12px #ff4fd8">Neón</option><option value="none">Ninguno</option></select></label></div><div class="r8-emojis" id="goviR8Emojis"></div><div class="govi-ig-footer"><button type="button" class="govi-ig-undo" data-a="undo" aria-label="Deshacer último cambio">↶ Deshacer</button><button type="button" class="govi-ig-preview" data-a="preview">Vista previa</button><button type="button" class="govi-ig-publish" data-a="publish">Compartir historia <b>➜</b></button></div></div>';
+  ui.innerHTML='<div class="govi-ig-top"><div class="govi-ig-brand"><span class="govi-ig-mark">G</span><span><b>Tu historia</b><small>GOVI · MOMENTOS QUE CONECTAN</small></span></div><button type="button" class="govi-ig-close" data-a="close" aria-label="Cerrar">×</button></div><div class="govi-ig-toolbar"><button type="button" class="govi-ig-tool active" data-a="media"><span>▧</span><small>Galería</small></button><button type="button" class="govi-ig-tool" data-a="text"><span>Aa</span><small>Texto</small></button><button type="button" class="govi-ig-tool" data-a="link"><span>↗</span><small>Enlace</small></button><button type="button" class="govi-ig-tool" data-a="emoji"><span>☺</span><small>Stickers</small></button><button type="button" class="govi-ig-tool" data-a="clear"><span>⌫</span><small>Limpiar</small></button></div><div class="govi-ig-link-panel" id="goviR8LinkPanel" hidden><label for="goviR8Link">ENLACE DE TU HISTORIA</label><input id="goviR8Link" type="url" inputmode="url" placeholder="https://..." autocomplete="url"><small>El enlace aparecerá como acceso en tu historia.</small></div><div class="govi-ig-video-limit" id="goviR8VideoLimit">Vídeos: máximo 30 segundos · 50 MB</div><div class="govi-ig-compose"><div class="govi-ig-input-wrap"><span>Aa</span><textarea id="goviR8Text" placeholder="Escribe algo para tu historia..."></textarea></div><div class="govi-ig-style"><label>FUENTE<select id="goviR8Font"><option value="Arial,sans-serif">Clásica</option><option value="Trebuchet MS,sans-serif">Redondeada</option><option value="Georgia,serif">Elegante</option><option value="cursive">Manuscrita</option><option value="Impact,sans-serif">Impacto</option></select></label><label>COLOR<input id="goviR8Color" type="color" value="#ffffff"></label><label>TAMAÑO<input id="goviR8Size" type="range" min="14" max="110" value="32"></label><label>EFECTO<select id="goviR8Edge"><option value="0 2px 8px #000">Sombra</option><option value="1px 1px 0 #000,-1px -1px 0 #000">Contorno</option><option value="0 0 12px #ff4fd8">Neón</option><option value="none">Ninguno</option></select></label></div><div class="r8-emojis" id="goviR8Emojis"></div><div class="govi-ig-footer"><button type="button" class="govi-ig-undo" data-a="undo" aria-label="Deshacer último cambio">↶ Deshacer</button><button type="button" class="govi-ig-preview" data-a="preview">Vista previa</button><button type="button" class="govi-ig-publish" data-a="publish">Compartir historia <b>➜</b></button></div></div>';
   const hidden=document.createElement('div');hidden.id='goviStoryLegacyFields';hidden.hidden=true;
   ['goviStoryTextWrap','goviStoryLinkWrap','goviStoryFile','goviStoryGifFile','goviStoryAudioFile','goviStoryFont','goviStoryColor','goviStoryLinkColor','goviStoryOutline','goviStoryImageScale','goviStoryFileName','goviStoryPublish'].forEach(id=>{const n=document.getElementById(id);if(n)hidden.appendChild(n)});
   const statusNode=document.getElementById('goviStoryStatus');panel.replaceChildren(ui,hidden);if(statusNode)ui.appendChild(statusNode);
@@ -4410,6 +4443,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
    case 'close':document.getElementById('goviStoryComposeClose')?.click();break;
    case 'media':file.value='';file.click();break;
    case 'text':txt.focus();break;
+   case 'link':{const lp=$('goviR8LinkPanel');lp.hidden=!lp.hidden;if(!lp.hidden)$('goviR8Link').focus();break}
    case 'emoji':emojiBox.classList.toggle('open');break;
    case 'undo':undo();break;
    case 'preview':setPreview(true);break;
@@ -4417,13 +4451,38 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
    case 'publish':launchPublish(b);break;
   }},true);
   sound.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();if(video.style.display==='none'||!video.getAttribute('src'))return;video.muted=!video.muted;video.defaultMuted=video.muted;sound.textContent=video.muted?'🔕':'🔔';if(!video.muted){try{await video.play()}catch(_){}}});
-  file.addEventListener('change',()=>{const f=file.files?.[0];if(!f)return;mediaState={x:0,y:0,zoom:1};applyMedia();if(f.type.startsWith('video/')){sound.style.display='grid';sound.style.placeItems='center';video.controls=false;video.muted=true;video.defaultMuted=true;video.volume=1;video.playsInline=true;video.addEventListener('loadedmetadata',()=>{video.muted=true;video.defaultMuted=true;video.play().catch(()=>{})},{once:true});sound.textContent='🔕'}else{sound.style.display='none';video.pause()}});
+  file.addEventListener('change',()=>{
+    const f=file.files?.[0];if(!f)return;
+    mediaState={x:0,y:0,zoom:1};applyMedia();
+    const limit=$('goviR8VideoLimit');
+    if(f.type.startsWith('video/')){
+      sound.style.display='grid';sound.style.placeItems='center';video.controls=false;video.muted=true;video.defaultMuted=true;video.volume=1;video.playsInline=true;
+      if(limit)limit.textContent='Comprobando duración del vídeo… (máximo 30 segundos)';
+      const url=URL.createObjectURL(f),probe=document.createElement('video');probe.preload='metadata';
+      probe.onloadedmetadata=()=>{
+        const duration=probe.duration;URL.revokeObjectURL(url);
+        if(Number.isFinite(duration)&&duration>30.25){
+          file.value='';video.pause();video.removeAttribute('src');video.load();
+          if(limit)limit.textContent='Vídeo demasiado largo. Recórtalo a 30 segundos o menos en tu galería y vuelve a seleccionarlo.';
+          toast('GOVI permite vídeos de hasta 30 segundos');
+          return;
+        }
+        if(limit)limit.textContent='Duración: '+(Number.isFinite(duration)?Math.ceil(duration)+' s':'—')+' · Máximo 30 segundos · 50 MB';
+        video.muted=true;video.defaultMuted=true;video.play().catch(()=>{});
+      };
+      probe.onerror=()=>{URL.revokeObjectURL(url);if(limit)limit.textContent='Vídeos: máximo 30 segundos · 50 MB'};
+      probe.src=url;
+      video.addEventListener('loadedmetadata',()=>{video.muted=true;video.defaultMuted=true;video.play().catch(()=>{})},{once:true});sound.textContent='🔕';
+    }else{sound.style.display='none';video.pause();if(limit)limit.textContent='Imagen seleccionada · También puedes añadir un enlace.'}
+  });
   bindMoveResize(textNode,()=>({x,y}),p=>{x=p.x;y=p.y;sync()},()=>Number(size.value),v=>{size.value=String(Math.max(14,Math.min(110,v)));sync()},14,110);
   const pts=new Map();let mediaGesture=null;
   [image,video].forEach(el=>{el.style.pointerEvents='auto';el.style.touchAction='none';el.addEventListener('pointerdown',e=>{if(el.style.display==='none'||!el.getAttribute('src'))return;if(e.target===sound)return;if(!pts.size)saveUndo();e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)mediaGesture={kind:'move',x:e.clientX,y:e.clientY,px:mediaState.x,py:mediaState.y};else if(pts.size===2){const a=[...pts.values()];mediaGesture={kind:'scale',distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),zoom:mediaState.zoom}}});el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!mediaGesture)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...pts.values()];if(a.length===2&&mediaGesture.kind==='scale'){const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);mediaState.zoom=Math.max(1,Math.min(4,mediaGesture.zoom*d/mediaGesture.distance))}else if(a.length===1&&mediaGesture.kind==='move'){mediaState.x=mediaGesture.px+e.clientX-mediaGesture.x;mediaState.y=mediaGesture.py+e.clientY-mediaGesture.y}applyMedia()});const end=e=>{pts.delete(e.pointerId);if(!pts.size){mediaGesture=null;return}const a=[...pts.values()][0];mediaGesture={kind:'move',x:a.x,y:a.y,px:mediaState.x,py:mediaState.y}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)});
   window.goviGetStoryEditorMeta=()=>({text:{x,y,fontFamily:font.value,color:color.value,textShadow:edge.value,fontSize:size.value+'px'},link:{x:50,y:80,fontFamily:'Arial,sans-serif',color:'#ffe08a',textShadow:'0 2px 8px #000',fontSize:'17px'},stickers:stickers.map(s=>({emoji:s.emoji,x:s.x,y:s.y,fontSize:s.size+'px'})),media:{zoom:mediaState.zoom,x:mediaState.x,y:mediaState.y}});
   // Puente explícito entre el editor visual y el publicador Supabase.
-  window.goviGetStoryEditorPayload=()=>({file:file.files?.[0]||null,gifFile:$('goviStoryGifFile')?.files?.[0]||null,text:txt.value||'',link:$('goviStoryLink')?.value||''});
+  const linkField=$('goviR8Link'),legacyLink=$('goviStoryLink');
+  if(linkField&&legacyLink){linkField.value=legacyLink.value||'';linkField.addEventListener('input',()=>{legacyLink.value=linkField.value;legacyLink.dispatchEvent(new Event('input',{bubbles:true}))})}
+  window.goviGetStoryEditorPayload=()=>({file:file.files?.[0]||null,gifFile:$('goviStoryGifFile')?.files?.[0]||null,text:txt.value||'',link:(linkField?.value||legacyLink?.value||'').trim()});
   previewBar.addEventListener('click',e=>{const b=e.target.closest('[data-preview-action]');if(!b)return;if(b.dataset.previewAction==='edit')setPreview(false);else if(b.dataset.previewAction==='publish'){setPreview(false);launchPublish(b)}});stage.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});stage.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});sync();console.info('GOVI Story Editor táctil listo',EMOJI.length);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
