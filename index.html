@@ -4716,7 +4716,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
     try{
       const userId=button.getAttribute('data-story-user');
-      const index=(window.goviStoryGroups||[]).findIndex(group=>group.userId===userId);
+      const index=goviStoryGroups.findIndex(group=>group.userId===userId);
       if(index<0){toast('No se encontró esta historia. Actualiza GOVI e inténtalo otra vez.');return;}
       goviOpenStoryGroup(index,0);
       const viewer=document.getElementById('goviStoryViewer');
