@@ -1398,7 +1398,17 @@ async function goviPublishStory(){
   if(link&&!/^https?:\/\//i.test(link)){toast('El enlace debe empezar por https:// o http://');return}
   if(file&&file.size>50*1024*1024){toast('La historia no puede superar los 50 MB');return}
   if(file&&file.type.startsWith('video/')){
-    try{const duration=await new Promise((resolve,reject)=>{const v=document.createElement('video');v.preload='metadata';v.onloadedmetadata=()=>{URL.revokeObjectURL(v.src);resolve(v.duration)};v.onerror=()=>reject(new Error('No se pudo leer la duración del vídeo'));v.src=URL.createObjectURL(file)});if(duration>30.25){toast('El vídeo debe durar 30 segundos o menos');return}}catch(err){toast(err.message);return}
+    showStoryStatus('Preparando el vídeo…');
+    let objectUrl=null;
+    try{
+      const duration=await Promise.race([
+        new Promise((resolve,reject)=>{const v=document.createElement('video');v.preload='metadata';objectUrl=URL.createObjectURL(file);v.onloadedmetadata=()=>resolve(v.duration);v.onerror=()=>reject(new Error('No se pudo leer la duración del vídeo'));v.src=objectUrl;}),
+        new Promise(resolve=>setTimeout(()=>resolve(null),5000))
+      ]);
+      if(duration!==null&&duration>30.25){if(objectUrl)URL.revokeObjectURL(objectUrl);showStoryStatus('El vídeo dura más de 30 segundos. Elige uno más corto.');return}
+      if(duration===null)console.warn('GOVI: no se pudo leer la duración del vídeo a tiempo; se continúa con la subida.');
+    }catch(err){console.warn('GOVI: no se pudo validar la duración del vídeo; se continúa con la subida.',err)}
+    finally{if(objectUrl)URL.revokeObjectURL(objectUrl)}
   }
   const btn=document.querySelector('#goviStoryRepairV8 [data-a="publish"]')||$('goviStoryPublish'),status=$('goviStoryStatus');if(!btn||!status){showStoryStatus('No se encontró el botón o el estado de publicación.');return}showStoryStatus(file?'Subiendo tu foto a GOVI…':'Guardando tu historia…');btn.disabled=true;btn.textContent='PUBLICANDO…';
   let path=null,mediaUrl=null,mediaType='text',audioPath=null,audioUrl=null;
