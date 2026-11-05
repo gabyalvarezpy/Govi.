@@ -3614,6 +3614,90 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   },true);
 })();
 </script>
+
+<script id="govi-story-runtime-controller-v2">
+(function(){
+ const $=id=>document.getElementById(id);
+ const viewer=$('goviStoryViewer'),card=$('goviStoryCard'),composer=$('goviStoryComposer');
+ if(!viewer||!card||!composer||window.__goviStoryRuntimeV2)return;
+ window.__goviStoryRuntimeV2=true;
+ function stopEditorMedia(){
+   composer.querySelectorAll('audio,video').forEach(m=>{try{m.pause();m.currentTime=0;}catch(_){}});
+   document.querySelectorAll('audio').forEach(m=>{if(m.id!=='goviStoryAudio'){try{m.pause();m.currentTime=0;}catch(_){}}});
+ }
+ function closeViewer(goProfile){
+   try{goviStopStoryPlayback()}catch(_){}
+   viewer.style.display='none';viewer.setAttribute('aria-hidden','true');
+   window.__goviStoryHistoryEntry=false;
+   if(goProfile&&currentUser&&typeof window.goviGoToMyProfile==='function'){
+     history.replaceState({goviProfile:true},'','#profile-'+currentUser.id);
+     window.goviGoToMyProfile(null);
+   }
+ }
+ function onControl(e){
+   const t=e.target instanceof Element?e.target:null;if(!t)return;
+   const b=t.closest('#goviStoryClose,#goviStoryDelete,#goviStoryReturnProfile');
+   if(!b||!viewer.contains(b))return;
+   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+   if(b.id==='goviStoryClose'){closeViewer(false);return}
+   if(b.id==='goviStoryReturnProfile'){closeViewer(true);return}
+   if(b.id==='goviStoryDelete')deleteStory(b);
+ }
+ async function deleteStory(button){
+   const group=goviStoryGroups[goviStoryGroupIndex],item=group?.items?.[goviStoryItemIndex];
+   if(!currentUser||!group||group.userId!==currentUser.id||!item){toast('Esta historia no se puede eliminar desde esta cuenta.');return}
+   if(!confirm('¿Eliminar esta historia?'))return;
+   button.disabled=true;
+   try{
+     const {error}=await supabaseClient.from('stories').delete().eq('id',item.id).eq('user_id',currentUser.id);
+     if(error)throw error;
+     const paths=[item.media_path,item.story_audio_path].filter(Boolean);
+     group.items.splice(goviStoryItemIndex,1);
+     if(!group.items.length){goviStoryGroups.splice(goviStoryGroupIndex,1);if(!goviStoryGroups.length)closeViewer(true);else{goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}}
+     else{goviStoryItemIndex=Math.min(goviStoryItemIndex,group.items.length-1);goviRenderStory()}
+     goviLoadStories().catch(console.warn);
+     if(paths.length)supabaseClient.storage.from(BUCKET).remove(paths).catch(console.warn);
+     toast('Historia eliminada');
+   }catch(err){console.error('Eliminar historia',err);toast('No se pudo eliminar: '+(err.message||'error'))}
+   finally{button.disabled=false}
+ }
+ // Un solo manejador en captura, independientemente de listeners antiguos.
+ document.addEventListener('click',onControl,true);
+ document.addEventListener('pointerup',onControl,true);
+ // Navegación por gesto en toda la tarjeta, sin exigir tocar una zona vacía.
+ let sx=0,sy=0,tracking=false;
+ card.addEventListener('touchstart',e=>{
+   if(e.touches.length!==1){tracking=false;return}
+   if(e.target.closest('button,a,input,audio,video')){tracking=false;return}
+   sx=e.touches[0].clientX;sy=e.touches[0].clientY;tracking=true;
+ },{passive:true});
+ card.addEventListener('touchend',e=>{
+   if(!tracking||!e.changedTouches.length)return;tracking=false;
+   const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+   if(Math.abs(dx)>48&&Math.abs(dx)>Math.abs(dy)*1.15)goviStoryStep(dx<0?1:-1);
+ },{passive:true});
+ // Evita que los botones queden debajo de la imagen o de las capas de texto.
+ const css=document.createElement('style');css.textContent=`
+ #goviStoryViewer{z-index:50000!important;pointer-events:auto!important}
+ #goviStoryCard{position:relative!important;isolation:isolate!important;touch-action:pan-y!important}
+ #goviStoryMedia,#goviStoryVideo,#goviStoryContent{pointer-events:none!important}
+ #goviStoryTop{position:absolute!important;z-index:1000!important;pointer-events:none!important}
+ #goviStoryClose{position:relative!important;z-index:1100!important;pointer-events:auto!important;touch-action:manipulation!important}
+ #goviStoryDelete,#goviStoryReturnProfile{position:absolute!important;bottom:14px!important;z-index:1100!important;pointer-events:auto!important;touch-action:manipulation!important}
+ #goviStoryDelete{right:12px!important;left:auto!important}
+ #goviStoryReturnProfile{left:12px!important;right:auto!important}
+ #goviStoryPrev,#goviStoryNext{z-index:1000!important;pointer-events:auto!important}
+ `;
+ document.head.appendChild(css);
+ const oldOpen=window.goviOpenStoryGroup;
+ if(typeof oldOpen==='function')window.goviOpenStoryGroup=function(g,i){stopEditorMedia();oldOpen(g,i);viewer.setAttribute('aria-hidden','false')};
+ const oldPublish=window.goviPublishStory;
+ if(typeof oldPublish==='function'&&!window.__goviStoryPublishWrapped){
+   window.__goviStoryPublishWrapped=true;
+   window.goviPublishStory=async function(){stopEditorMedia();return oldPublish.apply(this,arguments)};
+ }
+})();
+</script>
 </body>
 </html>
 
