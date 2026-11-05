@@ -1362,7 +1362,7 @@ async function goviPublishStory(){
   // Usar la sesión que refreshSession mantiene sincronizada con el listener de Supabase.
   // Evita bloquear el editor esperando otra llamada getSession() en móviles.
   const startStatus=$('goviStoryStatus');
-  if(startStatus){startStatus.style.display='block';startStatus.textContent='Preparando tu historia…';}
+  if(startStatus){startStatus.style.display='block';startStatus.textContent='Comprobando tu sesión…';}
   if(!currentUser){
     const st=$('goviStoryStatus');
     if(st){st.style.display='block';st.textContent='Tu sesión no está activa. Inicia sesión nuevamente para publicar.';}
