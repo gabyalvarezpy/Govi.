@@ -1002,7 +1002,21 @@ body{display:block!important;margin:0!important;padding:0!important;overflow-x:h
 const SUPABASE_URL='https://ennfigjdboxpkmfhttze.supabase.co';    
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_Jhya35mcZXssCNI9u3uzNQ_CfcvaTyH';    
 const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);    
-const BUCKET='govi-media';    
+const BUCKET='govi-media';
+function goviIsVideoFile(file){
+  const type=String(file?.type||'').toLowerCase();
+  const name=String(file?.name||'').toLowerCase().split('?')[0];
+  return type.startsWith('video/') || /\.(mp4|m4v|mov|webm|3gp|3gpp|ogv|mkv|avi)$/i.test(name);
+}
+function goviVideoMime(file){
+  const type=String(file?.type||'').toLowerCase();
+  if(type.startsWith('video/'))return type;
+  const ext=String(file?.name||'').toLowerCase().split('.').pop();
+  return ({mp4:'video/mp4',m4v:'video/mp4',mov:'video/quicktime',webm:'video/webm',3gp:'video/3gpp',3gpp:'video/3gpp',ogv:'video/ogg',mkv:'video/x-matroska',avi:'video/x-msvideo'})[ext]||'application/octet-stream';
+}
+function goviIsVideoStory(item){
+  return item?.media_type==='video' || goviIsVideoFile({type:'',name:item?.media_path||item?.media_url||''});
+}    
 let currentUser=null, authMode='register', selectedFile=null, activeFilter='Inicio';    
 const $=id=>document.getElementById(id);    
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),3000)}    
@@ -1436,10 +1450,10 @@ async function goviPublishStory(){
   let path=null,mediaUrl=null,mediaType='text',audioPath=null,audioUrl=null;
   try{
     if(file){
-      mediaType=file.type.startsWith('video/')?'video':'image';
+      mediaType=goviIsVideoFile(file)?'video':'image';
       const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'')||'bin';
       path=currentUser.id+'/stories/'+Date.now()+'-'+crypto.randomUUID()+'.'+ext;
-      const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(upError)throw upError;
+      const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:goviVideoMime(file)});if(upError)throw upError;
       mediaUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     }else if(link)mediaType='link';
     const audioFile=$('goviStoryAudioFile')?.files?.[0];if(audioFile){if(audioFile.size>15*1024*1024)throw new Error('La música no puede superar 15 MB');audioPath=currentUser.id+'/stories/audio-'+Date.now()+'-'+crypto.randomUUID()+'.'+(audioFile.name.split('.').pop()||'mp3').toLowerCase();const {error:audioError}=await supabaseClient.storage.from(BUCKET).upload(audioPath,audioFile,{cacheControl:'3600',upsert:false,contentType:audioFile.type});if(audioError)throw audioError;audioUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(audioPath).data.publicUrl}
@@ -1536,7 +1550,7 @@ function goviRenderStory(){
   const img=$('goviStoryMedia'),video=$('goviStoryVideo');goviStopStoryPlayback();
   let content=$('goviStoryContent');if(!content){content=document.createElement('div');content.id='goviStoryContent';$('goviStoryCard').appendChild(content)}
   content.style.display='none';content.replaceChildren();content.style.zIndex='6';img.style.display='none';video.style.display='none';img.style.transform='none';video.style.transform='none';img.style.zIndex='1';video.style.zIndex='1';
-  if(item.media_type==='video'&&item.media_url){video.style.display='block';video.controls=true;video.src=item.media_url;video.muted=false;video.volume=1;video.load();video.play().catch(()=>{video.muted=true;video.play().catch(()=>{})})}
+  if(goviIsVideoStory(item)&&item.media_url){video.style.display='block';video.controls=true;video.src=item.media_url;video.muted=false;video.volume=1;video.load();video.play().catch(()=>{video.muted=true;video.play().catch(()=>{})})}
   else if(item.media_type==='image'&&item.media_url){img.style.display='block';img.src=item.media_url}
   // Un vídeo ya contiene su propia pista de sonido. No reproducir además
   // story_audio_url encima, porque duplica el audio de la historia.
@@ -1554,7 +1568,7 @@ function goviRenderStory(){
   const mediaMeta=null;
   let storyText=item.story_text||'',storyMeta=null;
   if(storyText.startsWith('__GOVI_STORY_META_V1__')){try{const decoded=JSON.parse(storyText.slice('__GOVI_STORY_META_V1__'.length));storyText=decoded.text||'';storyMeta=decoded.meta||null;}catch(err){console.warn('GOVI: metadatos de historia no válidos',err)}}
-  const savedMedia=storyMeta?.media||{};const activeMedia=item.media_type==='video'?video:img;if(savedMedia.zoom||savedMedia.x||savedMedia.y){activeMedia.style.transform='translate('+(Number(savedMedia.x)||0)+'px,'+(Number(savedMedia.y)||0)+'px) scale('+(Number(savedMedia.zoom)||1)+')';activeMedia.style.transformOrigin='center center'}
+  const savedMedia=storyMeta?.media||{};const activeMedia=goviIsVideoStory(item)?video:img;if(savedMedia.zoom||savedMedia.x||savedMedia.y){activeMedia.style.transform='translate('+(Number(savedMedia.x)||0)+'px,'+(Number(savedMedia.y)||0)+'px) scale('+(Number(savedMedia.zoom)||1)+')';activeMedia.style.transformOrigin='center center'}
   if(storyText||item.link_url||storyMeta?.stickers?.length){
     content.style.cssText='position:absolute;inset:0;display:block;z-index:3;pointer-events:none;background:transparent;overflow:hidden;';
     if(storyText){const t=document.createElement('div');t.textContent=storyText;const st=storyMeta?.text||{};t.style.cssText='position:absolute;left:'+(Number(st.x)||50)+'%;top:'+(Number(st.y)||78)+'%;transform:translate(-50%,-50%);max-width:88%;white-space:pre-wrap;overflow-wrap:anywhere;text-align:center;font-weight:800;padding:8px 12px;z-index:5;';t.style.fontFamily=st.fontFamily||'Arial,sans-serif';t.style.color=st.color||'#fff';t.style.textShadow=st.textShadow==='none'?'none':(st.textShadow||'0 2px 8px #000');t.style.fontSize=st.fontSize||'32px';content.appendChild(t)}
