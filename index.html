@@ -3663,7 +3663,6 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  }
  // Un solo manejador en captura, independientemente de listeners antiguos.
  document.addEventListener('click',onControl,true);
- document.addEventListener('pointerup',onControl,true);
  // Navegación por gesto en toda la tarjeta, sin exigir tocar una zona vacía.
  let sx=0,sy=0,tracking=false;
  card.addEventListener('touchstart',e=>{
