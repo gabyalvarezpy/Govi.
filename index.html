@@ -1538,14 +1538,19 @@ function goviRenderStory(){
   content.style.display='none';content.replaceChildren();content.style.zIndex='6';img.style.display='none';video.style.display='none';img.style.transform='none';video.style.transform='none';img.style.zIndex='1';video.style.zIndex='1';
   if(item.media_type==='video'&&item.media_url){video.style.display='block';video.controls=true;video.src=item.media_url;video.muted=false;video.volume=1;video.load();video.play().catch(()=>{video.muted=true;video.play().catch(()=>{})})}
   else if(item.media_type==='image'&&item.media_url){img.style.display='block';img.src=item.media_url}
-  if(item.story_audio_url){
-    let audio=$('goviStoryAudio');
-    if(!audio){audio=document.createElement('audio');audio.id='goviStoryAudio';$('goviStoryCard').appendChild(audio)}
-    audio.controls=true;audio.preload='auto';audio.style.cssText='position:absolute;z-index:12;bottom:70px;left:12px;width:calc(100% - 24px);max-width:calc(100% - 24px)';
-    audio.src=item.story_audio_url;audio.load();
-    const startAudio=()=>audio.play().catch(err=>console.info('GOVI: el navegador requiere tocar reproducir para iniciar el audio',err));
-    startAudio();
-  }else{const audio=$('goviStoryAudio');if(audio){audio.controls=false;audio.style.display='none'}}
+  // Un vídeo ya contiene su propia pista de sonido. No reproducir además
+  // story_audio_url encima, porque duplica el audio de la historia.
+  const audio=$('goviStoryAudio');
+  if(item.story_audio_url && item.media_type!=='video'){
+    let storyAudio=audio;
+    if(!storyAudio){storyAudio=document.createElement('audio');storyAudio.id='goviStoryAudio';$('goviStoryCard').appendChild(storyAudio)}
+    storyAudio.pause();storyAudio.currentTime=0;storyAudio.controls=true;storyAudio.preload='auto';
+    storyAudio.style.cssText='display:block;position:absolute;z-index:12;bottom:70px;left:12px;width:calc(100% - 24px);max-width:calc(100% - 24px)';
+    storyAudio.src=item.story_audio_url;storyAudio.load();
+    storyAudio.play().catch(err=>console.info('GOVI: el navegador requiere tocar reproducir para iniciar el audio',err));
+  }else if(audio){
+    audio.pause();audio.removeAttribute('src');audio.load();audio.controls=false;audio.style.display='none';
+  }
   const mediaMeta=null;
   let storyText=item.story_text||'',storyMeta=null;
   if(storyText.startsWith('__GOVI_STORY_META_V1__')){try{const decoded=JSON.parse(storyText.slice('__GOVI_STORY_META_V1__'.length));storyText=decoded.text||'';storyMeta=decoded.meta||null;}catch(err){console.warn('GOVI: metadatos de historia no válidos',err)}}
@@ -4651,5 +4656,37 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   previewBar.addEventListener('click',e=>{const b=e.target.closest('[data-preview-action]');if(!b)return;if(b.dataset.previewAction==='edit')setPreview(false);else if(b.dataset.previewAction==='publish'){setPreview(false);launchPublish(b)}});stage.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});stage.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});sync();console.info('GOVI Story Editor táctil listo',EMOJI.length);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+
+
+/* GOVI HOTFIX 2026-11-05: controles del visor y audio único */
+(function(){
+  const viewer=document.getElementById('goviStoryViewer');
+  if(!viewer || window.__goviStoryViewerHotfix) return;
+  window.__goviStoryViewerHotfix=true;
+  function targetButton(event){const el=event.target instanceof Element?event.target:null;return el?.closest('#goviStoryClose,#goviStoryDelete,#goviStoryReturnProfile')}
+  ['touchstart','touchend','pointerdown','pointerup'].forEach(type=>window.addEventListener(type,event=>{if(targetButton(event))event.stopPropagation()},true));
+  async function removeCurrentStory(button){
+    const group=goviStoryGroups[goviStoryGroupIndex],item=group?.items[goviStoryItemIndex];
+    if(!currentUser||!group||group.userId!==currentUser.id||!item){toast('No se pudo identificar tu historia.');return}
+    if(!confirm('¿Quieres eliminar esta historia?'))return;
+    button.disabled=true;button.textContent='Eliminando…';
+    try{
+      const {error}=await supabaseClient.from('stories').delete().eq('id',item.id).eq('user_id',currentUser.id);if(error)throw error;
+      const paths=[item.media_path,item.story_audio_path].filter(Boolean);group.items.splice(goviStoryItemIndex,1);
+      if(!group.items.length){goviStoryGroups.splice(goviStoryGroupIndex,1);if(!goviStoryGroups.length){goviStopStoryPlayback();viewer.style.display='none';window.__goviStoryHistoryEntry=false;history.replaceState({goviProfile:true},'','#profile-'+currentUser.id);window.goviGoToMyProfile?.(null)}else{goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}}
+      else{goviStoryItemIndex=Math.min(goviStoryItemIndex,group.items.length-1);goviRenderStory()}
+      if(paths.length){const {error:storageError}=await supabaseClient.storage.from(BUCKET).remove(paths);if(storageError)console.warn('Archivo pendiente de limpiar:',storageError)}
+      goviLoadStories().catch(err=>console.warn('No se pudo actualizar historias:',err));toast('Historia eliminada');
+    }catch(error){console.error('GOVI eliminar historia:',error);toast('No se pudo eliminar: '+(error.message||'Error desconocido'))}
+    finally{button.disabled=false;button.textContent='Eliminar historia'}
+  }
+  window.addEventListener('click',event=>{
+    const button=targetButton(event);if(!button||!viewer.contains(button))return;
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+    if(button.id==='goviStoryClose'){goviStopStoryPlayback();viewer.style.display='none';window.__goviStoryHistoryEntry=false;if(location.hash==='#govi-story')history.replaceState(null,'',location.pathname+location.search);return}
+    if(button.id==='goviStoryReturnProfile'){goviStopStoryPlayback();viewer.style.display='none';window.__goviStoryHistoryEntry=false;if(currentUser){history.replaceState({goviProfile:true},'','#profile-'+currentUser.id);window.goviGoToMyProfile?.(null)}else toast('Inicia sesión para ver tu perfil');return}
+    if(button.id==='goviStoryDelete')removeCurrentStory(button);
+  },true);
 })();
 </script>
