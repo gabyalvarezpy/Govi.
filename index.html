@@ -1390,7 +1390,7 @@ async function goviPublishStory(){
   // pueden estar ocultos o reubicados y no deben bloquear la publicación.
   const editorPayload=typeof window.goviGetStoryEditorPayload==='function'?window.goviGetStoryEditorPayload():{};
   const fileInput=$('goviStoryFile'),gifInput=$('goviStoryGifFile'),textInput=$('goviStoryText'),linkInput=$('goviStoryLink');
-  const file=editorPayload.file||fileInput?.files?.[0]||gifInput?.files?.[0]||null;
+  const file=editorPayload.file||window.goviStorySelectedFile||fileInput?.files?.[0]||gifInput?.files?.[0]||null;
   const storyText=String(editorPayload.text??textInput?.value??'').trim();
   const link=String(editorPayload.link??linkInput?.value??'').trim();
   showStoryStatus('Sesión confirmada. Revisando foto y texto…');
@@ -3407,6 +3407,21 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 #goviStoryComposer #goviStoryPreviewText,#goviStoryComposer .govi-r8-sticker{touch-action:none!important;overscroll-behavior:none!important;-webkit-user-select:none!important;user-select:none!important}
 #goviStoryComposer #goviStoryRepairV8{overflow-x:hidden!important;overscroll-behavior:contain!important}
 </style>
+<script id="govi-story-file-selection-bridge">
+(function(){
+  if(window.__goviStoryFileBridgeInstalled)return;
+  window.__goviStoryFileBridgeInstalled=true;
+  // Capturar la selección desde cualquier versión/clon del input de galería.
+  // Algunos parches del editor reemplazan el input y dejan referencias antiguas.
+  document.addEventListener('change',function(event){
+    const target=event.target;
+    if(!target||!['goviStoryFile','goviStoryGifFile'].includes(target.id))return;
+    const selected=target.files&&target.files[0];
+    if(selected){window.goviStorySelectedFile=selected;console.info('GOVI historia: archivo capturado',selected.name,selected.size);}
+    else if(target.id==='goviStoryFile')window.goviStorySelectedFile=null;
+  },true);
+})();
+</script>
 </body>
 </html>
 
