@@ -669,6 +669,105 @@ body{background:#050506!important}
  .govi-content .stories{padding:17px 19px!important}
 }
 </style>
+<style id="govi-app-layout-reference">
+/* CAMBIO ESTRUCTURAL: GOVI adopta el formato de app social del diseño de referencia */
+html,body{min-height:100%;background:#000!important}
+body{display:block!important;margin:0!important;padding:0!important;overflow-x:hidden!important}
+.govi-topbar{
+ width:100%!important;max-width:480px!important;height:66px!important;margin:0 auto!important;
+ padding:10px 16px!important;position:sticky!important;top:0!important;z-index:1200!important;
+ display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;
+ background:rgba(0,0,0,.94)!important;border-left:1px solid rgba(255,255,255,.08)!important;
+ border-right:1px solid rgba(255,255,255,.08)!important;border-bottom:1px solid rgba(255,255,255,.12)!important;
+ backdrop-filter:blur(18px)!important
+}
+.govi-brand{min-width:0!important;gap:9px!important}
+.govi-brand .brand-mark{width:38px!important;height:38px!important;border-radius:50%!important;font-size:22px!important}
+.govi-brand-copy strong{font-size:21px!important;letter-spacing:2px!important}
+.govi-brand-copy small{font-size:7px!important;letter-spacing:1px!important}
+.govi-search{display:none!important}
+.govi-top-actions{gap:8px!important;margin-left:auto!important}
+.govi-create-btn{width:38px!important;height:38px!important;padding:0!important;border-radius:50%!important;display:grid!important;place-items:center!important;font-size:0!important}
+.govi-create-btn span{font-size:21px!important;line-height:1}
+.govi-notify-btn{width:38px!important;height:38px!important;padding:0!important;display:grid!important;place-items:center!important}
+.govi-top-actions .avatar{width:38px!important;height:38px!important}
+.govi-shell{
+ display:block!important;width:100%!important;max-width:480px!important;min-height:calc(100vh - 66px)!important;
+ margin:0 auto!important;padding:15px 13px 105px!important;box-sizing:border-box!important;
+ background:#050506!important;border-left:1px solid rgba(255,255,255,.08)!important;
+ border-right:1px solid rgba(255,255,255,.08)!important
+}
+.govi-sidebar,.govi-rightcol{display:none!important}
+.govi-content{display:flex!important;flex-direction:column!important;gap:17px!important;width:100%!important;max-width:none!important;margin:0!important;min-width:0!important}
+.govi-home-profile{order:0!important;margin:0!important;border-radius:19px!important;background:#101014!important;overflow:hidden!important}
+.govi-home-cover{height:145px!important}
+.govi-home-profile-info{display:flex!important;flex-wrap:wrap!important;gap:10px!important;padding:0 13px 15px!important}
+.govi-home-avatar{width:82px!important;height:82px!important;flex:0 0 82px!important;margin-top:-42px!important;border-width:4px!important}
+.govi-home-identity{flex:1 1 calc(100% - 100px)!important;min-width:0!important;padding-top:7px!important}
+.govi-home-identity h1{font-size:19px!important}
+.govi-home-identity p{font-size:11px!important}
+.govi-home-profile-actions{width:100%!important;padding-top:3px!important;display:flex!important;gap:7px!important}
+.govi-home-profile-actions button{flex:1!important;min-width:0!important;padding:10px 6px!important;font-size:10px!important}
+.govi-section-block{margin:0!important;width:100%!important}
+.govi-section-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;margin:0 2px 11px!important}
+.govi-section-heading h2{font-size:20px!important;margin:4px 0 0!important}
+.govi-section-caption{font-size:9px!important}
+.govi-content .stories{
+ display:flex!important;flex-direction:row!important;gap:12px!important;width:100%!important;
+ overflow-x:auto!important;overflow-y:hidden!important;padding:12px!important;
+ background:#101014!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:17px!important;
+ scrollbar-width:none!important
+}
+.govi-content .stories::-webkit-scrollbar{display:none!important}
+.govi-content .story{display:flex!important;flex:0 0 68px!important;flex-direction:column!important;align-items:center!important;gap:5px!important;font-size:10px!important}
+.govi-content .story-ring{width:66px!important;height:66px!important;margin:0 auto 4px!important;padding:3px!important;border-radius:50%!important}
+.govi-content .story-ring span,.govi-content .story-ring img{border-radius:50%!important}
+.govi-content .story-name{max-width:68px!important;font-size:10px!important}
+.govi-feed-block{display:flex!important;flex-direction:column!important;gap:11px!important}
+.govi-feed-block .govi-section-heading{margin-bottom:1px!important}
+.govi-composer{width:100%!important;margin:0!important;padding:13px!important;border-radius:17px!important;background:#101014!important;border:1px solid rgba(255,255,255,.12)!important}
+.govi-composer .compose-top{gap:9px!important}
+.govi-composer .compose-top input{min-width:0!important;padding:11px 14px!important;border-radius:22px!important;font-size:13px!important}
+.govi-composer .compose-actions{display:flex!important;justify-content:space-between!important;gap:6px!important;margin-top:10px!important;padding-top:9px!important}
+.govi-composer .compose-actions button{flex:1!important;padding:8px 5px!important;font-size:11px!important;text-align:center!important}
+.govi-feed-block #feed{display:flex!important;flex-direction:column!important;gap:13px!important;width:100%!important}
+.govi-feed-block .post{width:100%!important;margin:0!important;padding:14px!important;border-radius:18px!important;background:#101014!important;border:1px solid rgba(255,255,255,.12)!important;overflow:hidden!important}
+.govi-feed-block .post-head{gap:10px!important}
+.govi-feed-block .post .avatar{width:40px!important;height:40px!important;flex:0 0 40px!important}
+.govi-feed-block .post-author{font-size:13px!important}
+.govi-feed-block .post-meta{font-size:10px!important}
+.govi-feed-block .post-text{font-size:14px!important;line-height:1.55!important;margin:12px 0!important}
+.govi-feed-block .post-media{width:100%!important;max-height:440px!important;object-fit:cover!important;border-radius:12px!important}
+.govi-feed-block .post-stats{font-size:10px!important;padding:10px 1px!important}
+.govi-feed-block .post-buttons{display:flex!important;justify-content:space-between!important;flex-wrap:nowrap!important;gap:2px!important}
+.govi-feed-block .post-buttons button{flex:1!important;min-width:0!important;padding:9px 3px!important;font-size:10px!important;white-space:nowrap!important}
+.govi-feed-block .comments{padding-top:9px!important}
+.govi-mobile-nav{
+ position:fixed!important;display:flex!important;left:50%!important;right:auto!important;bottom:0!important;
+ transform:translateX(-50%)!important;width:100%!important;max-width:480px!important;height:auto!important;
+ min-height:64px!important;z-index:5000!important;justify-content:space-around!important;align-items:center!important;
+ padding:8px 7px calc(8px + env(safe-area-inset-bottom))!important;
+ background:rgba(10,10,12,.96)!important;backdrop-filter:blur(20px)!important;
+ border-top:1px solid rgba(255,255,255,.13)!important;border-left:1px solid rgba(255,255,255,.08)!important;
+ border-right:1px solid rgba(255,255,255,.08)!important
+}
+.govi-mobile-nav button{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;min-width:52px!important;padding:2px 8px!important;background:none!important;border:0!important;color:#92929a!important;font-size:10px!important}
+.govi-mobile-nav button span{font-size:21px!important;line-height:1.1!important}
+.govi-mobile-nav button.active{color:#e6c875!important}
+.govi-mobile-nav .govi-mobile-plus{width:43px!important;height:43px!important;min-width:43px!important;border-radius:50%!important;background:linear-gradient(135deg,#f1d98f,#c59b3f)!important;color:#090909!important;font-size:25px!important;box-shadow:0 3px 14px rgba(230,200,117,.24)!important}
+.govi-story-compose-card{width:min(480px,100%)!important}
+@media(min-width:481px){
+ body{background:#080809!important}
+ .govi-topbar,.govi-shell,.govi-mobile-nav{box-shadow:0 0 35px rgba(0,0,0,.35)!important}
+ .govi-shell{min-height:calc(100vh - 66px)!important}
+}
+@media(max-width:360px){
+ .govi-brand-copy small{letter-spacing:.5px!important}
+ .govi-home-profile-actions button{font-size:9px!important}
+ .govi-feed-block .post-buttons button{font-size:9px!important}
+ .govi-mobile-nav button{min-width:44px!important;padding:2px 5px!important}
+}
+</style>
 </head>    
 <body>    
 <header class="topbar govi-topbar">
