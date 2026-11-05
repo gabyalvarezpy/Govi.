@@ -793,6 +793,17 @@ body{display:block!important;margin:0!important;padding:0!important;overflow-x:h
  #goviStoryChoices .govi-story-choice{font-size:10px!important}
 }
 </style>
+<style id="govi-story-viewer-audio-layer-fix">
+#goviStoryCard{isolation:isolate!important}
+#goviStoryMedia,#goviStoryVideo{position:relative!important;z-index:1!important}
+#goviStoryContent{z-index:6!important;pointer-events:none!important}
+#goviStoryTop{z-index:30!important;pointer-events:none!important}
+#goviStoryTop button{z-index:31!important;pointer-events:auto!important}
+#goviStoryPrev,#goviStoryNext{z-index:20!important}
+#goviStoryDelete{z-index:30!important;pointer-events:auto!important}
+#goviStoryAudio{z-index:25!important;pointer-events:auto!important}
+#goviStoryDelete:disabled{opacity:.65!important}
+</style>
 </head>    
 <body>    
 <header class="topbar govi-topbar">
@@ -1440,18 +1451,33 @@ async function goviPublishStory(){
   }finally{btn.disabled=false;btn.textContent=btn.matches?.('#goviStoryRepairV8 [data-a="publish"]')?'Compartir historia ➜':'PUBLICAR HISTORIA'}
 }
 window.goviPublishStory=goviPublishStory;
+function goviStopStoryPlayback(){
+  const video=$('goviStoryVideo'),audio=$('goviStoryAudio');
+  [video,audio].forEach(media=>{if(!media)return;try{media.pause();media.currentTime=0;media.removeAttribute('src');media.load()}catch(err){console.warn('GOVI: no se pudo detener el reproductor',err)}});
+}
+function goviCloseStoryViewer(){
+  goviStopStoryPlayback();
+  const viewer=$('goviStoryViewer');if(viewer)viewer.style.display='none';
+}
 function goviOpenStoryGroup(groupIndex,itemIndex){goviStoryGroupIndex=groupIndex;goviStoryItemIndex=itemIndex;goviRenderStory();$('goviStoryViewer').style.display='flex'}
 function goviRenderStory(){
   const group=goviStoryGroups[goviStoryGroupIndex];if(!group)return;
   const item=group.items[goviStoryItemIndex];if(!item)return;
   $('goviStoryAuthor').textContent=group.profile.full_name||'Usuario GOVI';$('goviStoryAvatar').src=group.profile.avatar_url||'';$('goviStoryAvatar').style.visibility=group.profile.avatar_url?'visible':'hidden';
   $('goviStoryTime').textContent=new Date(item.created_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-  const img=$('goviStoryMedia'),video=$('goviStoryVideo');video.pause();video.removeAttribute('src');video.load();const audio=$('goviStoryAudio');if(audio){audio.pause();audio.removeAttribute('src');audio.load();}
+  const img=$('goviStoryMedia'),video=$('goviStoryVideo');goviStopStoryPlayback();
   let content=$('goviStoryContent');if(!content){content=document.createElement('div');content.id='goviStoryContent';$('goviStoryCard').appendChild(content)}
-  content.style.display='none';content.replaceChildren();img.style.display='none';video.style.display='none';img.style.transform='none';video.style.transform='none';
+  content.style.display='none';content.replaceChildren();content.style.zIndex='6';img.style.display='none';video.style.display='none';img.style.transform='none';video.style.transform='none';img.style.zIndex='1';video.style.zIndex='1';
   if(item.media_type==='video'&&item.media_url){video.style.display='block';video.controls=true;video.src=item.media_url;video.muted=false;video.volume=1;video.load();video.play().catch(()=>{video.muted=true;video.play().catch(()=>{})})}
   else if(item.media_type==='image'&&item.media_url){img.style.display='block';img.src=item.media_url}
-  if(item.story_audio_url){let audio=$('goviStoryAudio');if(!audio){audio=document.createElement('audio');audio.id='goviStoryAudio';audio.controls=true;audio.style.cssText='position:absolute;z-index:8;bottom:64px;left:12px;width:calc(100% - 24px)';$('goviStoryCard').appendChild(audio)}audio.src=item.story_audio_url;audio.load()}
+  if(item.story_audio_url){
+    let audio=$('goviStoryAudio');
+    if(!audio){audio=document.createElement('audio');audio.id='goviStoryAudio';$('goviStoryCard').appendChild(audio)}
+    audio.controls=true;audio.preload='auto';audio.style.cssText='position:absolute;z-index:12;bottom:70px;left:12px;width:calc(100% - 24px);max-width:calc(100% - 24px)';
+    audio.src=item.story_audio_url;audio.load();
+    const startAudio=()=>audio.play().catch(err=>console.info('GOVI: el navegador requiere tocar reproducir para iniciar el audio',err));
+    startAudio();
+  }else{const audio=$('goviStoryAudio');if(audio){audio.controls=false;audio.style.display='none'}}
   const mediaMeta=null;
   let storyText=item.story_text||'',storyMeta=null;
   if(storyText.startsWith('__GOVI_STORY_META_V1__')){try{const decoded=JSON.parse(storyText.slice('__GOVI_STORY_META_V1__'.length));storyText=decoded.text||'';storyMeta=decoded.meta||null;}catch(err){console.warn('GOVI: metadatos de historia no válidos',err)}}
@@ -1466,17 +1492,28 @@ function goviRenderStory(){
 }
 function goviStoryStep(direction){
   const group=goviStoryGroups[goviStoryGroupIndex];if(!group)return;
-  if(direction>0){if(goviStoryItemIndex<group.items.length-1)goviStoryItemIndex++;else if(goviStoryGroupIndex<goviStoryGroups.length-1){goviStoryGroupIndex++;goviStoryItemIndex=0}else{$('goviStoryViewer').style.display='none';return}}
+  if(direction>0){if(goviStoryItemIndex<group.items.length-1)goviStoryItemIndex++;else if(goviStoryGroupIndex<goviStoryGroups.length-1){goviStoryGroupIndex++;goviStoryItemIndex=0}else{goviCloseStoryViewer();return}}
   else{if(goviStoryItemIndex>0)goviStoryItemIndex--;else if(goviStoryGroupIndex>0){goviStoryGroupIndex--;goviStoryItemIndex=goviStoryGroups[goviStoryGroupIndex].items.length-1}else return}
   goviRenderStory();
 }
 $('goviStoryPrev').addEventListener('click',()=>goviStoryStep(-1));$('goviStoryNext').addEventListener('click',()=>goviStoryStep(1));
-$('goviStoryClose').addEventListener('click',()=>{$('goviStoryVideo').pause();$('goviStoryViewer').style.display='none'});
-$('goviStoryViewer').addEventListener('click',e=>{if(e.target===$('goviStoryViewer')){$('goviStoryVideo').pause();$('goviStoryViewer').style.display='none'}});
+$('goviStoryClose').addEventListener('click',goviCloseStoryViewer);
+$('goviStoryViewer').addEventListener('click',e=>{if(e.target===$('goviStoryViewer'))goviCloseStoryViewer()});
 $('goviStoryDelete').addEventListener('click',async()=>{
   const group=goviStoryGroups[goviStoryGroupIndex],item=group?.items[goviStoryItemIndex];if(!currentUser||!group||group.userId!==currentUser.id||!item)return;
   if(!confirm('¿Quieres eliminar esta historia?'))return;
-  try{const {error}=await supabaseClient.from('stories').delete().eq('id',item.id).eq('user_id',currentUser.id);if(error)throw error;if(item.media_path||item.story_audio_path)await supabaseClient.storage.from(BUCKET).remove([item.media_path,item.story_audio_path].filter(Boolean));toast('Historia eliminada');await goviLoadStories();if(goviStoryGroups.length){goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}else $('goviStoryViewer').style.display='none'}catch(error){console.error(error);toast('No se pudo eliminar: '+error.message)}
+  const deleteButton=$('goviStoryDelete');deleteButton.disabled=true;deleteButton.textContent='Eliminando…';
+  try{
+    const {error}=await supabaseClient.from('stories').delete().eq('id',item.id).eq('user_id',currentUser.id);if(error)throw error;
+    const paths=[item.media_path,item.story_audio_path].filter(Boolean);
+    group.items.splice(goviStoryItemIndex,1);
+    toast('Historia eliminada');
+    if(!group.items.length){goviStoryGroups.splice(goviStoryGroupIndex,1);if(!goviStoryGroups.length){goviCloseStoryViewer()}else{goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}}
+    else{goviStoryItemIndex=Math.min(goviStoryItemIndex,group.items.length-1);goviRenderStory()}
+    goviLoadStories().catch(err=>console.warn('No se pudo refrescar la lista de historias',err));
+    if(paths.length)supabaseClient.storage.from(BUCKET).remove(paths).then(({error})=>{if(error)console.warn('Archivo de historia pendiente de limpiar',error)}).catch(err=>console.warn(err));
+  }catch(error){console.error(error);toast('No se pudo eliminar: '+error.message)}
+  finally{deleteButton.disabled=false;deleteButton.textContent='Eliminar historia'}
 });
 let goviStoryTouchX=0;$('goviStoryCard').addEventListener('touchstart',e=>{goviStoryTouchX=e.changedTouches[0].screenX},{passive:true});$('goviStoryCard').addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-goviStoryTouchX;if(Math.abs(dx)>55)goviStoryStep(dx<0?1:-1)},{passive:true});
 
