@@ -5291,3 +5291,95 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   window.goviReturnToOwnProfile=function(){const viewer=document.getElementById('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
 })();
 </script>
+
+
+<script id="govi-profile-data-and-albums-final-v3">
+(function(){
+  if(window.__goviProfileDataAlbumsV3)return;
+  window.__goviProfileDataAlbumsV3=true;
+  const $id=id=>document.getElementById(id);
+  const safe=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  function ensureLightbox(){
+    let box=$id('goviProfileMediaLightbox');
+    if(box)return box;
+    box=document.createElement('div');box.id='goviProfileMediaLightbox';
+    box.style.cssText='display:none;position:fixed;inset:0;z-index:15000;background:#000e;align-items:center;justify-content:center;padding:18px';
+    box.innerHTML='<button type="button" aria-label="Cerrar" style="position:absolute;right:18px;top:18px;border:1px solid #c99a32;background:#17130b;color:#f3d98f;border-radius:50%;width:44px;height:44px;font-size:26px">×</button><div id="goviProfileMediaLightboxContent" style="max-width:96vw;max-height:88vh"></div>';
+    box.addEventListener('click',e=>{if(e.target===box||e.target.closest('button')){box.style.display='none';$id('goviProfileMediaLightboxContent').replaceChildren()}});
+    document.body.appendChild(box);return box;
+  }
+  function showImage(url,alt){
+    if(!url)return;const box=ensureLightbox(),slot=$id('goviProfileMediaLightboxContent');
+    slot.innerHTML='<img src="'+safe(url)+'" alt="'+safe(alt)+'" style="display:block;max-width:92vw;max-height:84vh;object-fit:contain;border-radius:12px">';
+    box.style.display='flex';
+  }
+  async function loadOwnProfile(user){
+    const client=(typeof supabaseClient!=='undefined'&&supabaseClient)||window.supabaseClient;
+    if(!client)throw new Error('No se encontró la conexión con GOVI');
+    const {data:profile,error:profileError}=await client.from('profiles').select('id,full_name,display_name,avatar_url,cover_url,bio').eq('id',user.id).maybeSingle();
+    if(profileError)throw profileError;
+    const p=profile||{};
+    const name=p.display_name||p.full_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'Gabriel';
+    const view=$id('goviProfileView'),feed=$id('feed');
+    const cover=$id('goviCover'),avatar=$id('goviAvatar');
+    if(!view||!feed||!cover||!avatar)throw new Error('Faltan elementos del perfil');
+    $id('goviProfileName').textContent=name;
+    $id('goviProfileDescription').textContent=p.bio||'Tu mundo en GOVI. Tu mundo. Tu gente.';
+    cover.innerHTML=p.cover_url?'<img src="'+safe(p.cover_url)+'" alt="Portada de '+safe(name)+'" style="width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in">':'<div style="height:100%;display:grid;place-items:center;color:#e8c66a;font-weight:800">Tu portada en GOVI</div>';
+    avatar.innerHTML=p.avatar_url?'<img src="'+safe(p.avatar_url)+'" alt="Foto de '+safe(name)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;cursor:zoom-in">':'<span style="display:grid;place-items:center;width:100%;height:100%;font-size:48px;color:#211708">G</span>';
+    cover.onclick=()=>{if(p.cover_url)showImage(p.cover_url,'Portada de '+name)};
+    avatar.onclick=()=>{if(p.avatar_url)showImage(p.avatar_url,'Foto de '+name)};
+    const controls=$id('goviProfileControls');
+    controls.innerHTML='<button type="button" data-govi-edit-avatar>📷 Cambiar foto</button><button type="button" data-govi-edit-cover>🖼️ Cambiar portada</button>';
+    controls.querySelector('[data-govi-edit-avatar]').onclick=()=> $id('goviAvatarInput')?.click();
+    controls.querySelector('[data-govi-edit-cover]').onclick=()=> $id('goviCoverInput')?.click();
+    const {data:posts,error:postsError}=await client.from('posts').select('id,user_id,content,media_url,media_type,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
+    if(postsError)throw postsError;
+    feed.replaceChildren();
+    const renderItems=(kind)=>{
+      const chosen=(posts||[]).filter(post=>kind==='all'||(kind==='image'&&['image','photo','picture'].includes(String(post.media_type||'').toLowerCase()))||(kind==='video'&&String(post.media_type||'').toLowerCase().includes('video')));
+      feed.replaceChildren();
+      if(!chosen.length){const empty=document.createElement('div');empty.className='panel profile-empty';empty.textContent=kind==='image'?'Todavía no hay fotos en este álbum.':kind==='video'?'Todavía no hay vídeos en este álbum.':'Todavía no hay publicaciones en este perfil.';feed.appendChild(empty);return}
+      chosen.forEach(post=>{
+        const card=document.createElement('article');card.className='panel';card.style.cssText='padding:16px;margin:14px 0;border:1px solid #80632f55;border-radius:16px;background:#111';
+        const head=document.createElement('div');head.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:12px';
+        const mini=document.createElement('div');mini.textContent=name.slice(0,1).toUpperCase();mini.style.cssText='width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#d8b45a;color:#15110a;font-weight:900';
+        const label=document.createElement('b');label.textContent=name+' · Tú';head.append(mini,label);card.append(head);
+        if(post.content){const body=document.createElement('p');body.textContent=post.content;body.style.cssText='white-space:pre-wrap;margin:10px 0';card.append(body)}
+        if(post.media_url){
+          const isVideo=String(post.media_type||'').toLowerCase().includes('video');
+          const media=isVideo?document.createElement('video'):document.createElement('img');
+          media.src=post.media_url;if(isVideo){media.controls=true;media.playsInline=true}
+          media.style.cssText='display:block;width:100%;max-height:520px;object-fit:contain;border-radius:12px;background:#050505;margin-top:10px';card.append(media);
+        }
+        feed.append(card);
+      });
+    };
+    const tabs=$id('goviProfileTabs');
+    if(tabs&&!tabs.dataset.goviAlbumsV3){
+      tabs.dataset.goviAlbumsV3='1';
+      tabs.addEventListener('click',e=>{const btn=e.target.closest('[data-profile-filter]');if(!btn)return;tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));renderItems(btn.dataset.profileFilter||'all')});
+    }
+    renderItems('all');
+  }
+  window.goviGoToMyProfile=async function(button){
+    try{
+      const client=(typeof supabaseClient!=='undefined'&&supabaseClient)||window.supabaseClient;
+      let user=(typeof currentUser!=='undefined'&&currentUser)||null;
+      if(!user&&client){const result=await client.auth.getSession();if(result.error)throw result.error;user=result.data?.session?.user||null}
+      if(!user){if(typeof openModal==='function')openModal('authModal');return}
+      if(typeof currentUser!=='undefined')currentUser=user;
+      const view=$id('goviProfileView'),feed=$id('feed');if(!view||!feed)throw new Error('No se encontró el contenedor del perfil');
+      if(typeof goviProfileId!=='undefined')goviProfileId=user.id;
+      [$id('goviHomeProfile'),$id('goviStories')?.closest('.govi-section-block'),document.querySelector('.govi-feed-block .govi-section-heading'),document.querySelector('.govi-feed-block .composer')].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
+      view.hidden=false;view.style.setProperty('display','block','important');feed.style.display='block';
+      document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));if(button)button.classList.add('active');
+      try{history.replaceState({goviProfile:true},'','#profile-'+user.id)}catch(_){}
+      await loadOwnProfile(user);
+      view.hidden=false;view.style.setProperty('display','block','important');
+      window.scrollTo(0,0);
+    }catch(error){console.error('GOVI carga de perfil y álbumes:',error);if(typeof toast==='function')toast('No se pudo cargar tu perfil: '+(error.message||'Error'))}
+  };
+  window.goviReturnToOwnProfile=function(){const viewer=$id('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
+})();
+</script>
