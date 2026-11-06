@@ -2290,22 +2290,34 @@ async function goviDeleteProfileImage(type) {
 /* Actualizar los avatares de la barra superior y del compositor */
 async function goviUpdateAccountAvatars() {
   if(!currentUser) return;
-
   try {
     const profile = await goviGetProfile(currentUser.id);
-    const name = profile.full_name ||
-      currentUser.user_metadata?.full_name ||
-      currentUser.email || 'G';
-
-    $('accountButton').innerHTML = profile.avatar_url
+    const name = profile.full_name || currentUser.user_metadata?.full_name || currentUser.email || 'G';
+    const avatarMarkup = profile.avatar_url
       ? `<img src="${escapeHTML(profile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Mi perfil">`
       : escapeHTML(initials(name));
-
-    $('composerAvatar').innerHTML = profile.avatar_url
-      ? `<img src="${escapeHTML(profile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Mi perfil">`
-      : escapeHTML(initials(name));
+    const account=document.getElementById('accountButton');
+    const composerAvatar=document.getElementById('composerAvatar');
+    const homeAvatar=document.getElementById('goviHomeAvatar');
+    if(account)account.innerHTML=avatarMarkup;
+    if(composerAvatar)composerAvatar.innerHTML=avatarMarkup;
+    if(homeAvatar)homeAvatar.innerHTML=avatarMarkup;
+    const homeName=document.getElementById('goviHomeName');
+    const homeBio=document.getElementById('goviHomeBio');
+    if(homeName)homeName.textContent=name;
+    if(homeBio)homeBio.textContent=profile.bio||'Tu perfil en GOVI · Tu mundo. Tu gente.';
+    const homeCover=document.getElementById('goviHomeCover');
+    if(homeCover){
+      if(profile.cover_url){
+        homeCover.style.backgroundImage='url("'+String(profile.cover_url).replace(/["\\\\]/g,'')+'")';
+        homeCover.dataset.coverLoaded='true';
+      }else{
+        homeCover.style.backgroundImage='';
+        delete homeCover.dataset.coverLoaded;
+      }
+    }
   } catch(error) {
-    console.warn(error);
+    console.warn('GOVI: no se pudo sincronizar el perfil de Inicio',error);
   }
 }
 
