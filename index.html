@@ -2172,8 +2172,17 @@ async function goviUploadProfileImage(file,type) {
     await openGoviProfile(currentUser.id);
     await goviUpdateAccountAvatars();
   } catch(error) {
-    console.error(error);
-    toast('No se pudo subir la imagen: ' + error.message);
+    console.error('GOVI profile image upload failed:',error);
+    const details=[
+      error?.message,
+      error?.error,
+      error?.statusCode ? 'HTTP '+error.statusCode : '',
+      error?.name && error.name!=='Error' ? error.name : ''
+    ].filter(Boolean).join(' | ') || JSON.stringify(error);
+    const message='No se pudo subir la imagen. Detalle del servidor: '+details;
+    toast(message);
+    // Mantener el error visible en móvil para poder identificar la causa real.
+    setTimeout(()=>{ try { window.alert(message); } catch(_){} },150);
   }
 }
 
