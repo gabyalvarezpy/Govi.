@@ -876,7 +876,7 @@ body{display:block!important;margin:0!important;padding:0!important;overflow-x:h
   </aside>
 </div>
 <nav class="govi-mobile-nav" aria-label="Navegación principal">
-  <button class="active" onclick="filterSection('Inicio',this)"><span>⌂</span>Inicio</button>
+  <button class="active" onclick="if(window.goviShowHomeView){window.goviShowHomeView(this)}else{filterSection('Inicio',this)}"><span>⌂</span>Inicio</button>
   <button onclick="filterSection('Fotos',this)"><span>▧</span>Fotos</button>
   <button class="govi-mobile-plus" onclick="openModal('postModal')" aria-label="Crear publicación">＋</button>
   <button onclick="filterSection('Vídeos',this)"><span>▷</span>Vídeos</button>
