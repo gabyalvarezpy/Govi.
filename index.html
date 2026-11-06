@@ -2387,25 +2387,35 @@ window.addEventListener('load',()=>{
 /* Editor de recorte de fotos GOVI */
 let goviCropState=null;
 function goviOpenCropEditor(file,type){
+  if(!file||!file.type||!file.type.startsWith('image/')){toast('Elegí una foto JPG, PNG o WEBP.');return}
   const image=new Image(),url=URL.createObjectURL(file);
   image.onload=()=>{
-    const ratio=type==='avatar'?1:3,canvas=document.getElementById('goviCropCanvas');
-    canvas.width=type==='avatar'?600:900;canvas.height=canvas.width/ratio;
-    const modal=document.getElementById('goviCropModal');
-    modal.style.display='flex';document.getElementById('goviCropTitle').textContent=type==='avatar'?'Ajustar foto de perfil':'Ajustar foto de portada';
-    const zoom=document.getElementById('goviCropZoom');zoom.value=1;
-    goviCropState={image,type,zoom:1,x:0,y:0,drag:false,lastX:0,lastY:0};
-    const scale=Math.max(canvas.width/image.width,canvas.height/image.height);
-    goviCropState.base=scale;goviCropState.x=(canvas.width-image.width*scale)/2;goviCropState.y=(canvas.height-image.height*scale)/2;
-    goviDrawCrop();URL.revokeObjectURL(url);
+    try{
+      const iw=image.naturalWidth||image.width,ih=image.naturalHeight||image.height;
+      if(!iw||!ih)throw new Error('La imagen no tiene dimensiones válidas');
+      const ratio=type==='avatar'?1:3,canvas=document.getElementById('goviCropCanvas');
+      canvas.width=type==='avatar'?600:900;canvas.height=Math.round(canvas.width/ratio);
+      canvas.style.cssText='display:block;width:100%;height:auto;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none';
+      const modal=document.getElementById('goviCropModal');
+      modal.style.display='flex';document.getElementById('goviCropTitle').textContent=type==='avatar'?'Ajustar foto de perfil':'Ajustar foto de portada';
+      const zoom=document.getElementById('goviCropZoom');zoom.value=1;
+      const scale=Math.max(canvas.width/iw,canvas.height/ih);
+      goviCropState={image,type,zoom:1,x:(canvas.width-iw*scale)/2,y:(canvas.height-ih*scale)/2,base:scale,drag:false,lastX:0,lastY:0};
+      goviDrawCrop();
+    }catch(error){console.error('GOVI recorte:',error);toast('No se pudo preparar la vista previa de la foto.')}
+    finally{URL.revokeObjectURL(url)}
   };
-  image.onerror=()=>{URL.revokeObjectURL(url);toast('No se pudo abrir esa imagen')};image.src=url;
+  image.onerror=()=>{URL.revokeObjectURL(url);toast('No se pudo abrir esa imagen. Probá con JPG o PNG.')};
+  image.src=url;
 }
 function goviDrawCrop(){
-  if(!goviCropState)return;const s=goviCropState,canvas=document.getElementById('goviCropCanvas'),ctx=canvas.getContext('2d');
-  const w=s.image.width*s.base*s.zoom,h=s.image.height*s.base*s.zoom;
+  if(!goviCropState)return;
+  const s=goviCropState,canvas=document.getElementById('goviCropCanvas'),ctx=canvas.getContext('2d');
+  const iw=s.image.naturalWidth||s.image.width,ih=s.image.naturalHeight||s.image.height;
+  const w=iw*s.base*s.zoom,h=ih*s.base*s.zoom;
   s.x=Math.min(0,Math.max(canvas.width-w,s.x));s.y=Math.min(0,Math.max(canvas.height-h,s.y));
-  ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(s.image,s.x,s.y,w,h);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(s.image,s.x,s.y,w,h);
 }
 document.getElementById('goviCropZoom').addEventListener('input',e=>{if(!goviCropState)return;const s=goviCropState,canvas=document.getElementById('goviCropCanvas'),old=s.zoom,cx=canvas.width/2,cy=canvas.height/2;s.x=cx-(cx-s.x)*Number(e.target.value)/old;s.y=cy-(cy-s.y)*Number(e.target.value)/old;s.zoom=Number(e.target.value);goviDrawCrop()});
 const goviCropCanvas=document.getElementById('goviCropCanvas');
