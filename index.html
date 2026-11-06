@@ -4167,6 +4167,100 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   if(!location.hash.startsWith('#profile-'))setTimeout(()=>goviShowHomeView(document.querySelector('.govi-mobile-nav button:first-child')),0);
 })();
 </script>
+
+<script id="govi-friends-followers-v1">
+(function(){
+  if(window.__goviFriendsFollowersV1)return;
+  window.__goviFriendsFollowersV1=true;
+  const style=document.createElement('style');
+  style.textContent=`
+    #goviFriendControls{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
+    #goviFriendControls button,#goviFriendRequests button{border:1px solid #9a7936;border-radius:11px;padding:10px 14px;background:linear-gradient(135deg,#30250f,#17130d);color:#f0d78e;font-weight:800}
+    #goviFriendControls button.primary{background:linear-gradient(135deg,#f3d98c,#b78327);color:#17120a}
+    #goviFriendCounts{color:#c9b987;font-size:13px;margin-top:9px}
+    #goviFriendRequests{margin:14px 0;padding:14px;border:1px solid #6f572b;border-radius:15px;background:#17140f}
+    #goviFriendRequests h3{font-size:16px;color:#f0d78e;margin:0 0 10px}
+    .govi-friend-request-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #ffffff18;color:#eee}
+    .govi-friend-request-actions{display:flex;gap:6px;flex-wrap:wrap}
+  `;
+  document.head.appendChild(style);
+  const client=()=>typeof supabaseClient!=='undefined'?supabaseClient:window.supabaseClient;
+  const me=()=>typeof currentUser!=='undefined'?currentUser:null;
+  const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const toastMsg=m=>typeof toast==='function'?toast(m):alert(m);
+  async function countFriends(id){
+    const {count,error}=await client().from('govi_friendships').select('id',{count:'exact',head:true}).eq('status','accepted').or('requester_id.eq.'+id+',addressee_id.eq.'+id);
+    if(error)throw error;return count||0;
+  }
+  async function refreshProfile(id){if(typeof window.openGoviProfile==='function')await window.openGoviProfile(id)}
+  async function renderFriendControls(profileId){
+    const user=me(),host=document.getElementById('goviProfileControls');
+    if(!host||!profileId)return;
+    let old=document.getElementById('goviFriendControls');if(old)old.remove();
+    old=document.getElementById('goviFriendCounts');if(old)old.remove();
+    if(!user||user.id===profileId)return;
+    const wrap=document.createElement('div');wrap.id='goviFriendControls';
+    const counts=document.createElement('div');counts.id='goviFriendCounts';counts.textContent='Cargando amistades…';
+    host.append(wrap,counts);
+    try{
+      const [mine,theirs,relation,following]=await Promise.all([
+        countFriends(user.id),countFriends(profileId),
+        client().from('govi_friendships').select('id,requester_id,addressee_id,status').or('and(requester_id.eq.'+user.id+',addressee_id.eq.'+profileId+'),and(requester_id.eq.'+profileId+',addressee_id.eq.'+user.id+')').limit(1).maybeSingle(),
+        client().from('govi_follows').select('follower_id').eq('follower_id',user.id).eq('followed_id',profileId).maybeSingle()
+      ]);
+      if(relation.error)throw relation.error;if(following.error)throw following.error;
+      counts.textContent='Amistades: '+theirs+'/500';
+      const rel=relation.data;
+      const add=(label,action,primary=false)=>{const b=document.createElement('button');b.type='button';b.textContent=label;if(primary)b.className='primary';b.onclick=action;wrap.append(b);return b};
+      if(rel?.status==='accepted'){
+        add('✓ Amigos',()=>toastMsg('Ya son amigos en GOVI'));
+      }else if(rel?.status==='pending'&&rel.requester_id===user.id){
+        add('Solicitud enviada',()=>toastMsg('La solicitud está pendiente'));
+      }else if(rel?.status==='pending'&&rel.addressee_id===user.id){
+        add('Aceptar amistad',async()=>{try{const {data,error}=await client().rpc('govi_respond_friend_request',{request_id:rel.id,accept_request:true});if(error)throw error;if(data==='follow_required'){toastMsg('Uno de los perfiles llegó a 500 amistades. Ahora corresponde seguir.');await client().rpc('govi_follow_user',{target_user_id:profileId})}else toastMsg('¡Ahora son amigos!');await refreshProfile(profileId)}catch(e){toastMsg('No se pudo aceptar: '+e.message)}},true);
+        add('Rechazar',async()=>{try{const {error}=await client().rpc('govi_respond_friend_request',{request_id:rel.id,accept_request:false});if(error)throw error;await refreshProfile(profileId)}catch(e){toastMsg(e.message)}});
+      }else if(mine>=500||theirs>=500){
+        add(following.data?'Siguiendo':'Seguir',async()=>{try{const {error}=await client().rpc(following.data?'govi_unfollow_user':'govi_follow_user',{target_user_id:profileId});if(error)throw error;toastMsg(following.data?'Dejaste de seguir':'Ahora sigues este perfil');await refreshProfile(profileId)}catch(e){toastMsg('No se pudo actualizar: '+e.message)}},!following.data);
+      }else{
+        add('＋ Agregar amistad',async()=>{try{const {data,error}=await client().rpc('govi_send_friend_request',{target_user_id:profileId});if(error)throw error;if(data==='follow_required'){toastMsg('Este perfil llegó a 500 amistades. Ahora puedes seguirlo.');await client().rpc('govi_follow_user',{target_user_id:profileId})}else if(data==='incoming_request')toastMsg('Este usuario ya te envió una solicitud. Actualiza para aceptarla.');else if(data==='already_friends')toastMsg('Ya son amigos');else toastMsg('Solicitud de amistad enviada');await refreshProfile(profileId)}catch(e){toastMsg('No se pudo enviar: '+e.message)}},true);
+      }
+    }catch(e){console.error('GOVI amistades:',e);counts.textContent='No se pudieron cargar las amistades. Ejecuta la configuración de GOVI en Supabase.'}
+  }
+  async function renderIncomingRequests(profileId){
+    const user=me();if(!user||user.id!==profileId)return;
+    let box=document.getElementById('goviFriendRequests');if(box)box.remove();
+    const view=document.getElementById('goviProfileView');if(!view)return;
+    try{
+      const {data:requests,error}=await client().from('govi_friendships').select('id,requester_id,created_at').eq('addressee_id',user.id).eq('status','pending').order('created_at',{ascending:false});
+      if(error)throw error;if(!requests?.length)return;
+      const ids=requests.map(r=>r.requester_id);
+      const {data:profiles,error:pe}=await client().from('profiles').select('id,full_name,avatar_url').in('id',ids);if(pe)throw pe;
+      const map=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));
+      box=document.createElement('section');box.id='goviFriendRequests';
+      box.innerHTML='<h3>Solicitudes de amistad ('+requests.length+')</h3>';
+      requests.forEach(r=>{
+        const p=map[r.requester_id]||{},row=document.createElement('div');row.className='govi-friend-request-row';
+        const name=document.createElement('strong');name.textContent=p.full_name||'Usuario GOVI';
+        const actions=document.createElement('div');actions.className='govi-friend-request-actions';
+        const accept=document.createElement('button');accept.textContent='Aceptar';
+        accept.onclick=async()=>{accept.disabled=true;try{const {data,error}=await client().rpc('govi_respond_friend_request',{request_id:r.id,accept_request:true});if(error)throw error;if(data==='follow_required')toastMsg('Se alcanzó el límite de 500 amistades.');else toastMsg('¡Amistad aceptada!');await refreshProfile(user.id)}catch(e){accept.disabled=false;toastMsg('No se pudo aceptar: '+e.message)}};
+        const reject=document.createElement('button');reject.textContent='Rechazar';
+        reject.onclick=async()=>{try{const {error}=await client().rpc('govi_respond_friend_request',{request_id:r.id,accept_request:false});if(error)throw error;await refreshProfile(user.id)}catch(e){toastMsg(e.message)}};
+        actions.append(accept,reject);row.append(name,actions);box.append(row);
+      });
+      const tabs=view.querySelector('#goviProfileTabs');if(tabs)tabs.parentNode.insertBefore(box,tabs);
+    }catch(e){console.error('GOVI solicitudes:',e);toastMsg('No se pudieron cargar las solicitudes. Comprueba la configuración de amistades.')}
+  }
+  const original=window.openGoviProfile;
+  if(typeof original!=='function'){console.error('GOVI: no se encontró openGoviProfile para añadir amistades');return}
+  window.openGoviProfile=async function(userId){
+    await original(userId);
+    await Promise.all([renderFriendControls(userId),renderIncomingRequests(userId)]);
+  };
+  window.goviRefreshFriendControls=()=>{const id=typeof goviProfileId!=='undefined'?goviProfileId:null;if(id)refreshProfile(id)};
+})();
+</script>
+
 </body>
 </html>
 
