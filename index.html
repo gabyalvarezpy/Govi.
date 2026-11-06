@@ -2129,16 +2129,17 @@ async function goviUploadProfileImage(file,type) {
 
   try {
     const ext = (file.name.split('.').pop() || 'jpg')
-      .toLowerCase().replace(/[^a-z0-9]/g,'');
-
-    const path = `${currentUser.id}/profile/${type}-${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      .toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+    // Misma estructura raíz por usuario que ya funciona en publicaciones.
+    const path = `${currentUser.id}/${type}-profile-${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const contentType = goviMediaMime(file);
 
     const {error:uploadError} = await supabaseClient.storage
       .from(BUCKET)
       .upload(path,file,{
         cacheControl:'3600',
         upsert:false,
-        contentType:file.type
+        contentType
       });
 
     if(uploadError) throw uploadError;
