@@ -3989,7 +3989,37 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     if(button.id==='goviHomeViewProfile'||button.matches('.govi-mobile-nav button:last-child')){if(typeof window.goviGoToMyProfile==='function')window.goviGoToMyProfile(button);else showMyProfile();return}
     chooseImage(button.id==='goviHomeEditAvatar'||button.id==='goviProfileAvatarEdit'?'avatar':'cover');
   },true);
-  window.goviGoToMyProfile=showMyProfile;
+  // Navegación directa y verificable al perfil propio desde la barra móvil.
+  // Conserva la vista dinámica y las funciones existentes de perfil/álbumes.
+  window.goviGoToMyProfile=async function(button){
+    try{
+      const user=await getUser();
+      if(!user){if(typeof openModal==='function')openModal('authModal');return}
+      if(typeof currentUser!=='undefined')currentUser=user;
+      const view=document.getElementById('goviProfileView');
+      const feed=document.getElementById('feed');
+      if(!view||!feed)throw new Error('No se encontró la vista de perfil');
+      goviProfileId=user.id;
+      history.replaceState({goviProfile:true},'','#profile-'+user.id);
+      const home=document.getElementById('goviHomeProfile');
+      const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
+      const heading=document.querySelector('.govi-feed-block .govi-section-heading');
+      const composer=document.querySelector('.govi-feed-block .composer');
+      [home,stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
+      view.hidden=false;
+      view.style.setProperty('display','block','important');
+      feed.style.setProperty('display','block','important');
+      document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));
+      if(button)button.classList.add('active');
+      const openProfile=window.openGoviProfile;
+      if(typeof openProfile!=='function')throw new Error('El módulo de perfil no está disponible');
+      await openProfile(user.id);
+      window.scrollTo({top:0,behavior:'instant'});
+    }catch(error){
+      console.error('GOVI: error al abrir perfil propio',error);
+      if(typeof toast==='function')toast('No se pudo abrir tu perfil: '+(error?.message||'Error'));
+    }
+  };
 
   // Restaurar de forma explícita la portada de Inicio en móvil y escritorio.
   function goviShowHomeView(button){
