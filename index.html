@@ -2361,11 +2361,17 @@ window.filterSection = function(section,el) {
   const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
   const feedHeading=document.querySelector('.govi-feed-block .govi-section-heading');
   const composer=document.querySelector('.govi-feed-block .composer');
-  if(home)home.style.display=''; if(stories)stories.style.display='';
-  if(feedHeading)feedHeading.style.display=''; if(composer)composer.style.display='';
-  $('feed').style.display = 'block';
+  const profileView=document.getElementById('goviProfileView');
+  const feed=document.getElementById('feed');
+  if(profileView)profileView.style.display='none';
+  if(home)home.style.setProperty('display','block','important');
+  if(stories)stories.style.display='';
+  if(feedHeading)feedHeading.style.display='';
+  if(composer)composer.style.display='';
+  if(feed)feed.style.display='block';
   history.replaceState(null,'',location.pathname);
   goviOriginalFilterSection(section,el);
+  if(section==='Inicio'&&typeof window.goviSyncHomeProfile==='function')window.goviSyncHomeProfile();
 };
 
 /* Filtro normal y filtro de perfil */
