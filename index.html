@@ -5383,3 +5383,80 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   window.goviReturnToOwnProfile=function(){const viewer=$id('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
 })();
 </script>
+
+
+<script id="govi-profile-final-recovery-v4">
+(function(){
+  function ensureView(){
+    let view=document.getElementById('goviProfileView');
+    const feed=document.getElementById('feed');
+    if(view&&feed)return {view,feed};
+    if(!feed||!feed.parentNode)throw new Error('No se encontró el área de publicaciones');
+    if(view)view.remove();
+    view=document.createElement('section');
+    view.id='goviProfileView';view.className='profile-view';view.style.display='none';
+    view.innerHTML='<div class="panel" style="overflow:hidden"><div class="profile-cover" id="goviCover"></div><div class="profile-info"><div class="profile-avatar" id="goviAvatar">G</div><div class="profile-name" id="goviProfileName">Gabriel</div><div class="profile-description" id="goviProfileDescription">Tu mundo. Tu gente.</div><div class="profile-controls" id="goviProfileControls"></div></div></div><div class="govi-profile-albums-title">Álbumes</div><div class="govi-profile-tabs" id="goviProfileTabs"><button type="button" class="active" data-profile-filter="all">▦ <span>Publicaciones</span></button><button type="button" data-profile-filter="image">▧ <span>Fotos</span></button><button type="button" data-profile-filter="video">▷ <span>Vídeos</span></button></div>';
+    feed.parentNode.insertBefore(view,feed);
+    return {view,feed};
+  }
+  function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  async function openMine(button){
+    const client=(typeof supabaseClient!=='undefined'&&supabaseClient)||window.supabaseClient;
+    let user=(typeof currentUser!=='undefined'&&currentUser)||null;
+    if(!user&&client){const session=await client.auth.getSession();if(session.error)throw session.error;user=session.data?.session?.user||null}
+    if(!user){if(typeof openModal==='function')openModal('authModal');return}
+    if(typeof currentUser!=='undefined')currentUser=user;
+    const {view,feed}=ensureView();
+    if(typeof goviProfileId!=='undefined')goviProfileId=user.id;
+    const home=document.getElementById('goviHomeProfile');
+    const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
+    const heading=document.querySelector('.govi-feed-block .govi-section-heading');
+    const composer=document.querySelector('.govi-feed-block .composer');
+    [home,stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
+    view.hidden=false;view.style.setProperty('display','block','important');feed.style.display='block';
+    document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));
+    if(button)button.classList.add('active');
+    try{history.replaceState({goviProfile:true},'','#profile-'+user.id)}catch(_){}
+    const {data:p,error:pe}=await client.from('profiles').select('id,full_name,display_name,avatar_url,cover_url,bio').eq('id',user.id).maybeSingle();
+    if(pe)throw pe;
+    const profile=p||{};
+    const name=profile.display_name||profile.full_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'Gabriel';
+    const cover=document.getElementById('goviCover'),avatar=document.getElementById('goviAvatar');
+    document.getElementById('goviProfileName').textContent=name;
+    document.getElementById('goviProfileDescription').textContent=profile.bio||'Tu perfil en GOVI · Tu mundo. Tu gente.';
+    cover.innerHTML=profile.cover_url?'<img src="'+esc(profile.cover_url)+'" alt="Portada" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in">':'<div style="height:100%;display:grid;place-items:center;color:#e8c66a">Tu portada en GOVI</div>';
+    avatar.innerHTML=profile.avatar_url?'<img src="'+esc(profile.avatar_url)+'" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;cursor:zoom-in">':'<span>G</span>';
+    const lightbox=()=>{
+      let box=document.getElementById('goviOwnImageViewer');
+      if(!box){box=document.createElement('div');box.id='goviOwnImageViewer';box.style.cssText='display:none;position:fixed;inset:0;z-index:16000;background:#000e;align-items:center;justify-content:center;padding:16px';box.innerHTML='<button style="position:absolute;right:18px;top:18px;border:1px solid #c99a32;background:#17130a;color:#f5d98c;border-radius:50%;width:44px;height:44px;font-size:26px">×</button><img style="max-width:94vw;max-height:86vh;object-fit:contain">';box.addEventListener('click',e=>{if(e.target===box||e.target.tagName==='BUTTON')box.style.display='none'});document.body.append(box)}
+      return box;
+    };
+    if(profile.cover_url)cover.onclick=()=>{const b=lightbox();b.querySelector('img').src=profile.cover_url;b.style.display='flex'};
+    if(profile.avatar_url)avatar.onclick=()=>{const b=lightbox();b.querySelector('img').src=profile.avatar_url;b.style.display='flex'};
+    const controls=document.getElementById('goviProfileControls');
+    controls.innerHTML='<button type="button" data-own-avatar>📷 Foto de perfil</button><button type="button" data-own-cover>🖼️ Editar portada</button>';
+    controls.querySelector('[data-own-avatar]').onclick=()=>document.getElementById('goviAvatarInput')?.click();
+    controls.querySelector('[data-own-cover]').onclick=()=>document.getElementById('goviCoverInput')?.click();
+    const {data:posts,error:postError}=await client.from('posts').select('id,user_id,content,media_url,media_type,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
+    if(postError)throw postError;
+    const tabs=document.getElementById('goviProfileTabs');
+    const render=(filter)=>{
+      tabs.querySelectorAll('[data-profile-filter]').forEach(b=>b.classList.toggle('active',b.dataset.profileFilter===filter));
+      feed.replaceChildren();
+      const list=(posts||[]).filter(post=>filter==='all'||(filter==='image'&&['image','photo','picture'].includes(String(post.media_type||'').toLowerCase()))||(filter==='video'&&String(post.media_type||'').toLowerCase().includes('video')));
+      if(!list.length){const empty=document.createElement('div');empty.className='panel profile-empty';empty.textContent=filter==='image'?'Todavía no hay fotos en este álbum.':filter==='video'?'Todavía no hay vídeos en este álbum.':'Todavía no hay publicaciones en este perfil.';feed.append(empty);return}
+      list.forEach(post=>{
+        const card=document.createElement('article');card.className='panel';card.style.cssText='padding:16px;margin:14px 0;border:1px solid #80632f55;border-radius:16px;background:#111';
+        const head=document.createElement('b');head.textContent=name+' · Tú';card.append(head);
+        if(post.content){const p=document.createElement('p');p.textContent=post.content;p.style.cssText='white-space:pre-wrap;margin:12px 0';card.append(p)}
+        if(post.media_url){const video=String(post.media_type||'').toLowerCase().includes('video');const media=document.createElement(video?'video':'img');media.src=post.media_url;if(video){media.controls=true;media.playsInline=true}media.style.cssText='display:block;width:100%;max-height:520px;object-fit:contain;border-radius:12px;background:#050505;margin-top:10px';card.append(media)}
+        feed.append(card);
+      });
+    };
+    if(!tabs.dataset.ownTabsV4){tabs.dataset.ownTabsV4='1';tabs.addEventListener('click',e=>{const b=e.target.closest('[data-profile-filter]');if(b)render(b.dataset.profileFilter)})}
+    render('all');window.scrollTo(0,0);
+  }
+  window.goviGoToMyProfile=async function(button){try{await openMine(button)}catch(e){console.error('GOVI perfil final:',e);if(typeof toast==='function')toast('No se pudo cargar tu perfil: '+(e.message||'Error'))}};
+  window.goviReturnToOwnProfile=function(){const viewer=document.getElementById('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
+})();
+</script>
