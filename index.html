@@ -23,7 +23,7 @@ button,input,textarea{font:inherit}button{cursor:pointer}
 .story-name{display:block;max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .story-loading{font-size:11px;color:#aaa18d;padding:18px 4px}
 .post .avatar,.comment-avatar{position:relative}
-.post .avatar::after,.comment-avatar::after{content:'＋';position:absolute;right:-4px;bottom:-4px;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#d9b65c;color:#17120a;border:2px solid var(--panel);font-size:18px;font-weight:900;line-height:1;z-index:2;pointer-events:none}
+.post .avatar::after{content:none!important;display:none!important}.comment-avatar::after{content:'＋';position:absolute;right:-4px;bottom:-4px;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#d9b65c;color:#17120a;border:2px solid var(--panel);font-size:18px;font-weight:900;line-height:1;z-index:2;pointer-events:none}
 #goviProfileActionMenu{display:none;position:fixed;inset:0;z-index:14000;background:#0009;align-items:center;justify-content:center;padding:20px}
 #goviProfileActionCard{width:min(330px,100%);background:var(--panel);border:1px solid #a9853e;border-radius:18px;padding:18px;box-shadow:0 15px 50px #0008}
 #goviProfileActionCard h3{margin:0 0 14px;color:var(--text)}
