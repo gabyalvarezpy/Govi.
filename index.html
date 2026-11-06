@@ -3990,6 +3990,38 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     chooseImage(button.id==='goviHomeEditAvatar'||button.id==='goviProfileAvatarEdit'?'avatar':'cover');
   },true);
   window.goviGoToMyProfile=showMyProfile;
+
+  // Restaurar de forma explícita la portada de Inicio en móvil y escritorio.
+  function goviShowHomeView(button){
+    goviProfileId=null;
+    history.replaceState({goviHome:true},'',location.pathname);
+    const home=document.getElementById('goviHomeProfile');
+    const view=document.getElementById('goviProfileView');
+    const feed=document.getElementById('feed');
+    const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
+    const heading=document.querySelector('.govi-feed-block .govi-section-heading');
+    const composer=document.querySelector('.govi-feed-block .composer');
+    if(home){home.hidden=false;home.style.setProperty('display','block','important');}
+    if(view)view.style.setProperty('display','none','important');
+    if(stories)stories.style.removeProperty('display');
+    if(heading)heading.style.removeProperty('display');
+    if(composer)composer.style.removeProperty('display');
+    if(feed)feed.style.display='block';
+    document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(x=>x.classList.remove('active'));
+    if(button)button.classList.add('active');
+    if(typeof window.goviSyncHomeProfile==='function')window.goviSyncHomeProfile();
+    if(typeof window.filterSection==='function')window.filterSection('Inicio',button||null);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  window.goviShowHomeView=goviShowHomeView;
+  document.addEventListener('click',function(event){
+    const target=event.target instanceof Element?event.target:null;if(!target)return;
+    const button=target.closest('.govi-mobile-nav button:first-child,.govi-sidebar .nav-item:first-of-type');
+    if(!button)return;
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+    goviShowHomeView(button);
+  },true);
+  if(!location.hash.startsWith('#profile-'))setTimeout(()=>goviShowHomeView(document.querySelector('.govi-mobile-nav button:first-child')),0);
 })();
 </script>
 </body>
