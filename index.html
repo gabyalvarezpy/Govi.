@@ -3958,6 +3958,34 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     await openProfile(user.id);
     window.scrollTo({top:0,behavior:'smooth'});
   }
+  // Puente único a nivel documento: detecta la foto elegida incluso si el
+  // input fue recreado por la vista. Se ejecuta antes de los listeners antiguos.
+  if(!window.__goviProfileFileChangeV2){
+    window.__goviProfileFileChangeV2=true;
+    document.addEventListener('change',async function(event){
+      const input=event.target;
+      if(!input||!['goviCoverInput','goviAvatarInput'].includes(input.id))return;
+      const file=input.files&&input.files[0];
+      if(!file)return;
+      event.stopImmediatePropagation();
+      try{
+        if(typeof toast==='function')toast('Imagen recibida. Preparando subida…');
+        const user=await getUser();
+        if(!user)throw new Error('La sesión no está activa. Inicia sesión y vuelve a intentarlo.');
+        if(typeof currentUser!=='undefined')currentUser=user;
+        if(typeof goviUploadProfileImage!=='function')throw new Error('No se encontró el módulo de subida de imágenes.');
+        await goviUploadProfileImage(file,input.id==='goviCoverInput'?'cover':'avatar');
+      }catch(error){
+        console.error('GOVI selección de portada/foto:',error);
+        const msg=error?.message||'No se pudo procesar la imagen';
+        if(typeof toast==='function')toast(msg);
+        window.alert('GOVI: '+msg);
+      }finally{
+        try{input.value=''}catch(_){}
+      }
+    },true);
+  }
+
   // Capturar la selección del archivo antes de los listeners antiguos.
   // Recuperar la sesión y subir la imagen de forma explícita para avatar y portada.
   ['goviCoverInput','goviAvatarInput'].forEach((id)=>{
