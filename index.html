@@ -1883,7 +1883,8 @@ async function openGoviProfile(userId) {
   // Marcar navegación y mostrar el perfil inmediatamente, sin esperar consultas.
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.textContent.includes('Mi perfil')));
 
-  if(goviProfileView) goviProfileView.style.display = 'block';
+  const profileViewElement = document.getElementById('goviProfileView');
+  if(profileViewElement) profileViewElement.style.display = 'block';
   const profileFeed=$('feed');
   if(profileFeed) profileFeed.style.display = 'block';
   $('goviProfileName').textContent = 'Cargando perfil…';
