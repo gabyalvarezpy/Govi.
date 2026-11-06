@@ -810,8 +810,8 @@ body{display:block!important;margin:0!important;padding:0!important;overflow-x:h
 #goviStoryContent{z-index:6!important}
 </style>
 <style id="govi-story-controls-link-swipe">
-#goviStoryReturnProfile{left:12px!important;right:auto!important;bottom:14px!important;z-index:80!important;display:block!important;visibility:visible!important;pointer-events:auto!important}
-#goviStoryDelete{right:12px!important;left:auto!important;bottom:14px!important;z-index:80!important;pointer-events:auto!important}
+#goviStoryReturnProfile{left:12px!important;right:auto!important;bottom:calc(28px + env(safe-area-inset-bottom, 0px))!important;z-index:80!important;display:block!important;visibility:visible!important;pointer-events:auto!important}
+#goviStoryDelete{right:12px!important;left:auto!important;bottom:calc(28px + env(safe-area-inset-bottom, 0px))!important;z-index:80!important;pointer-events:auto!important}
 #goviStoryPrev,#goviStoryNext{position:absolute!important;top:50%!important;transform:translateY(-50%)!important;z-index:75!important;place-items:center!important;width:42px!important;height:64px!important;border-radius:14px!important;background:#0008!important;color:#fff!important;border:1px solid #ffffff40!important;font-size:36px!important;pointer-events:auto!important}
 #goviStoryPrev{left:6px!important}#goviStoryNext{right:6px!important}
 #goviStoryCard{touch-action:pan-y!important}
@@ -1493,7 +1493,7 @@ async function goviPublishStory(){
       mediaType=goviIsVideoFile(file)?'video':'image';
       const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'')||'bin';
       path=currentUser.id+'/stories/'+Date.now()+'-'+crypto.randomUUID()+'.'+ext;
-      const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:goviVideoMime(file)});if(upError)throw upError;
+      const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||goviVideoMime(file)});if(upError)throw upError;
       mediaUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     }else if(link)mediaType='link';
     const audioFile=$('goviStoryAudioFile')?.files?.[0];if(audioFile){if(audioFile.size>15*1024*1024)throw new Error('La música no puede superar 15 MB');audioPath=currentUser.id+'/stories/audio-'+Date.now()+'-'+crypto.randomUUID()+'.'+(audioFile.name.split('.').pop()||'mp3').toLowerCase();const {error:audioError}=await supabaseClient.storage.from(BUCKET).upload(audioPath,audioFile,{cacheControl:'3600',upsert:false,contentType:audioFile.type});if(audioError)throw audioError;audioUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(audioPath).data.publicUrl}
