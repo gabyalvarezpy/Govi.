@@ -3348,23 +3348,43 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 })();
 </script>
 <script id="govi-home-profile-sync">
-(async function(){
+(function(){
  const cover=document.getElementById('goviHomeCover'),avatar=document.getElementById('goviHomeAvatar'),name=document.getElementById('goviHomeName'),bio=document.getElementById('goviHomeBio'),edit=document.getElementById('goviHomeEditProfile');
  if(!cover||!window.supabaseClient)return;
- async function sync(){
+ let running=false,lastUser='';
+ async function sync(eventSession){
+  if(running)return;running=true;
   try{
-   const {data:{session}}=await window.supabaseClient.auth.getSession();const user=session?.user;
-   if(!user){name.textContent='Tu perfil te espera';avatar.textContent='G';avatar.innerHTML='G';bio.textContent='Inicia sesión y comparte tu mundo con la comunidad.';cover.style.backgroundImage='';edit.textContent='Crear mi perfil';return}
-   const {data}=await window.supabaseClient.from('profiles').select('full_name,avatar_url,cover_url').eq('id',user.id).maybeSingle();
+   let user=eventSession?.user||null;
+   if(!user){
+    for(let attempt=0;attempt<5&&!user;attempt++){
+     const result=await window.supabaseClient.auth.getSession();
+     if(result?.error)throw result.error;
+     user=result?.data?.session?.user||((typeof currentUser!=='undefined')?currentUser:null);
+     if(!user&&attempt<4)await new Promise(resolve=>setTimeout(resolve,350));
+    }
+   }
+   if(!user){
+    name.textContent='Tu perfil te espera';avatar.textContent='G';avatar.innerHTML='G';
+    bio.textContent='Inicia sesión y comparte tu mundo con la comunidad.';
+    cover.style.backgroundImage='';edit.textContent='Crear mi perfil';lastUser='';return;
+   }
+   if(typeof currentUser!=='undefined')currentUser=user;
+   const {data,error}=await window.supabaseClient.from('profiles').select('full_name,avatar_url,cover_url').eq('id',user.id).maybeSingle();
+   if(error)throw error;
    const display=data?.full_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'Usuario GOVI';
    name.textContent=display;bio.textContent='Tu perfil en GOVI · Tu mundo. Tu gente.';
    avatar.innerHTML=data?.avatar_url?'<img src="'+String(data.avatar_url).replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" alt="Foto de perfil">':String(display.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'G');
-   if(data?.cover_url){cover.style.backgroundImage='url("'+String(data.cover_url).replace(/"/g,'%22')+'")';}
-   else cover.style.backgroundImage='linear-gradient(125deg,#20170c,#74501f 48%,#15171b)';
-   edit.textContent='Editar portada';
+   cover.style.backgroundImage=data?.cover_url?'url("'+String(data.cover_url).replace(/"/g,'%22')+'")':'linear-gradient(125deg,#20170c,#74501f 48%,#15171b)';
+   edit.textContent='Editar portada';lastUser=user.id;
   }catch(e){console.warn('GOVI home profile:',e)}
+  finally{running=false}
  }
- await sync();window.supabaseClient.auth.onAuthStateChange(()=>setTimeout(sync,0));
+ window.goviSyncHomeProfile=sync;
+ sync();
+ window.supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||session?.user)setTimeout(()=>sync(session),0)});
+ window.addEventListener('focus',()=>sync());
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
 })();
 </script>
 <style id="govi-home-premium-v2">
