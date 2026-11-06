@@ -46,6 +46,7 @@ declare me uuid:=auth.uid(); mine_count integer; theirs_count integer;
 begin
   if me is null then raise exception 'Inicia sesión para agregar amistades'; end if;
   if target_user_id is null or target_user_id=me then raise exception 'No puedes agregarte a ti mismo'; end if;
+  if me::text < target_user_id::text then perform pg_advisory_xact_lock(hashtextextended(me::text,0)); perform pg_advisory_xact_lock(hashtextextended(target_user_id::text,0)); else perform pg_advisory_xact_lock(hashtextextended(target_user_id::text,0)); perform pg_advisory_xact_lock(hashtextextended(me::text,0)); end if;
   if not exists(select 1 from public.profiles where id=target_user_id) then raise exception 'No se encontró ese perfil'; end if;
   select count(*) into mine_count from public.govi_friendships where status='accepted' and (requester_id=me or addressee_id=me);
   select count(*) into theirs_count from public.govi_friendships where status='accepted' and (requester_id=target_user_id or addressee_id=target_user_id);
@@ -65,6 +66,7 @@ begin
   if me is null then raise exception 'Inicia sesión'; end if;
   select * into req from public.govi_friendships where id=request_id and addressee_id=me and status='pending' for update;
   if not found then raise exception 'La solicitud ya no está disponible'; end if;
+  if me::text < req.requester_id::text then perform pg_advisory_xact_lock(hashtextextended(me::text,0)); perform pg_advisory_xact_lock(hashtextextended(req.requester_id::text,0)); else perform pg_advisory_xact_lock(hashtextextended(req.requester_id::text,0)); perform pg_advisory_xact_lock(hashtextextended(me::text,0)); end if;
   if not accept_request then
     update public.govi_friendships set status='rejected',updated_at=now() where id=request_id;
     return 'rejected';
