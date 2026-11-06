@@ -3975,11 +3975,19 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     }
     return input;
   }
-  async function chooseImage(kind){
-    const user=await getUser();
-    if(!user){if(typeof openModal==='function')openModal('authModal');return}
+  function chooseImage(kind){
+    // Abrir el selector dentro del mismo gesto del usuario. Esperar getSession()
+    // antes de input.click() hace que Android/Chrome bloquee el selector.
     const input=getImageInput(kind);
-    input.click();
+    const user=(typeof currentUser!=='undefined'&&currentUser)?currentUser:null;
+    if(user){input.click();return}
+    getUser().then(found=>{
+      if(!found){if(typeof openModal==='function')openModal('authModal');return}
+      if(typeof currentUser!=='undefined')currentUser=found;
+      // Si la sesión no estaba disponible de forma síncrona, informar y pedir
+      // un segundo toque para conservar la activación del selector de archivos.
+      if(typeof toast==='function')toast('Sesión recuperada. Toca nuevamente para elegir la imagen.');
+    }).catch(error=>console.error('GOVI selector de imagen:',error));
   }
   document.addEventListener('click',function(event){
     const target=event.target instanceof Element?event.target:null;if(!target)return;
