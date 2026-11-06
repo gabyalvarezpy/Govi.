@@ -2342,10 +2342,7 @@ window.goviGoToMyProfile = async function(el) {
   } catch(error) { console.error('GOVI perfil móvil:',error); toast('No se pudo abrir tu perfil: '+(error.message||'Error desconocido')); }
 };
 
-/* Navegación móvil: enlace directo y resistente al botón Perfil */
-document.querySelector('.govi-mobile-nav button:last-child')?.addEventListener('click',function(event){
-  event.preventDefault(); event.stopImmediatePropagation(); window.goviGoToMyProfile(this);
-},true);
+/* El controlador único de navegación móvil está al final del módulo de perfil. */
 /* Navegación */
 window.filterSection = function(section,el) {
   if(section === 'Mi perfil') {
@@ -2394,13 +2391,18 @@ refreshSession = async function() {
     await goviUpdateAccountAvatars();
   } else {
     goviProfileId = null;
-    $('goviProfileView').style.display = 'none';
-    $('feed').style.display = 'block';
+    const profileView=document.getElementById('goviProfileView');
+    const feed=document.getElementById('feed');
+    if(profileView) profileView.style.display='none';
+    if(feed) feed.style.display='block';
   }
 
-  if(location.hash.startsWith('#profile-')) {
+  if(currentUser && location.hash.startsWith('#profile-')) {
     const id = location.hash.replace('#profile-','');
-    if(id) await openGoviProfile(id);
+    if(id) {
+      goviProfileId=id;
+      await openGoviProfile(id);
+    }
   }
 };
 
@@ -3905,6 +3907,8 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     const user=await getUser();
     if(!user){if(typeof openModal==='function')openModal('authModal');else toast('Inicia sesión para ver tu perfil');return}
     if(typeof currentUser!=='undefined') currentUser=user;
+    goviProfileId=user.id;
+    history.replaceState({goviProfile:true},'','#profile-'+user.id);
     const home=document.getElementById('goviHomeProfile');
     const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
     const heading=document.querySelector('.govi-feed-block .govi-section-heading');
