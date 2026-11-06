@@ -2387,26 +2387,13 @@ window.addEventListener('load',()=>{
 /* Editor de recorte de fotos GOVI */
 let goviCropState=null;
 function goviOpenCropEditor(file,type){
-  if(!file||!file.type||!file.type.startsWith('image/')){toast('Elegí una foto JPG, PNG o WEBP.');return}
-  const image=new Image(),url=URL.createObjectURL(file);
-  image.onload=()=>{
-    try{
-      const iw=image.naturalWidth||image.width,ih=image.naturalHeight||image.height;
-      if(!iw||!ih)throw new Error('La imagen no tiene dimensiones válidas');
-      const ratio=type==='avatar'?1:3,canvas=document.getElementById('goviCropCanvas');
-      canvas.width=type==='avatar'?600:900;canvas.height=Math.round(canvas.width/ratio);
-      canvas.style.cssText='display:block;width:100%;height:auto;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none';
-      const modal=document.getElementById('goviCropModal');
-      modal.style.display='flex';document.getElementById('goviCropTitle').textContent=type==='avatar'?'Ajustar foto de perfil':'Ajustar foto de portada';
-      const zoom=document.getElementById('goviCropZoom');zoom.value=1;
-      const scale=Math.max(canvas.width/iw,canvas.height/ih);
-      goviCropState={image,type,zoom:1,x:(canvas.width-iw*scale)/2,y:(canvas.height-ih*scale)/2,base:scale,drag:false,lastX:0,lastY:0};
-      goviDrawCrop();
-    }catch(error){console.error('GOVI recorte:',error);toast('No se pudo preparar la vista previa de la foto.')}
-    finally{URL.revokeObjectURL(url)}
-  };
-  image.onerror=()=>{URL.revokeObjectURL(url);toast('No se pudo abrir esa imagen. Probá con JPG o PNG.')};
-  image.src=url;
+  // En móvil evitamos el lienzo de recorte, que está abriendo vacío.
+  // La imagen original se sube directamente y se muestra en el perfil.
+  if(!file || !file.type || !file.type.startsWith('image/')){
+    toast('Selecciona una imagen válida');
+    return;
+  }
+  goviUploadProfileImage(file,type);
 }
 function goviDrawCrop(){
   if(!goviCropState)return;
