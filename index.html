@@ -1605,20 +1605,38 @@ function goviRenderStory(){
   content.style.display='none';content.replaceChildren();content.style.zIndex='6';img.style.display='none';video.style.display='none';img.style.transform='none';video.style.transform='none';img.style.zIndex='1';video.style.zIndex='1';
   if(goviIsVideoStory(item)&&item.media_url){video.style.display='block';video.controls=true;video.src=item.media_url;video.muted=false;video.volume=1;video.load();video.play().catch(()=>{video.muted=true;video.play().catch(()=>{})})}
   else if(item.media_url&&!goviIsVideoStory(item)){
-    // Al volver a abrir una historia, pedir primero a Supabase una URL firmada
-    // para el archivo guardado; la URL pública queda como respaldo.
-    img.style.display='block';img.onerror=null;img.onload=()=>{img.dataset.goviLoaded='1'};img.dataset.goviLoaded='0';
-    img.onerror=()=>{
-      if(img.dataset.goviPublicTried==='1'){console.error('GOVI: imagen no disponible',item.media_path,item.media_url);toast('No se pudo recuperar la foto guardada.');return}
-      img.dataset.goviPublicTried='1';img.src=item.media_url;
+    // Recuperar el objeto almacenado cada vez que se abre la historia.
+    // Primero descargar el archivo como Blob (no reutilizar una vista previa vieja);
+    // si Storage lo impide, probar URL firmada y finalmente URL pública.
+    img.style.display='block';
+    if(window.__goviStoryObjectUrl){URL.revokeObjectURL(window.__goviStoryObjectUrl);window.__goviStoryObjectUrl=null}
+    img.onload=null;img.onerror=null;img.removeAttribute('src');img.dataset.goviLoaded='0';
+    let fallbackTried=false;
+    const useFallback=async()=>{
+      if(fallbackTried)return;fallbackTried=true;
+      try{
+        if(item.media_path){
+          const signed=await supabaseClient.storage.from(BUCKET).createSignedUrl(item.media_path,3600);
+          if(!signed.error&&signed.data?.signedUrl){img.src=signed.data.signedUrl;return}
+          console.warn('GOVI story signed URL:',signed.error);
+        }
+      }catch(err){console.warn('GOVI story signed URL:',err)}
+      img.src=item.media_url;
     };
-    img.src=item.media_url;
-    if(item.media_path){
-      supabaseClient.storage.from(BUCKET).createSignedUrl(item.media_path,3600).then(({data,error})=>{
-        if(!error&&data?.signedUrl&&img.isConnected&&img.dataset.goviLoaded!=='1')img.src=data.signedUrl;
-        else if(error)console.warn('GOVI: no se pudo firmar la imagen; se probará el enlace público',error);
-      }).catch(error=>console.warn('GOVI: error al recuperar imagen firmada',error));
-    }
+    img.onerror=()=>{if(!fallbackTried){useFallback()}else{console.error('GOVI: fallaron descarga, URL firmada y URL pública',item.media_path,item.media_url);toast('No se pudo recuperar el archivo guardado de esta historia.')}};
+    (async()=>{
+      try{
+        if(item.media_path){
+          const result=await supabaseClient.storage.from(BUCKET).download(item.media_path);
+          if(!result.error&&result.data){
+            const blobUrl=URL.createObjectURL(result.data);
+            window.__goviStoryObjectUrl=blobUrl;img.src=blobUrl;return;
+          }
+          console.warn('GOVI story download:',result.error);
+        }
+        await useFallback();
+      }catch(err){console.error('GOVI story download:',err);await useFallback()}
+    })();
   }
   // Un vídeo ya contiene su propia pista de sonido. No reproducir además
   // story_audio_url encima, porque duplica el audio de la historia.
