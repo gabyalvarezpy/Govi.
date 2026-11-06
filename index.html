@@ -5288,6 +5288,22 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     }catch(error){console.error('GOVI perfil:',error);if(typeof toast==='function')toast('No se pudo abrir el perfil: '+(error.message||'Error'))}
   };
   // El botón "Volver a mi perfil" de historias utiliza exactamente la misma navegación.
+
+  // Keep the original social controls active while staying on the profile.
+  const refreshProfileAfterAction=async()=>{if(window.goviProfileViewingUserId&&typeof goviLoadProfilePosts==='function')await goviLoadProfilePosts(window.goviProfileViewingUserId)};
+  if(typeof toggleLike==='function'&&!window.__goviProfileActionHooksV5){
+    window.__goviProfileActionHooksV5=true;
+    const originalToggleLike=toggleLike;
+    toggleLike=async function(id){await originalToggleLike(id);await refreshProfileAfterAction()};
+    const originalAddComment=addComment;
+    addComment=async function(id,button,parentId){await originalAddComment(id,button,parentId);await refreshProfileAfterAction()};
+    const originalEditComment=editComment;
+    editComment=async function(id,postId){await originalEditComment(id,postId);await refreshProfileAfterAction()};
+    const originalDeleteComment=deleteComment;
+    deleteComment=async function(id,postId){await originalDeleteComment(id,postId);await refreshProfileAfterAction()};
+    const originalManagePost=managePost;
+    managePost=async function(id){await originalManagePost(id);await refreshProfileAfterAction()};
+  }
   window.goviReturnToOwnProfile=function(){const viewer=document.getElementById('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
 })();
 </script>
@@ -5437,22 +5453,34 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     controls.innerHTML='<button type="button" data-own-avatar>📷 Foto de perfil</button><button type="button" data-own-cover>🖼️ Editar portada</button>';
     controls.querySelector('[data-own-avatar]').onclick=()=>document.getElementById('goviAvatarInput')?.click();
     controls.querySelector('[data-own-cover]').onclick=()=>document.getElementById('goviCoverInput')?.click();
-    const {data:posts,error:postError}=await client.from('posts').select('id,user_id,content,media_url,media_type,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
+    const {data:posts,error:postError}=await client.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
     if(postError)throw postError;
-    const tabs=document.getElementById('goviProfileTabs');
+    const ids=(posts||[]).map(post=>post.id);
+    let likes=[],comments=[];
+    if(ids.length){
+      const [likeResult,commentResult]=await Promise.all([
+        client.from('post_likes').select('post_id,user_id').in('post_id',ids),
+        client.from('post_comments').select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id').in('post_id',ids).order('created_at',{ascending:true})
+      ]);
+      if(likeResult.error)throw likeResult.error;
+      if(commentResult.error)throw commentResult.error;
+      likes=likeResult.data||[];comments=commentResult.data||[];
+    }
+    const userIds=[...new Set([...(posts||[]).map(post=>post.user_id),...likes.map(x=>x.user_id),...comments.map(x=>x.user_id)])];
+    const profiles={};
+    if(userIds.length){
+      const {data:profileRows,error:profilesError}=await client.from('profiles').select('id,full_name,avatar_url').in('id',userIds);
+      if(profilesError)throw profilesError;
+      (profileRows||[]).forEach(row=>profiles[row.id]={name:row.full_name,avatar:row.avatar_url});
+    }
     const render=(filter)=>{
       tabs.querySelectorAll('[data-profile-filter]').forEach(b=>b.classList.toggle('active',b.dataset.profileFilter===filter));
       feed.replaceChildren();
-      const list=(posts||[]).filter(post=>filter==='all'||(filter==='image'&&['image','photo','picture'].includes(String(post.media_type||'').toLowerCase()))||(filter==='video'&&String(post.media_type||'').toLowerCase().includes('video')));
+      const list=(posts||[]).filter(post=>filter==='all'||(filter==='image'&&String(post.media_type||'').toLowerCase()==='image')||(filter==='video'&&String(post.media_type||'').toLowerCase()==='video'));
       if(!list.length){const empty=document.createElement('div');empty.className='panel profile-empty';empty.textContent=filter==='image'?'Todavía no hay fotos en este álbum.':filter==='video'?'Todavía no hay vídeos en este álbum.':'Todavía no hay publicaciones en este perfil.';feed.append(empty);return}
-      list.forEach(post=>{
-        const card=document.createElement('article');card.className='panel';card.style.cssText='padding:16px;margin:14px 0;border:1px solid #80632f55;border-radius:16px;background:#111';
-        const head=document.createElement('b');head.textContent=name+' · Tú';card.append(head);
-        if(post.content){const p=document.createElement('p');p.textContent=post.content;p.style.cssText='white-space:pre-wrap;margin:12px 0';card.append(p)}
-        if(post.media_url){const video=String(post.media_type||'').toLowerCase().includes('video');const media=document.createElement(video?'video':'img');media.src=post.media_url;if(video){media.controls=true;media.playsInline=true}media.style.cssText='display:block;width:100%;max-height:520px;object-fit:contain;border-radius:12px;background:#050505;margin-top:10px';card.append(media)}
-        feed.append(card);
-      });
+      list.forEach(post=>feed.append(renderPost(post,likes,comments,profiles)));
     };
+    window.goviProfileViewingUserId=user.id;
     if(!tabs.dataset.ownTabsV4){tabs.dataset.ownTabsV4='1';tabs.addEventListener('click',e=>{const b=e.target.closest('[data-profile-filter]');if(b)render(b.dataset.profileFilter)})}
     render('all');window.scrollTo(0,0);
   }
