@@ -3958,6 +3958,31 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     await openProfile(user.id);
     window.scrollTo({top:0,behavior:'smooth'});
   }
+  // Capturar la selección del archivo antes de los listeners antiguos.
+  // Recuperar la sesión y subir la imagen de forma explícita para avatar y portada.
+  ['goviCoverInput','goviAvatarInput'].forEach((id)=>{
+    const fileInput=document.getElementById(id);
+    if(!fileInput||fileInput.dataset.goviUploadBridge==='1')return;
+    fileInput.dataset.goviUploadBridge='1';
+    fileInput.addEventListener('change',async function(event){
+      const file=this.files&&this.files[0];
+      if(!file)return;
+      event.stopImmediatePropagation();
+      try{
+        const user=await getUser();
+        if(!user)throw new Error('Tu sesión no está activa. Inicia sesión nuevamente.');
+        if(typeof currentUser!=='undefined')currentUser=user;
+        const kind=id==='goviCoverInput'?'cover':'avatar';
+        await goviUploadProfileImage(file,kind);
+      }catch(error){
+        console.error('GOVI: no se pudo procesar la imagen elegida',error);
+        if(typeof toast==='function')toast(error?.message||'No se pudo procesar la imagen');
+      }finally{
+        this.value='';
+      }
+    },true);
+  });
+
   function getImageInput(kind){
     const id=kind==='cover'?'goviCoverInput':'goviAvatarInput';
     let input=document.getElementById(id);
