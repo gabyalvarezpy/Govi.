@@ -1816,6 +1816,34 @@ goviProfileView.innerHTML = `
 `;
 $('feed').parentNode.insertBefore(goviProfileView, $('feed'));
 
+window.goviGoToMyProfile=async function(button){
+  const view=goviProfileView;
+  const feed=document.getElementById('feed');
+  const home=document.getElementById('goviHomeProfile');
+  if(!view||!feed){console.error('GOVI: perfil dinámico no creado',{view:!!view,feed:!!feed});toast('No se pudo crear la pantalla del perfil');return}
+  try{
+    let user=currentUser;
+    if(!user){const result=await supabaseClient.auth.getSession();user=result?.data?.session?.user||null}
+    if(!user){openModal('authModal');return}
+    currentUser=user;goviProfileId=user.id;
+    if(home)home.style.setProperty('display','none','important');
+    const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
+    const heading=document.querySelector('.govi-feed-block .govi-section-heading');
+    const composer=document.querySelector('.govi-feed-block .composer');
+    [stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
+    view.hidden=false;view.style.setProperty('display','block','important');
+    feed.style.setProperty('display','block','important');
+    document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));
+    if(button)button.classList.add('active');
+    try{history.replaceState({goviProfile:true},'','#profile-'+user.id)}catch(_){}
+    await openGoviProfile(user.id);
+    view.hidden=false;view.style.setProperty('display','block','important');
+    if(home)home.style.setProperty('display','none','important');
+    window.scrollTo(0,0);
+  }catch(error){console.error('GOVI perfil desde botón:',error);toast('Error al abrir perfil: '+(error?.message||'Error desconocido'))}
+};
+
+
 const goviAvatarInput = document.createElement('input');
 goviAvatarInput.type = 'file';
 goviAvatarInput.accept = 'image/jpeg,image/png,image/webp,image/gif';
