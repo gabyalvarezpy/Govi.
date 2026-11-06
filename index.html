@@ -1014,6 +1014,19 @@ function goviVideoMime(file){
   const ext=String(file?.name||'').toLowerCase().split('.').pop();
   return ({mp4:'video/mp4',m4v:'video/mp4',mov:'video/quicktime',webm:'video/webm','3gp':'video/3gpp','3gpp':'video/3gpp',ogv:'video/ogg',mkv:'video/x-matroska',avi:'video/x-msvideo'})[ext]||'application/octet-stream';
 }
+function goviMediaMime(file){
+  const type=String(file?.type||'').toLowerCase();
+  if(type.startsWith('image/')||type.startsWith('video/'))return type;
+  const ext=String(file?.name||'').toLowerCase().split('.').pop().split('?')[0];
+  const mime={
+    jpg:'image/jpeg',jpeg:'image/jpeg',jpe:'image/jpeg',png:'image/png',gif:'image/gif',
+    webp:'image/webp',avif:'image/avif',bmp:'image/bmp',svg:'image/svg+xml',
+    heic:'image/heic',heif:'image/heif',tif:'image/tiff',tiff:'image/tiff',
+    mp4:'video/mp4',m4v:'video/mp4',mov:'video/quicktime',webm:'video/webm',
+    '3gp':'video/3gpp','3gpp':'video/3gpp',ogv:'video/ogg',mkv:'video/x-matroska',avi:'video/x-msvideo'
+  };
+  return mime[ext]||'application/octet-stream';
+}
 function goviIsVideoStory(item){
   return item?.media_type==='video' || goviIsVideoFile({type:'',name:item?.media_path||item?.media_url||''});
 }    
@@ -1493,7 +1506,7 @@ async function goviPublishStory(){
       mediaType=goviIsVideoFile(file)?'video':'image';
       const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'')||'bin';
       path=currentUser.id+'/stories/'+Date.now()+'-'+crypto.randomUUID()+'.'+ext;
-      const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||goviVideoMime(file)});if(upError)throw upError;
+      const {error:upError}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:goviMediaMime(file)});if(upError)throw upError;
       mediaUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     }else if(link)mediaType='link';
     const audioFile=$('goviStoryAudioFile')?.files?.[0];if(audioFile){if(audioFile.size>15*1024*1024)throw new Error('La música no puede superar 15 MB');audioPath=currentUser.id+'/stories/audio-'+Date.now()+'-'+crypto.randomUUID()+'.'+(audioFile.name.split('.').pop()||'mp3').toLowerCase();const {error:audioError}=await supabaseClient.storage.from(BUCKET).upload(audioPath,audioFile,{cacheControl:'3600',upsert:false,contentType:audioFile.type});if(audioError)throw audioError;audioUrl=supabaseClient.storage.from(BUCKET).getPublicUrl(audioPath).data.publicUrl}
