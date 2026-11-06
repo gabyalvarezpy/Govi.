@@ -1603,7 +1603,33 @@ function goviRenderStory(){
   const img=$('goviStoryMedia'),video=$('goviStoryVideo');goviStopStoryPlayback();
   let content=$('goviStoryContent');if(!content){content=document.createElement('div');content.id='goviStoryContent';$('goviStoryCard').appendChild(content)}
   content.style.display='none';content.replaceChildren();content.style.zIndex='6';img.style.display='none';video.style.display='none';img.style.transform='none';video.style.transform='none';img.style.zIndex='1';video.style.zIndex='1';
-  if(goviIsVideoStory(item)&&item.media_url){video.style.display='block';video.controls=true;video.src=item.media_url;video.muted=false;video.volume=1;video.load();video.play().catch(()=>{video.muted=true;video.play().catch(()=>{})})}
+  if(goviIsVideoStory(item)&&(item.media_path||item.media_url)){
+    // Los vídeos también deben recuperarse desde Storage al volver a abrir la historia.
+    // Usar URL firmada (no Blob) para conservar streaming y controles de búsqueda.
+    video.style.display='block';video.controls=true;video.muted=false;video.volume=1;
+    let videoFallbackTried=false;
+    const setVideoSource=async()=>{
+      let source=item.media_url||null;
+      if(item.media_path){
+        try{
+          const signed=await supabaseClient.storage.from(BUCKET).createSignedUrl(item.media_path,3600);
+          if(!signed.error&&signed.data?.signedUrl)source=signed.data.signedUrl;
+          else console.warn('GOVI story video signed URL:',signed.error);
+        }catch(err){console.warn('GOVI story video signed URL:',err)}
+        if(!source)source=supabaseClient.storage.from(BUCKET).getPublicUrl(item.media_path).data.publicUrl;
+      }
+      if(source){video.src=source;video.load();video.play().catch(()=>{video.muted=true;video.play().catch(()=>{})})}
+      else toast('El vídeo no tiene una ruta de archivo válida.');
+    };
+    video.onerror=()=>{
+      if(videoFallbackTried)return;
+      videoFallbackTried=true;
+      const publicUrl=item.media_path?supabaseClient.storage.from(BUCKET).getPublicUrl(item.media_path).data.publicUrl:null;
+      if(publicUrl&&video.src!==publicUrl){video.src=publicUrl;video.load()}
+      else toast('No se pudo recuperar el vídeo guardado de esta historia.');
+    };
+    setVideoSource();
+  }
   else if((item.media_path||item.media_url)&&!goviIsVideoStory(item)){
     // Recuperar el objeto almacenado cada vez que se abre la historia.
     // Primero descargar el archivo como Blob (no reutilizar una vista previa vieja);
