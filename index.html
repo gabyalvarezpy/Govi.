@@ -4087,10 +4087,11 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   // Navegación directa y verificable al perfil propio desde la barra móvil.
   // Conserva la vista dinámica y las funciones existentes de perfil/álbumes.
   window.goviGoToMyProfile=async function(button){
-    const view=document.getElementById('goviProfileView');
+    const view=(typeof goviProfileView!=='undefined'?goviProfileView:document.getElementById('goviProfileView'));
     const feed=document.getElementById('feed');
     const home=document.getElementById('goviHomeProfile');
-    if(!view||!feed){console.error('GOVI: falta el contenedor del perfil');if(typeof toast==='function')toast('No se encontró la pantalla del perfil');return}
+    if(!view||!feed){console.error('GOVI: falta el contenedor del perfil',{view:!!view,feed:!!feed,profileNodes:document.querySelectorAll('#goviProfileView').length});if(typeof toast==='function')toast('No se encontró la pantalla del perfil');return}
+    if(!view.isConnected){console.warn('GOVI: reinsertando contenedor del perfil');feed.parentNode.insertBefore(view,feed)}
     try{
       let user=typeof currentUser!=='undefined'?currentUser:null;
       if(!user)user=await getUser();
