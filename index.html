@@ -4304,7 +4304,9 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
         feed.parentNode.insertBefore(goviProfileView,feed);
       }
       const required=['goviProfileName','goviProfileDescription','goviProfileControls','goviAvatar','goviCover','goviProfileTabs'];
-      if(required.some(id=>!document.getElementById(id))){
+      // Comprobar dentro del contenedor del perfil, no en todo el documento:
+      // otros módulos pueden tener IDs iguales o el perfil puede estar incompleto.
+      if(required.some(id=>!goviProfileView.querySelector('#'+id))){
         goviProfileView.innerHTML=`
           <div class="panel" style="overflow:hidden">
             <div class="profile-cover" id="goviCover"></div>
