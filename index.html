@@ -5473,6 +5473,8 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
       if(profilesError)throw profilesError;
       (profileRows||[]).forEach(row=>profiles[row.id]={name:row.full_name,avatar:row.avatar_url});
     }
+    const tabs=document.getElementById('goviProfileTabs');
+    if(!tabs)throw new Error('No se encontró la pestaña de álbumes');
     const render=(filter)=>{
       tabs.querySelectorAll('[data-profile-filter]').forEach(b=>b.classList.toggle('active',b.dataset.profileFilter===filter));
       feed.replaceChildren();
