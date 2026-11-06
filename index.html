@@ -4289,6 +4289,45 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 })();
 </script>
 
+
+<script id="govi-repair-profile-view-before-open-v1">
+(function(){
+  if(window.__goviRepairProfileViewBeforeOpenV1)return;
+  window.__goviRepairProfileViewBeforeOpenV1=true;
+  const previous=window.openGoviProfile;
+  if(typeof previous!=='function')return;
+  window.openGoviProfile=async function(userId){
+    const feed=document.getElementById('feed');
+    const view=document.getElementById('goviProfileView');
+    if(feed&&typeof goviProfileView!=='undefined'){
+      if(!view||!view.isConnected){
+        feed.parentNode.insertBefore(goviProfileView,feed);
+      }
+      const required=['goviProfileName','goviProfileDescription','goviProfileControls','goviAvatar','goviCover','goviProfileTabs'];
+      if(required.some(id=>!document.getElementById(id))){
+        goviProfileView.innerHTML=`
+          <div class="panel" style="overflow:hidden">
+            <div class="profile-cover" id="goviCover"></div>
+            <div class="profile-info">
+              <div class="profile-avatar" id="goviAvatar">G</div>
+              <div class="profile-name" id="goviProfileName">Perfil GOVI</div>
+              <div class="profile-description" id="goviProfileDescription">Tu mundo. Tu gente.</div>
+              <div class="profile-controls" id="goviProfileControls"></div>
+            </div>
+          </div>
+          <div class="govi-profile-albums-title">Álbumes</div>
+          <div class="govi-profile-tabs" id="goviProfileTabs" role="tablist" aria-label="Contenido del perfil">
+            <button type="button" class="active" data-profile-filter="all">▦ <span>Publicaciones</span></button>
+            <button type="button" data-profile-filter="image">▧ <span>Fotos</span></button>
+            <button type="button" data-profile-filter="video">▷ <span>Vídeos</span></button>
+          </div>`;
+      }
+    }
+    return previous(userId);
+  };
+})();
+</script>
+
 </body>
 </html>
 
