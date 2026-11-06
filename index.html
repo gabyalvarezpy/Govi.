@@ -4053,32 +4053,37 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   // Navegación directa y verificable al perfil propio desde la barra móvil.
   // Conserva la vista dinámica y las funciones existentes de perfil/álbumes.
   window.goviGoToMyProfile=async function(button){
+    const view=document.getElementById('goviProfileView');
+    const feed=document.getElementById('feed');
+    const home=document.getElementById('goviHomeProfile');
+    if(!view||!feed){console.error('GOVI: falta el contenedor del perfil');if(typeof toast==='function')toast('No se encontró la pantalla del perfil');return}
     try{
-      const user=await getUser();
+      let user=typeof currentUser!=='undefined'?currentUser:null;
+      if(!user)user=await getUser();
       if(!user){if(typeof openModal==='function')openModal('authModal');return}
       if(typeof currentUser!=='undefined')currentUser=user;
-      const view=document.getElementById('goviProfileView');
-      const feed=document.getElementById('feed');
-      if(!view||!feed)throw new Error('No se encontró la vista de perfil');
       goviProfileId=user.id;
-      history.replaceState({goviProfile:true},'','#profile-'+user.id);
-      const home=document.getElementById('goviHomeProfile');
+      // Primero cambiar la interfaz; el historial del navegador nunca debe impedirlo.
+      if(home){home.hidden=true;home.style.setProperty('display','none','important')}
       const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
       const heading=document.querySelector('.govi-feed-block .govi-section-heading');
       const composer=document.querySelector('.govi-feed-block .composer');
-      [home,stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
-      view.hidden=false;
-      view.style.setProperty('display','block','important');
+      [stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
+      view.hidden=false;view.style.setProperty('display','block','important');
       feed.style.setProperty('display','block','important');
       document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));
       if(button)button.classList.add('active');
+      try{history.replaceState({goviProfile:true},'','#profile-'+user.id)}catch(historyError){console.warn('GOVI: historial no disponible, se continúa sin hash',historyError)}
       const openProfile=window.openGoviProfile;
-      if(typeof openProfile!=='function')throw new Error('El módulo de perfil no está disponible');
-      await openProfile(user.id);
-      window.scrollTo({top:0,behavior:'instant'});
+      if(typeof openProfile==='function')await openProfile(user.id);
+      else throw new Error('El módulo de perfil no está disponible');
+      // Reafirmar visibilidad por si un controlador antiguo restauró Inicio.
+      if(home)home.style.setProperty('display','none','important');
+      view.hidden=false;view.style.setProperty('display','block','important');
+      window.scrollTo(0,0);
     }catch(error){
       console.error('GOVI: error al abrir perfil propio',error);
-      if(typeof toast==='function')toast('No se pudo abrir tu perfil: '+(error?.message||'Error'));
+      if(typeof toast==='function')toast('Error al abrir el perfil: '+(error?.message||String(error)||'Revisá la consola'));
     }
   };
 
