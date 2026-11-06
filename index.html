@@ -3886,11 +3886,13 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     if(composer)composer.style.display='none';
     const view=document.getElementById('goviProfileView');
     const feed=document.getElementById('feed');
-    if(!view||!feed||typeof openGoviProfile!=='function'){toast('No se pudo cargar el perfil. Recarga GOVI e inténtalo otra vez.');return}
+    if(!view||!feed){console.error('GOVI perfil: elementos ausentes',{profileView:!!view,feed:!!feed});toast('No se encontró la pantalla del perfil.');return}
+    const openProfile=window.openGoviProfile;
+    if(typeof openProfile!=='function'){console.error('GOVI perfil: openGoviProfile no está disponible en window');toast('El módulo de perfil no se inició correctamente.');return}
     view.style.display='block';feed.style.display='block';
     document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(b=>b.classList.remove('active'));
     document.querySelector('.govi-mobile-nav button:last-child')?.classList.add('active');
-    await openGoviProfile(user.id);
+    await openProfile(user.id);
     window.scrollTo({top:0,behavior:'smooth'});
   }
   async function chooseImage(kind){
