@@ -4044,10 +4044,16 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   }
   document.addEventListener('click',function(event){
     const target=event.target instanceof Element?event.target:null;if(!target)return;
-    const button=target.closest('#goviHomeViewProfile,#goviHomeEditProfile,#goviHomeEditAvatar,#goviProfileCoverEdit,#goviProfileAvatarEdit,.govi-mobile-nav button:last-child');
-    if(!button)return;
+    const navButton=target.closest('nav.govi-mobile-nav button');
+    const isProfileNav=!!navButton && navButton.textContent.toLowerCase().includes('perfil');
+    const button=target.closest('#goviHomeViewProfile,#goviHomeEditProfile,#goviHomeEditAvatar,#goviProfileCoverEdit,#goviProfileAvatarEdit');
+    if(!button&&!isProfileNav)return;
     event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
-    if(button.id==='goviHomeViewProfile'||button.matches('.govi-mobile-nav button:last-child')){if(typeof window.goviGoToMyProfile==='function')window.goviGoToMyProfile(button);else showMyProfile();return}
+    if(isProfileNav||button?.id==='goviHomeViewProfile'){
+      if(typeof window.goviGoToMyProfile==='function')window.goviGoToMyProfile(navButton||button);
+      else showMyProfile();
+      return;
+    }
     chooseImage(button.id==='goviHomeEditAvatar'||button.id==='goviProfileAvatarEdit'?'avatar':'cover');
   },true);
   // Navegación directa y verificable al perfil propio desde la barra móvil.
