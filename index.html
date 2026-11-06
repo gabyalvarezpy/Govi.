@@ -4328,6 +4328,72 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 })();
 </script>
 
+
+<script id="govi-inline-add-friend-v1">
+(function(){
+  if(window.__goviInlineAddFriendV1)return;
+  window.__goviInlineAddFriendV1=true;
+  const style=document.createElement('style');
+  style.textContent=`
+    .govi-inline-friend{margin-left:8px;padding:5px 9px;border:1px solid #9a7936;border-radius:9px;background:#30250f;color:#f0d78e;font-size:11px;font-weight:800;vertical-align:middle}
+    .govi-inline-friend:disabled{opacity:.65}
+  `;
+  document.head.appendChild(style);
+  const originalRender=renderPost;
+  renderPost=function(post,likes,comments,profiles){
+    const card=originalRender(post,likes,comments,profiles);
+    const me=typeof currentUser!=='undefined'?currentUser:null;
+    if(me&&post.user_id&&post.user_id!==me.id){
+      const author=card.querySelector('.post-author');
+      if(author&&!author.querySelector('.govi-inline-friend')){
+        const button=document.createElement('button');
+        button.type='button';
+        button.className='govi-inline-friend';
+        button.textContent='＋ Agregar';
+        button.dataset.goviFriendTarget=post.user_id;
+        button.setAttribute('aria-label','Agregar como amistad');
+        author.appendChild(button);
+      }
+    }
+    return card;
+  };
+  document.addEventListener('click',async function(event){
+    const button=event.target instanceof Element?event.target.closest('.govi-inline-friend'):null;
+    if(!button)return;
+    event.preventDefault();event.stopPropagation();
+    if(event.stopImmediatePropagation)event.stopImmediatePropagation();
+    const me=typeof currentUser!=='undefined'?currentUser:null;
+    if(!me){if(typeof toast==='function')toast('Inicia sesión para agregar amistades');return}
+    const target=button.dataset.goviFriendTarget;
+    if(!target||target===me.id)return;
+    button.disabled=true;
+    try{
+      const {data,error}=await supabaseClient.rpc('govi_send_friend_request',{target_user_id:target});
+      if(error)throw error;
+      if(data==='follow_required'){
+        const followed=await supabaseClient.rpc('govi_follow_user',{target_user_id:target});
+        if(followed.error)throw followed.error;
+        button.textContent='✓ Siguiendo';
+        if(typeof toast==='function')toast('Este usuario alcanzó 500 amistades. Ahora lo sigues.');
+      }else if(data==='already_friends'){
+        button.textContent='✓ Amigos';
+        if(typeof toast==='function')toast('Ya son amigos');
+      }else if(data==='incoming_request'){
+        button.textContent='Solicitud recibida';
+        if(typeof toast==='function')toast('Este usuario ya te envió una solicitud. Abre su perfil para aceptarla.');
+      }else{
+        button.textContent='Solicitud enviada';
+        if(typeof toast==='function')toast('Solicitud de amistad enviada');
+      }
+    }catch(error){
+      console.error('GOVI agregar amistad:',error);
+      button.disabled=false;
+      if(typeof toast==='function')toast('No se pudo enviar la solicitud: '+(error.message||'Error'));
+    }
+  },true);
+})();
+</script>
+
 </body>
 </html>
 
