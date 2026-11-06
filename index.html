@@ -1070,7 +1070,18 @@ async function publishPost(){
 }    
 async function loadFeed(){    
   const feed=$('feed');feed.innerHTML='<p class="demo-note">Cargando publicaciones…</p>';    
-  const {data:posts,error}=await supabaseClient.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').order('created_at',{ascending:false}).limit(100);    
+  let feedResult;
+  try{
+    feedResult=await Promise.race([
+      supabaseClient.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').order('created_at',{ascending:false}).limit(100),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('La conexión con Supabase tardó demasiado.')),12000))
+    ]);
+  }catch(timeoutError){
+    console.error('GOVI feed timeout:',timeoutError);
+    feed.innerHTML='<p class="demo-note">GOVI no pudo conectar con la base de datos. Comprueba tu conexión y pulsa Recargar.</p><button type="button" onclick="loadFeed()">RECARGAR</button>';
+    return;
+  }
+  const {data:posts,error}=feedResult;    
   if(error){console.error(error);feed.innerHTML='<p class="demo-note">No se pudieron cargar las publicaciones. Comprueba que ejecutaste el SQL de configuración en Supabase.</p>';return}    
   if(!posts?.length){feed.innerHTML='<section class="panel" style="padding:22px;text-align:center"><b>¡Bienvenido a GOVI!</b><p class="demo-note">Todavía no hay publicaciones. Sé el primero en compartir una foto, un vídeo o una idea.</p></section>';return}    
   const ids=posts.map(p=>p.id);    
@@ -1198,11 +1209,25 @@ supabaseClient.auth.onAuthStateChange(()=>{setTimeout(goviLoadStories,0)});
   }catch(error){toast(error.message||'No se pudo completar la operación')}    
   finally{button.disabled=false;button.textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión'}    
 }    
-async function refreshSession(){    
-  const {data:{session}}=await supabaseClient.auth.getSession();currentUser=session?.user||null;    
-  const label=currentUser?.user_metadata?.full_name||currentUser?.user_metadata?.full_name||currentUser?.email||'G';    
-  $('accountButton').textContent=initials(label);$('composerAvatar').textContent=initials(label);    
-  await loadFeed();    
+async function refreshSession(){
+  try{
+    const sessionResult=await Promise.race([
+      supabaseClient.auth.getSession(),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('La sesión tardó demasiado.')),8000))
+    ]);
+    currentUser=sessionResult?.data?.session?.user||null;
+  }catch(sessionError){
+    console.warn('GOVI: sesión no disponible al iniciar:',sessionError);
+    currentUser=null;
+  }
+  const label=currentUser?.user_metadata?.full_name||currentUser?.email||'G';
+  $('accountButton').textContent=initials(label);
+  $('composerAvatar').textContent=initials(label);
+  await loadFeed();
+  if(typeof goviLoadStories==='function'){
+    try{await Promise.race([goviLoadStories(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Historias tardaron demasiado.')),12000))]);}
+    catch(storyError){console.warn('GOVI: no se pudieron cargar las historias:',storyError);}
+  }
 }    
 function filterSection(section,el){activeFilter=section;document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');applyFilter()}    
 function applyFilter(){    
