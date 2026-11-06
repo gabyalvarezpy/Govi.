@@ -5200,3 +5200,46 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
 .govi-profile-story-tile img,.govi-profile-story-tile video{width:100%;height:100%;object-fit:cover}
 @media(max-width:700px){#goviCover.profile-cover,.profile-cover{height:205px!important}#goviProfileView .profile-avatar{width:108px!important;height:108px!important;margin-top:-55px!important}#goviProfileView .profile-info{padding:0 16px 18px!important}#goviProfileView .profile-name{font-size:22px!important}.govi-profile-story-tile{flex-basis:105px!important;height:150px!important}}
 </style>
+
+
+<script id="govi-final-profile-button-fix">
+(function(){
+  window.goviGoToMyProfile = async function(button){
+    try{
+      const client = (typeof supabaseClient !== 'undefined' && supabaseClient) || window.supabaseClient;
+      let user = (typeof currentUser !== 'undefined' && currentUser) || null;
+      if(!user && client){
+        const result = await client.auth.getSession();
+        if(result.error) throw result.error;
+        user = result.data && result.data.session && result.data.session.user;
+      }
+      if(!user){ if(typeof openModal==='function') openModal('authModal'); return; }
+      if(typeof currentUser !== 'undefined') currentUser=user;
+      const view=document.getElementById('goviProfileView');
+      const feed=document.getElementById('feed');
+      if(!view || !feed) throw new Error('No se encontró la pantalla del perfil');
+      const home=document.getElementById('goviHomeProfile');
+      const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
+      const heading=document.querySelector('.govi-feed-block .govi-section-heading');
+      const composer=document.querySelector('.govi-feed-block .composer');
+      [home,stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
+      view.hidden=false;
+      view.style.setProperty('display','block','important');
+      feed.style.setProperty('display','block','important');
+      document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));
+      if(button) button.classList.add('active');
+      history.replaceState({goviProfile:true},'','#profile-'+user.id);
+      const openProfile=window.openGoviProfile;
+      if(typeof openProfile!=='function') throw new Error('El perfil todavía no terminó de cargar');
+      await openProfile(user.id);
+      view.hidden=false;
+      view.style.setProperty('display','block','important');
+      if(home)home.style.setProperty('display','none','important');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }catch(error){
+      console.error('GOVI: botón Mi perfil',error);
+      if(typeof toast==='function') toast('No se pudo abrir el perfil: '+(error.message||'Error'));
+    }
+  };
+})();
+</script>
