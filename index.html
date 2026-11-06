@@ -1855,8 +1855,9 @@ async function openGoviProfile(userId) {
   // Marcar navegación y mostrar el perfil inmediatamente, sin esperar consultas.
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.textContent.includes('Mi perfil')));
 
-  $('goviProfileView').style.display = 'block';
-  $('feed').style.display = 'block';
+  if(goviProfileView) goviProfileView.style.display = 'block';
+  const profileFeed=$('feed');
+  if(profileFeed) profileFeed.style.display = 'block';
   $('goviProfileName').textContent = 'Cargando perfil…';
   $('goviProfileDescription').textContent = 'Tu mundo. Tu gente.';
   $('goviProfileControls').innerHTML = '';
@@ -2168,9 +2169,16 @@ async function goviUploadProfileImage(file,type) {
       }
     }
 
+    // La subida y la actualización de profiles ya terminaron correctamente.
+    // Actualizar el estado local y no presentar un fallo de subida por un error visual posterior.
+    goviCurrentProfile = {...(goviCurrentProfile || {}), id:currentUser.id, [column]:urlData.publicUrl};
     toast(type === 'avatar' ? '¡Foto de perfil actualizada!' : '¡Portada actualizada!');
-    await openGoviProfile(currentUser.id);
-    await goviUpdateAccountAvatars();
+    try {
+      await openGoviProfile(currentUser.id);
+      await goviUpdateAccountAvatars();
+    } catch(refreshError) {
+      console.warn('La imagen se guardó, pero no se pudo refrescar la vista del perfil:',refreshError);
+    }
   } catch(error) {
     console.error('GOVI profile image upload failed:',error);
     const details=[
