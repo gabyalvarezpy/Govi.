@@ -4261,6 +4261,33 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 })();
 </script>
 
+
+<script id="govi-public-profile-tap-fix-v1">
+(function(){
+  if(window.__goviPublicProfileTapFixV1)return;
+  window.__goviPublicProfileTapFixV1=true;
+  document.addEventListener('click',function(event){
+    const target=event.target instanceof Element?event.target:null;
+    if(!target)return;
+    const feed=target.closest('#feed');
+    if(!feed)return;
+    const author=target.closest('[data-user-id]');
+    if(!author)return;
+    const userId=author.dataset.userId;
+    if(!userId)return;
+    event.preventDefault();
+    event.stopPropagation();
+    if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();
+    if(typeof window.openGoviProfile==='function'){
+      window.openGoviProfile(userId).catch(error=>{
+        console.error('GOVI: no se pudo abrir el perfil público',error);
+        if(typeof toast==='function')toast('No se pudo abrir el perfil: '+(error.message||'Error'));
+      });
+    }
+  },true);
+})();
+</script>
+
 </body>
 </html>
 
