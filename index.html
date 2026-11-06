@@ -3892,15 +3892,18 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   window.__goviProfileNavigationRepairV1=true;
   async function getUser(){
     try{
-      if(typeof refreshSession==='function') await refreshSession();
+      // Leer la sesión directamente: no llamar refreshSession desde el botón
+      // Perfil, porque ese flujo también actualiza la interfaz y puede bloquear
+      // la navegación antes de abrir la vista.
       const client = (typeof supabaseClient !== 'undefined' ? supabaseClient : window.supabaseClient);
       if(client){
         const result=await client.auth.getSession();
-        const user=result?.data?.session?.user;
-        if(user && typeof currentUser!=='undefined' && !currentUser) currentUser=user;
+        if(result?.error) throw result.error;
+        const user=result?.data?.session?.user || null;
+        if(user && typeof currentUser!=='undefined') currentUser=user;
         return user || (typeof currentUser!=='undefined'?currentUser:null);
       }
-    }catch(error){console.error('GOVI sesión perfil:',error)}
+    }catch(error){console.error('GOVI sesión perfil:',error);toast('No se pudo recuperar tu sesión: '+(error.message||'Error'))}
     return typeof currentUser!=='undefined'?currentUser:null;
   }
   async function showMyProfile(){
