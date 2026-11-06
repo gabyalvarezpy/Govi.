@@ -1604,7 +1604,7 @@ function goviRenderStory(){
   let content=$('goviStoryContent');if(!content){content=document.createElement('div');content.id='goviStoryContent';$('goviStoryCard').appendChild(content)}
   content.style.display='none';content.replaceChildren();content.style.zIndex='6';img.style.display='none';video.style.display='none';img.style.transform='none';video.style.transform='none';img.style.zIndex='1';video.style.zIndex='1';
   if(goviIsVideoStory(item)&&item.media_url){video.style.display='block';video.controls=true;video.src=item.media_url;video.muted=false;video.volume=1;video.load();video.play().catch(()=>{video.muted=true;video.play().catch(()=>{})})}
-  else if(item.media_url&&!goviIsVideoStory(item)){
+  else if((item.media_path||item.media_url)&&!goviIsVideoStory(item)){
     // Recuperar el objeto almacenado cada vez que se abre la historia.
     // Primero descargar el archivo como Blob (no reutilizar una vista previa vieja);
     // si Storage lo impide, probar URL firmada y finalmente URL pública.
@@ -1621,7 +1621,8 @@ function goviRenderStory(){
           console.warn('GOVI story signed URL:',signed.error);
         }
       }catch(err){console.warn('GOVI story signed URL:',err)}
-      img.src=item.media_url;
+      const storedUrl=item.media_url||(item.media_path?supabaseClient.storage.from(BUCKET).getPublicUrl(item.media_path).data.publicUrl:null);
+      if(storedUrl)img.src=storedUrl;else toast('La historia no tiene una ruta de archivo válida.');
     };
     img.onerror=()=>{if(!fallbackTried){useFallback()}else{console.error('GOVI: fallaron descarga, URL firmada y URL pública',item.media_path,item.media_url);toast('No se pudo recuperar el archivo guardado de esta historia.')}};
     (async()=>{
