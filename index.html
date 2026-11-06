@@ -5243,3 +5243,51 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   };
 })();
 </script>
+
+
+<script id="govi-profile-container-recovery-v2">
+(function(){
+  function ensureProfileView(){
+    let view=document.getElementById('goviProfileView');
+    const feed=document.getElementById('feed');
+    if(!view && feed){
+      view=document.createElement('section');
+      view.id='goviProfileView';
+      view.className='profile-view';
+      view.style.display='none';
+      view.innerHTML='<div class="panel" style="overflow:hidden"><div class="profile-cover" id="goviCover"></div><div class="profile-info"><div class="profile-avatar" id="goviAvatar">G</div><div class="profile-name" id="goviProfileName">Perfil GOVI</div><div class="profile-description" id="goviProfileDescription">Tu mundo. Tu gente.</div><div class="profile-controls" id="goviProfileControls"></div></div></div><div class="govi-profile-albums-title">Álbumes</div><div class="govi-profile-tabs" id="goviProfileTabs" role="tablist"><button type="button" class="active" data-profile-filter="all">▦ <span>Publicaciones</span></button><button type="button" data-profile-filter="image">▧ <span>Fotos</span></button><button type="button" data-profile-filter="video">▷ <span>Vídeos</span></button></div>';
+      feed.parentNode.insertBefore(view,feed);
+    }
+    return view;
+  }
+  window.goviGoToMyProfile=async function(button){
+    try{
+      const client=(typeof supabaseClient!=='undefined'&&supabaseClient)||window.supabaseClient;
+      let user=(typeof currentUser!=='undefined'&&currentUser)||null;
+      if(!user&&client){const result=await client.auth.getSession();if(result.error)throw result.error;user=result.data?.session?.user||null}
+      if(!user){if(typeof openModal==='function')openModal('authModal');return}
+      if(typeof currentUser!=='undefined')currentUser=user;
+      const view=ensureProfileView(),feed=document.getElementById('feed');
+      if(!view||!feed)throw new Error('No se pudo preparar el contenedor del perfil');
+      if(typeof goviProfileId!=='undefined')goviProfileId=user.id;
+      const home=document.getElementById('goviHomeProfile');
+      const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
+      const heading=document.querySelector('.govi-feed-block .govi-section-heading');
+      const composer=document.querySelector('.govi-feed-block .composer');
+      [home,stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
+      view.hidden=false;view.style.setProperty('display','block','important');feed.style.display='block';
+      document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));
+      if(button)button.classList.add('active');
+      try{history.replaceState({goviProfile:true},'','#profile-'+user.id)}catch(_){}
+      const openProfile=window.openGoviProfile;
+      if(typeof openProfile!=='function')throw new Error('El módulo de perfil no se cargó; recarga GOVI');
+      await openProfile(user.id);
+      view.hidden=false;view.style.setProperty('display','block','important');
+      if(home)home.style.setProperty('display','none','important');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }catch(error){console.error('GOVI perfil:',error);if(typeof toast==='function')toast('No se pudo abrir el perfil: '+(error.message||'Error'))}
+  };
+  // El botón "Volver a mi perfil" de historias utiliza exactamente la misma navegación.
+  window.goviReturnToOwnProfile=function(){const viewer=document.getElementById('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
+})();
+</script>
