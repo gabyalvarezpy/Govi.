@@ -1799,14 +1799,15 @@ goviProfileView.className = 'profile-view';
 goviProfileView.style.display = 'none';
 goviProfileView.innerHTML = `
   <div class="panel" style="overflow:hidden">
-    <div class="profile-cover" id="goviCover"></div>
+    <div class="profile-cover" id="goviCover"><button type="button" class="govi-cover-edit" id="goviProfileCoverEdit" aria-label="Cambiar portada" onclick="if(currentUser&&currentUser.id===goviProfileId)document.getElementById('goviCoverInput').click()">📷 <span>Portada</span></button></div>
     <div class="profile-info">
-      <div class="profile-avatar" id="goviAvatar">G</div>
+      <div class="profile-avatar" id="goviAvatar">G<button type="button" class="govi-avatar-edit" id="goviProfileAvatarEdit" aria-label="Cambiar foto de perfil" onclick="if(currentUser&&currentUser.id===goviProfileId)document.getElementById('goviAvatarInput').click()">📷</button></div>
       <div class="profile-name" id="goviProfileName">Perfil GOVI</div>
       <div class="profile-description" id="goviProfileDescription">Tu mundo. Tu gente.</div>
       <div class="profile-controls" id="goviProfileControls"></div>
     </div>
   </div>
+  <div class="govi-profile-albums-title">Álbumes</div>
   <div class="govi-profile-tabs" id="goviProfileTabs" role="tablist" aria-label="Contenido del perfil">
   <button type="button" class="active" data-profile-filter="all">▦ <span>Publicaciones</span></button>
   <button type="button" data-profile-filter="image">▧ <span>Fotos</span></button>
@@ -1876,9 +1877,12 @@ async function openGoviProfile(userId) {
       ? `<img src="${escapeHTML(goviCurrentProfile.avatar_url)}" alt="Foto de perfil">`
       : escapeHTML(initials(goviCurrentProfile.full_name || 'G'));
 
-    $('goviCover').innerHTML = goviCurrentProfile.cover_url
+    $('goviCover').innerHTML = (goviCurrentProfile.cover_url
       ? `<img src="${escapeHTML(goviCurrentProfile.cover_url)}" alt="Foto de portada">`
-      : '';
+      : '') + (currentUser && currentUser.id === userId ? '<button type="button" class="govi-cover-edit" aria-label="Cambiar portada" onclick="document.getElementById(\'goviCoverInput\').click()">📷 <span>Cambiar portada</span></button>' : '');
+    $('goviAvatar').innerHTML = (goviCurrentProfile.avatar_url
+      ? `<img src="${escapeHTML(goviCurrentProfile.avatar_url)}" alt="Foto de perfil">`
+      : escapeHTML(initials(goviCurrentProfile.full_name || 'G'))) + (currentUser && currentUser.id === userId ? '<button type="button" class="govi-avatar-edit" aria-label="Cambiar foto" onclick="document.getElementById(\'goviAvatarInput\').click()">📷</button>' : '');
 
     const isOwner = currentUser && currentUser.id === userId;
 
@@ -2865,7 +2869,7 @@ window.addEventListener('popstate',()=>{const el=document.getElementById('goviSt
 async function goviRenderProfileStories(userId){
  const profile=$('goviProfileView');if(!profile)return;
  let section=$('goviProfileStorySection');
- if(!section){section=document.createElement('section');section.id='goviProfileStorySection';const title=profile.querySelector('.profile-section-title');profile.insertBefore(section,title||null);}
+ if(!section){section=document.createElement('section');section.id='goviProfileStorySection';const albums=profile.querySelector('#goviProfileTabs');profile.insertBefore(section,albums||null);}
  section.innerHTML='<h3>Historias</h3><div id="goviProfileStoryGrid"><span class="govi-profile-story-empty">Cargando historias…</span></div>';
  const {data,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,story_text,created_at,expires_at').eq('user_id',userId).gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false});
  const grid=$('goviProfileStoryGrid');if(!grid)return;
@@ -4854,3 +4858,24 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   },true);
 })();
 </script>
+
+<style id="govi-profile-facebook-layout">
+/* GOVI profile: Facebook-inspired cover, avatar and separated media albums */
+#goviProfileView>.panel{border:1px solid #80632f66!important;border-radius:22px!important;background:#101010!important;overflow:hidden!important;box-shadow:0 16px 44px #0008!important}
+#goviCover.profile-cover,.profile-cover{height:250px!important;position:relative!important;background:linear-gradient(135deg,#21190d,#55401d)!important;background-position:center!important;background-size:cover!important;overflow:hidden!important}
+#goviCover .govi-cover-edit{position:absolute;top:18px;left:18px;z-index:5;display:flex;gap:7px;align-items:center;padding:10px 14px;border:1px solid #e1bd6b88;border-radius:10px;background:#080808d9;color:#f4d98f;font-weight:850;cursor:pointer}
+#goviCover .govi-cover-edit span{font-size:13px}
+#goviProfileView .profile-info{padding:0 24px 22px!important;background:linear-gradient(180deg,#121212,#0b0b0b)!important}
+#goviProfileView .profile-avatar{width:132px!important;height:132px!important;margin-top:-68px!important;border:5px solid #111!important;box-shadow:0 0 0 2px #d6ad58,0 8px 24px #000a!important;background:linear-gradient(145deg,#f0d98e,#ad7d27)!important}
+#goviProfileView .profile-avatar img{width:100%;height:100%;object-fit:cover}
+#goviProfileView .govi-avatar-edit{position:absolute;right:2px;bottom:4px;width:34px;height:34px;border-radius:50%;border:2px solid #111;background:#d9b65f;color:#17120a;font-size:15px;cursor:pointer}
+#goviProfileView .profile-name{font-size:25px!important;margin:12px 0 5px!important;color:#fff!important}
+#goviProfileView .profile-description{font-size:14px!important;color:#bdb5a5!important}
+.govi-profile-albums-title{margin:24px 0 10px;font-size:20px;font-weight:900;color:#f2d78e}
+#goviProfileStorySection{margin:20px 0 22px;padding:17px;background:#111;border:1px solid #80632f55;border-radius:18px}
+#goviProfileStorySection h3{margin:0 0 13px;color:#f0d58d;font-size:19px}
+#goviProfileStoryGrid{display:flex;gap:10px;overflow-x:auto;padding-bottom:5px}
+.govi-profile-story-tile{flex:0 0 118px!important;height:170px!important;border-radius:14px!important;overflow:hidden!important;background:#211b10!important;border:1px solid #a27b36!important;position:relative!important}
+.govi-profile-story-tile img,.govi-profile-story-tile video{width:100%;height:100%;object-fit:cover}
+@media(max-width:700px){#goviCover.profile-cover,.profile-cover{height:205px!important}#goviProfileView .profile-avatar{width:108px!important;height:108px!important;margin-top:-55px!important}#goviProfileView .profile-info{padding:0 16px 18px!important}#goviProfileView .profile-name{font-size:22px!important}.govi-profile-story-tile{flex-basis:105px!important;height:150px!important}}
+</style>
