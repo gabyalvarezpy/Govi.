@@ -1807,7 +1807,11 @@ goviProfileView.innerHTML = `
       <div class="profile-controls" id="goviProfileControls"></div>
     </div>
   </div>
-  <div class="profile-section-title">Publicaciones</div>
+  <div class="govi-profile-tabs" id="goviProfileTabs" role="tablist" aria-label="Contenido del perfil">
+  <button type="button" class="active" data-profile-filter="all">▦ <span>Publicaciones</span></button>
+  <button type="button" data-profile-filter="image">▧ <span>Fotos</span></button>
+  <button type="button" data-profile-filter="video">▷ <span>Vídeos</span></button>
+</div>
 `;
 $('feed').parentNode.insertBefore(goviProfileView, $('feed'));
 
@@ -1907,56 +1911,65 @@ async function openGoviProfile(userId) {
 }
 
 /* Cargar publicaciones del perfil */
+let goviProfilePostsCache=[];
+let goviProfileActiveTab='all';
+function goviApplyProfileTab(tab){
+  goviProfileActiveTab=tab||'all';
+  document.querySelectorAll('#goviProfileTabs [data-profile-filter]').forEach(button=>button.classList.toggle('active',button.dataset.profileFilter===goviProfileActiveTab));
+  const cards=[...$('feed').querySelectorAll('.post')];
+  let shown=0;
+  cards.forEach(card=>{
+    const kind=card.dataset.kind||'text';
+    const visible=goviProfileActiveTab==='all'||(goviProfileActiveTab==='image'&&kind==='image')||(goviProfileActiveTab==='video'&&kind==='video');
+    card.style.display=visible?'block':'none';
+    if(visible)shown++;
+  });
+  let empty=$('goviProfileTabEmpty');
+  if(!empty){empty=document.createElement('div');empty.id='goviProfileTabEmpty';empty.className='panel profile-empty';$('feed').append(empty)}
+  empty.style.display=shown?'none':'block';
+  empty.textContent=goviProfileActiveTab==='image'?'Todavía no hay fotos en este álbum.':goviProfileActiveTab==='video'?'Todavía no hay vídeos en este álbum.':'Todavía no hay publicaciones en este perfil.';
+}
+document.getElementById('goviProfileTabs')?.addEventListener('click',event=>{
+  const button=event.target.closest('[data-profile-filter]');
+  if(button)goviApplyProfileTab(button.dataset.profileFilter);
+});
+const goviProfileTabsStyle=document.createElement('style');
+goviProfileTabsStyle.textContent=`
+#goviProfileTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 16px;padding:7px;background:linear-gradient(135deg,#171717,#211b10);border:1px solid #8f713944;border-radius:15px}
+#goviProfileTabs button{min-width:0;padding:12px 5px;border:1px solid transparent;border-radius:11px;background:transparent;color:#bdb5a5;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;gap:7px}
+#goviProfileTabs button.active{background:linear-gradient(135deg,#f3d98c,#b78327);color:#17120a;box-shadow:0 5px 18px #b7832733}
+#goviProfileTabs button span{white-space:nowrap}
+@media(max-width:380px){#goviProfileTabs button{font-size:11px;gap:4px;padding:11px 2px}}
+`;
+document.head.appendChild(goviProfileTabsStyle);
 async function goviLoadProfilePosts(userId) {
   const feed = $('feed');
   feed.innerHTML = '<p class="demo-note">Cargando publicaciones…</p>';
-
-  const {data:posts,error} = await supabaseClient
-    .from('posts')
+  const {data:posts,error} = await supabaseClient.from('posts')
     .select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at')
-    .eq('user_id',userId)
-    .order('created_at',{ascending:false})
-    .limit(100);
-
+    .eq('user_id',userId).order('created_at',{ascending:false}).limit(100);
   if(error) {
     feed.innerHTML = '<p class="demo-note">No se pudieron cargar las publicaciones.</p>';
-    console.error(error);
-    return;
+    console.error(error);return;
   }
-
   if(!posts || !posts.length) {
     feed.innerHTML = '<div class="panel profile-empty">Todavía no hay publicaciones en este perfil.</div>';
     return;
   }
-
-  const ids = posts.map(p=>p.id);
-
-  const [{data:likes},{data:comments}] = await Promise.all([
+  const ids=posts.map(p=>p.id);
+  const [{data:likes},{data:comments}]=await Promise.all([
     supabaseClient.from('post_likes').select('post_id,user_id').in('post_id',ids),
-    supabaseClient.from('post_comments')
-      .select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id')
-      .in('post_id',ids)
-      .order('created_at',{ascending:true})
+    supabaseClient.from('post_comments').select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id').in('post_id',ids).order('created_at',{ascending:true})
   ]);
-
-  const userIds = [...new Set([
-    ...posts.map(p=>p.user_id),
-    ...(likes||[]).map(x=>x.user_id),
-    ...(comments||[]).map(x=>x.user_id)
-  ])];
-
-  const profiles = {};
-  if(userIds.length) {
-    const {data} = await supabaseClient
-      .from('profiles')
-      .select('id,full_name,avatar_url')
-      .in('id',userIds);
-
+  const userIds=[...new Set([...posts.map(p=>p.user_id),...(likes||[]).map(x=>x.user_id),...(comments||[]).map(x=>x.user_id)])];
+  const profiles={};
+  if(userIds.length){
+    const {data}=await supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',userIds);
     (data||[]).forEach(p=>profiles[p.id]={name:p.full_name,avatar:p.avatar_url});
   }
-
   feed.replaceChildren();
   posts.forEach(post=>feed.append(renderPost(post,likes||[],comments||[],profiles)));
+  goviApplyProfileTab('all');
 }
 
 /* Hacer clic en el autor de una publicación para abrir su perfil */
