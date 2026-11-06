@@ -3350,7 +3350,8 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 <script id="govi-home-profile-sync">
 (function(){
  const cover=document.getElementById('goviHomeCover'),avatar=document.getElementById('goviHomeAvatar'),name=document.getElementById('goviHomeName'),bio=document.getElementById('goviHomeBio'),edit=document.getElementById('goviHomeEditProfile');
- if(!cover||!window.supabaseClient)return;
+ const client=(typeof supabaseClient!=='undefined'?supabaseClient:window.supabaseClient);
+ if(!cover||!client)return;
  let running=false,lastUser='';
  async function sync(eventSession){
   if(running)return;running=true;
@@ -3358,7 +3359,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
    let user=eventSession?.user||null;
    if(!user){
     for(let attempt=0;attempt<5&&!user;attempt++){
-     const result=await window.supabaseClient.auth.getSession();
+     const result=await client.auth.getSession();
      if(result?.error)throw result.error;
      user=result?.data?.session?.user||((typeof currentUser!=='undefined')?currentUser:null);
      if(!user&&attempt<4)await new Promise(resolve=>setTimeout(resolve,350));
@@ -3370,7 +3371,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     cover.style.backgroundImage='';edit.textContent='Crear mi perfil';lastUser='';return;
    }
    if(typeof currentUser!=='undefined')currentUser=user;
-   const {data,error}=await window.supabaseClient.from('profiles').select('full_name,avatar_url,cover_url').eq('id',user.id).maybeSingle();
+   const {data,error}=await client.from('profiles').select('full_name,avatar_url,cover_url').eq('id',user.id).maybeSingle();
    if(error)throw error;
    const display=data?.full_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'Usuario GOVI';
    name.textContent=display;bio.textContent='Tu perfil en GOVI · Tu mundo. Tu gente.';
@@ -3382,7 +3383,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  }
  window.goviSyncHomeProfile=sync;
  sync();
- window.supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||session?.user)setTimeout(()=>sync(session),0)});
+ client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||session?.user)setTimeout(()=>sync(session),0)});
  window.addEventListener('focus',()=>sync());
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
 })();
