@@ -2315,29 +2315,6 @@ window.goviGoToMyProfile = async function(el) {
 document.querySelector('.govi-mobile-nav button:last-child')?.addEventListener('click',function(event){
   event.preventDefault(); event.stopImmediatePropagation(); window.goviGoToMyProfile(this);
 },true);
-  if(!currentUser) {
-    toast('Inicia sesión para ver tu perfil');
-    openModal('authModal');
-    return;
-  }
-  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
-  if(el) el.classList.add('active');
-  goviProfileId=currentUser.id;
-  $('goviProfileView').style.display='block';
-  $('feed').style.display='block';
-  $('goviProfileName').textContent='Cargando perfil…';
-  $('goviProfileDescription').textContent='Tu mundo. Tu gente.';
-  $('goviProfileControls').innerHTML='';
-  $('goviAvatar').textContent='G';
-  $('goviCover').innerHTML='';
-  $('feed').innerHTML='<p class="demo-note">Cargando tu perfil…</p>';
-  history.replaceState(null,'','#profile-'+currentUser.id);
-  openGoviProfile(currentUser.id).catch(error=>{
-    console.error('Error abriendo Mi perfil:',error);
-    toast('No se pudo abrir tu perfil: '+(error.message||'Error desconocido'));
-  });
-};
-
 /* Navegación */
 window.filterSection = function(section,el) {
   if(section === 'Mi perfil') {
