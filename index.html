@@ -2169,16 +2169,26 @@ async function goviUploadProfileImage(file,type) {
       }
     }
 
-    // La subida y la actualización de profiles ya terminaron correctamente.
-    // Actualizar el estado local y no presentar un fallo de subida por un error visual posterior.
+    // La subida ya quedó guardada en Supabase. Refrescar los elementos visibles
+    // directamente, sin reconstruir la pantalla ni cambiar de sección.
     goviCurrentProfile = {...(goviCurrentProfile || {}), id:currentUser.id, [column]:urlData.publicUrl};
-    toast(type === 'avatar' ? '¡Foto de perfil actualizada!' : '¡Portada actualizada!');
-    try {
-      await openGoviProfile(currentUser.id);
-      await goviUpdateAccountAvatars();
-    } catch(refreshError) {
-      console.warn('La imagen se guardó, pero no se pudo refrescar la vista del perfil:',refreshError);
+    const safeUrl = String(urlData.publicUrl).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    if(type==='cover'){
+      const homeCover=document.getElementById('goviHomeCover');
+      if(homeCover) homeCover.style.backgroundImage='url("'+safeUrl+'")';
+      const profileCover=document.getElementById('goviCover');
+      if(profileCover) profileCover.innerHTML='<img src="'+safeUrl+'" alt="Foto de portada">';
+    }else{
+      const homeAvatar=document.getElementById('goviHomeAvatar');
+      if(homeAvatar) homeAvatar.innerHTML='<img src="'+safeUrl+'" alt="Foto de perfil">';
+      const profileAvatar=document.getElementById('goviAvatar');
+      if(profileAvatar) profileAvatar.innerHTML='<img src="'+safeUrl+'" alt="Foto de perfil">';
+      const accountAvatar=document.getElementById('accountButton');
+      if(accountAvatar) accountAvatar.innerHTML='<img src="'+safeUrl+'" alt="Mi perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+      const composerAvatar=document.getElementById('composerAvatar');
+      if(composerAvatar) composerAvatar.innerHTML='<img src="'+safeUrl+'" alt="Mi perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
     }
+    toast(type === 'avatar' ? '¡Foto de perfil actualizada!' : '¡Portada actualizada!');
   } catch(error) {
     console.error('GOVI profile image upload failed:',error);
     const details=[
