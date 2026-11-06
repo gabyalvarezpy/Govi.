@@ -2288,7 +2288,33 @@ goviCoverInput.addEventListener('change',e=>{
 });
 
 /* Acceso directo y aislado al perfil propio */
-window.goviGoToMyProfile = function(el) {
+window.goviGoToMyProfile = async function(el) {
+  try {
+    if(!currentUser) await refreshSession();
+    if(!currentUser) { toast('Inicia sesión para ver tu perfil'); openModal('authModal'); return; }
+    document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(x=>x.classList.remove('active'));
+    if(el) el.classList.add('active');
+    goviProfileId=currentUser.id;
+    const home=document.getElementById('goviHomeProfile');
+    const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
+    const feedHeading=document.querySelector('.govi-feed-block .govi-section-heading');
+    const composer=document.querySelector('.govi-feed-block .composer');
+    if(home)home.style.display='none'; if(stories)stories.style.display='none';
+    if(feedHeading)feedHeading.style.display='none'; if(composer)composer.style.display='none';
+    $('goviProfileView').style.display='block'; $('feed').style.display='block';
+    $('goviProfileName').textContent='Cargando perfil…'; $('goviProfileDescription').textContent='Tu mundo. Tu gente.';
+    $('goviProfileControls').innerHTML=''; $('goviAvatar').textContent='G'; $('goviCover').innerHTML='';
+    $('feed').innerHTML='<p class="demo-note">Cargando tu perfil…</p>';
+    history.replaceState(null,'','#profile-'+currentUser.id);
+    await openGoviProfile(currentUser.id);
+    window.scrollTo({top:0,behavior:'smooth'});
+  } catch(error) { console.error('GOVI perfil móvil:',error); toast('No se pudo abrir tu perfil: '+(error.message||'Error desconocido')); }
+};
+
+/* Navegación móvil: enlace directo y resistente al botón Perfil */
+document.querySelector('.govi-mobile-nav button:last-child')?.addEventListener('click',function(event){
+  event.preventDefault(); event.stopImmediatePropagation(); window.goviGoToMyProfile(this);
+},true);
   if(!currentUser) {
     toast('Inicia sesión para ver tu perfil');
     openModal('authModal');
@@ -2326,6 +2352,12 @@ window.filterSection = function(section,el) {
 
   goviProfileId = null;
   $('goviProfileView').style.display = 'none';
+  const home=document.getElementById('goviHomeProfile');
+  const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
+  const feedHeading=document.querySelector('.govi-feed-block .govi-section-heading');
+  const composer=document.querySelector('.govi-feed-block .composer');
+  if(home)home.style.display=''; if(stories)stories.style.display='';
+  if(feedHeading)feedHeading.style.display=''; if(composer)composer.style.display='';
   $('feed').style.display = 'block';
   history.replaceState(null,'',location.pathname);
   goviOriginalFilterSection(section,el);
