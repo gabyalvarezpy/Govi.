@@ -1085,13 +1085,28 @@ async function loadFeed(){
   if(error){console.error(error);feed.innerHTML='<p class="demo-note">No se pudieron cargar las publicaciones. Comprueba que ejecutaste el SQL de configuración en Supabase.</p>';return}    
   if(!posts?.length){feed.innerHTML='<section class="panel" style="padding:22px;text-align:center"><b>¡Bienvenido a GOVI!</b><p class="demo-note">Todavía no hay publicaciones. Sé el primero en compartir una foto, un vídeo o una idea.</p></section>';return}    
   const ids=posts.map(p=>p.id);    
-  const [{data:likes},{data:comments}]=await Promise.all([    
-    supabaseClient.from('post_likes').select('post_id,user_id').in('post_id',ids),    
-    supabaseClient.from('post_comments').select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id').in('post_id',ids).order('created_at',{ascending:true})    
-  ]);    
-  const userIds=[...new Set([...(likes||[]).map(x=>x.user_id),...(comments||[]).map(x=>x.user_id),...posts.map(x=>x.user_id)])];    
-  let profiles={};    
-  if(userIds.length){const {data}=await supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',userIds);(data||[]).forEach(p=>profiles[p.id]={name:p.full_name,avatar:p.avatar_url})}    
+  let likes=[],comments=[];
+  try{
+    const extra=await Promise.race([
+      Promise.all([
+        supabaseClient.from('post_likes').select('post_id,user_id').in('post_id',ids),
+        supabaseClient.from('post_comments').select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id').in('post_id',ids).order('created_at',{ascending:true})
+      ]),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Datos complementarios lentos')),8000))
+    ]);
+    likes=extra[0]?.data||[];comments=extra[1]?.data||[];
+  }catch(extraError){console.warn('GOVI: se muestran publicaciones sin reacciones/comentarios temporalmente:',extraError)}
+  const userIds=[...new Set([...likes.map(x=>x.user_id),...comments.map(x=>x.user_id),...posts.map(x=>x.user_id)])];
+  let profiles={};
+  if(userIds.length){
+    try{
+      const profileResult=await Promise.race([
+        supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',userIds),
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error('Perfiles lentos')),8000))
+      ]);
+      (profileResult.data||[]).forEach(p=>profiles[p.id]={name:p.full_name,avatar:p.avatar_url});
+    }catch(profileError){console.warn('GOVI: perfiles no disponibles temporalmente:',profileError)}
+  }    
   feed.replaceChildren();    
   posts.forEach(post=>feed.append(renderPost(post,likes||[],comments||[],profiles)));    
   applyFilter();    
