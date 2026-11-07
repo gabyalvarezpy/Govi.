@@ -1117,7 +1117,7 @@ async function loadFeed(){
         supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').in('id',userIds),
         new Promise((_,reject)=>setTimeout(()=>reject(new Error('Perfiles lentos')),8000))
       ]);
-      (profileResult.data||[]).forEach(p=>profiles[p.id]={name:p.display_name||p.full_name,avatar:p.avatar_url});
+      (profileResult.data||[]).forEach(p=>profiles[p.id]={name:String(p.full_name||p.display_name||'').trim(),avatar:p.avatar_url});
     }catch(profileError){console.warn('GOVI: perfiles no disponibles temporalmente:',profileError)}
   }    
   feed.replaceChildren();    
@@ -1442,7 +1442,7 @@ async function goviLoadStories(){
   if(ids.length){const {data:p,error:pe}=await supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').in('id',ids);if(pe)console.warn(pe);(p||[]).forEach(x=>profiles[x.id]=x)}
   const groups=new Map();rows.forEach(s=>{if(!groups.has(s.user_id))groups.set(s.user_id,{userId:s.user_id,profile:profiles[s.user_id]||{},items:[]});groups.get(s.user_id).items.push(s)});
   goviStoryGroups=[...groups.values()].sort((a,b)=>{if(currentUser&&a.userId===currentUser.id)return -1;if(currentUser&&b.userId===currentUser.id)return 1;return new Date(a.items[0].created_at)-new Date(b.items[0].created_at)});
-  bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button>'+goviStoryGroups.map(g=>{const name=g.profile.display_name||g.profile.full_name||'Usuario GOVI',avatar=g.profile.avatar_url?'<img src="'+escapeHTML(g.profile.avatar_url)+'" alt="">':'<span>'+escapeHTML(initials(name))+'</span>';return '<button class="story" type="button" data-story-user="'+escapeHTML(g.userId)+'"><div class="story-ring has-story">'+avatar+'</div><span class="story-name">'+escapeHTML(currentUser&&g.userId===currentUser.id?'Tu historia':name)+'</span></button>'}).join('');
+  bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button>'+goviStoryGroups.map(g=>{const name=g.profile.full_name||g.profile.display_name||'Usuario GOVI',avatar=g.profile.avatar_url?'<img src="'+escapeHTML(g.profile.avatar_url)+'" alt="">':'<span>'+escapeHTML(initials(name))+'</span>';return '<button class="story" type="button" data-story-user="'+escapeHTML(g.userId)+'"><div class="story-ring has-story">'+avatar+'</div><span class="story-name">'+escapeHTML(currentUser&&g.userId===currentUser.id?'Tu historia':name)+'</span></button>'}).join('');
   $('goviAddStory').onclick=goviOpenStoryComposer;
   bar.querySelectorAll('[data-story-user]').forEach(btn=>btn.addEventListener('click',()=>{const i=goviStoryGroups.findIndex(x=>x.userId===btn.dataset.storyUser);if(i>=0)goviOpenStoryGroup(i,0)}));
 }
@@ -4462,7 +4462,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     const {data:p,error:pe}=await client.from('profiles').select('id,full_name,display_name,bio,avatar_url,cover_url').eq('id',userId).maybeSingle();
     if(pe)throw pe;
     const profile=p||{id:userId,full_name:'Usuario GOVI'};
-    const name=String(profile.display_name||profile.full_name||'Usuario GOVI');
+    const name=String(profile.full_name||profile.display_name||'Usuario GOVI');
     const nameEl=view.querySelector('#goviProfileName');if(nameEl)nameEl.textContent=name;
     const bioEl=view.querySelector('#goviProfileDescription');if(bioEl)bioEl.textContent=profile.bio||'Tu mundo. Tu gente.';
     const avatar=view.querySelector('#goviAvatar');if(avatar){avatar.replaceChildren();if(profile.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';avatar.append(img)}else avatar.textContent=name.slice(0,1).toUpperCase()}
@@ -4476,7 +4476,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
       if(lr.error)throw lr.error;if(cr.error)throw cr.error;likes=lr.data||[];comments=cr.data||[];
     }
     const uids=[...new Set([userId,...likes.map(x=>x.user_id),...comments.map(x=>x.user_id)])];const profiles={};
-    if(uids.length){const {data,error}=await client.from('profiles').select('id,full_name,display_name,avatar_url').in('id',uids);if(error)throw error;(data||[]).forEach(x=>profiles[x.id]={name:x.display_name||x.full_name,avatar:x.avatar_url})}
+    if(uids.length){const {data,error}=await client.from('profiles').select('id,full_name,display_name,avatar_url').in('id',uids);if(error)throw error;(data||[]).forEach(x=>profiles[x.id]={name:String(x.full_name||x.display_name||'').trim(),avatar:x.avatar_url})}
     const tabs=view.querySelector('#goviProfileTabs');
     const render=filter=>{feed.replaceChildren();const list=(posts||[]).filter(x=>filter==='all'||(filter==='image'&&x.media_type==='image')||(filter==='video'&&x.media_type==='video'));if(!list.length){const empty=document.createElement('div');empty.className='panel profile-empty';empty.textContent='Todavía no hay publicaciones en este perfil.';feed.append(empty);return}list.forEach(x=>feed.append(renderPost(x,likes,comments,profiles)))};
     if(tabs&&!tabs.dataset.publicHotfix){tabs.dataset.publicHotfix='1';tabs.addEventListener('click',e=>{const b=e.target.closest('[data-profile-filter]');if(b)render(b.dataset.profileFilter)})}
