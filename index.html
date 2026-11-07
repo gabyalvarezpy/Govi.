@@ -5748,3 +5748,38 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   window.goviReturnToOwnProfile=function(){const viewer=document.getElementById('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
 })();
 </script>
+
+<script id="govi-public-profile-dom-guard-v1">
+(function(){
+ if(window.__goviPublicProfileDomGuardV1)return;
+ window.__goviPublicProfileDomGuardV1=true;
+ const prior=window.openGoviProfile;
+ if(typeof prior!=='function')return;
+ function prepare(){
+  let view=document.getElementById('goviProfileView');
+  const feed=document.getElementById('feed');
+  if(!view&&typeof goviProfileView!=='undefined')view=goviProfileView;
+  if(!view){view=document.createElement('section');view.id='goviProfileView';view.className='profile-view'}
+  if(feed&&feed.parentNode&&view.parentNode!==feed.parentNode)feed.parentNode.insertBefore(view,feed);
+  const defs=[['goviCover','div','profile-cover'],['goviAvatar','div','profile-avatar'],['goviProfileName','div','profile-name'],['goviProfileDescription','div','profile-description'],['goviProfileControls','div','profile-controls'],['goviProfileTabs','div','govi-profile-tabs']];
+  defs.forEach(([id,tag,cls])=>{
+   if(!view.querySelector('[id="'+id+'"]')){
+    const el=document.createElement(tag);el.id=id;el.className=cls;
+    if(id==='goviAvatar')el.textContent='G';
+    if(id==='goviProfileName')el.textContent='Perfil GOVI';
+    if(id==='goviProfileDescription')el.textContent='Tu mundo. Tu gente.';
+    if(id==='goviProfileTabs')el.innerHTML='<button type="button" class="active" data-profile-filter="all">▦ <span>Publicaciones</span></button><button type="button" data-profile-filter="image">▧ <span>Fotos</span></button><button type="button" data-profile-filter="video">▷ <span>Vídeos</span></button>';
+    view.appendChild(el);
+   }
+  });
+  if(!feed)throw new Error('No se encontró el área de publicaciones');
+  return {view,feed};
+ }
+ window.openGoviProfile=async function(userId){
+  if(!userId)return;
+  const {view,feed}=prepare();
+  view.hidden=false;view.style.setProperty('display','block','important');feed.style.display='block';
+  return await prior(userId);
+ };
+})();
+</script>
