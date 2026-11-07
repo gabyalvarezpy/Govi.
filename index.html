@@ -1114,10 +1114,10 @@ async function loadFeed(){
   if(userIds.length){
     try{
       const profileResult=await Promise.race([
-        supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',userIds),
+        supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').in('id',userIds),
         new Promise((_,reject)=>setTimeout(()=>reject(new Error('Perfiles lentos')),8000))
       ]);
-      (profileResult.data||[]).forEach(p=>profiles[p.id]={name:p.full_name,avatar:p.avatar_url});
+      (profileResult.data||[]).forEach(p=>profiles[p.id]={name:p.display_name||p.full_name,avatar:p.avatar_url});
     }catch(profileError){console.warn('GOVI: perfiles no disponibles temporalmente:',profileError)}
   }    
   feed.replaceChildren();    
@@ -1129,7 +1129,7 @@ function renderPost(post,likes,comments,profiles){
   const mine=currentUser&&post.user_id===currentUser.id;    
   const postLikes=likes.filter(x=>x.post_id===post.id), postComments=comments.filter(x=>x.post_id===post.id);    
   const liked=!!currentUser&&postLikes.some(x=>x.user_id===currentUser.id);    
-  const authorProfile=profiles[post.user_id]||{}; const author=authorProfile.name|| (mine?'Tú':'Usuario GOVI'); const authorAvatar=authorProfile.avatar;    
+  const authorProfile=profiles[post.user_id]||{}; const author=authorProfile.name|| (mine?(currentUser?.user_metadata?.display_name||currentUser?.user_metadata?.full_name||'Tú'):'Usuario GOVI'); const authorAvatar=authorProfile.avatar;    
   const article=document.createElement('article');article.className='post panel';article.id='post-'+post.id;article.dataset.kind=post.media_type||'text';article.dataset.search=(author+' '+(post.content||'')).toLowerCase();    
   let media='';    
   if(post.media_url){    
@@ -1228,7 +1228,7 @@ async function handleAuth(){
   button.disabled=true;button.textContent='Conectando…';    
   try{    
     if(authMode==='register'){    
-      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,full_name:name}}});if(error)throw error;    
+      const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,display_name:name}}});if(error)throw error;    
       if(data.user&&!data.session)toast('Registro enviado. Revisa tu correo para confirmar la cuenta.');else toast('¡Cuenta creada en GOVI!');    
     }else{const {error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;toast('¡Bienvenido a GOVI!')}    
     closeModal('authModal');await refreshSession();
@@ -1248,7 +1248,19 @@ async function refreshSession(){
     console.warn('GOVI: sesión no disponible al iniciar:',sessionError);
     currentUser=null;
   }
-  const label=currentUser?.user_metadata?.full_name||currentUser?.email||'G';
+  if(currentUser){
+    const registeredName=String(currentUser.user_metadata?.display_name||currentUser.user_metadata?.full_name||'').trim();
+    if(registeredName){
+      try{
+        const {error:profileSyncError}=await supabaseClient.from('profiles').upsert(
+          {id:currentUser.id,full_name:registeredName,display_name:registeredName},
+          {onConflict:'id'}
+        );
+        if(profileSyncError)console.warn('GOVI: no se pudo sincronizar el nombre del perfil:',profileSyncError);
+      }catch(profileSyncError){console.warn('GOVI: sincronización de nombre pendiente:',profileSyncError)}
+    }
+  }
+  const label=currentUser?.user_metadata?.display_name||currentUser?.user_metadata?.full_name||currentUser?.email||'G';
   $('accountButton').textContent=initials(label);
   $('composerAvatar').textContent=initials(label);
   await loadFeed();
@@ -1427,10 +1439,10 @@ async function goviLoadStories(){
   const {data:stories,error}=await supabaseClient.from('stories').select('id,user_id,media_url,media_type,media_path,story_text,link_url,story_audio_url,story_audio_path,created_at,expires_at').gt('expires_at',new Date().toISOString()).gt('created_at',new Date(Date.now()-86400000).toISOString()).order('created_at',{ascending:true});
   if(error){console.error('Historias:',error);bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button><span class="story-loading">No se pudieron cargar las historias</span>';const b=$('goviAddStory');if(b)b.onclick=goviOpenStoryComposer;return}
   const rows=stories||[],ids=[...new Set(rows.map(x=>x.user_id))];let profiles={};
-  if(ids.length){const {data:p,error:pe}=await supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',ids);if(pe)console.warn(pe);(p||[]).forEach(x=>profiles[x.id]=x)}
+  if(ids.length){const {data:p,error:pe}=await supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').in('id',ids);if(pe)console.warn(pe);(p||[]).forEach(x=>profiles[x.id]=x)}
   const groups=new Map();rows.forEach(s=>{if(!groups.has(s.user_id))groups.set(s.user_id,{userId:s.user_id,profile:profiles[s.user_id]||{},items:[]});groups.get(s.user_id).items.push(s)});
   goviStoryGroups=[...groups.values()].sort((a,b)=>{if(currentUser&&a.userId===currentUser.id)return -1;if(currentUser&&b.userId===currentUser.id)return 1;return new Date(a.items[0].created_at)-new Date(b.items[0].created_at)});
-  bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button>'+goviStoryGroups.map(g=>{const name=g.profile.full_name||'Usuario GOVI',avatar=g.profile.avatar_url?'<img src="'+escapeHTML(g.profile.avatar_url)+'" alt="">':'<span>'+escapeHTML(initials(name))+'</span>';return '<button class="story" type="button" data-story-user="'+escapeHTML(g.userId)+'"><div class="story-ring has-story">'+avatar+'</div><span class="story-name">'+escapeHTML(currentUser&&g.userId===currentUser.id?'Tu historia':name)+'</span></button>'}).join('');
+  bar.innerHTML='<button class="story story-add" type="button" id="goviAddStory"><div class="story-ring"><span>＋</span></div><span class="story-name">Tu historia</span></button>'+goviStoryGroups.map(g=>{const name=g.profile.display_name||g.profile.full_name||'Usuario GOVI',avatar=g.profile.avatar_url?'<img src="'+escapeHTML(g.profile.avatar_url)+'" alt="">':'<span>'+escapeHTML(initials(name))+'</span>';return '<button class="story" type="button" data-story-user="'+escapeHTML(g.userId)+'"><div class="story-ring has-story">'+avatar+'</div><span class="story-name">'+escapeHTML(currentUser&&g.userId===currentUser.id?'Tu historia':name)+'</span></button>'}).join('');
   $('goviAddStory').onclick=goviOpenStoryComposer;
   bar.querySelectorAll('[data-story-user]').forEach(btn=>btn.addEventListener('click',()=>{const i=goviStoryGroups.findIndex(x=>x.userId===btn.dataset.storyUser);if(i>=0)goviOpenStoryGroup(i,0)}));
 }
@@ -1598,7 +1610,7 @@ function goviOpenStoryGroup(groupIndex,itemIndex){
 function goviRenderStory(){
   const group=goviStoryGroups[goviStoryGroupIndex];if(!group)return;
   const item=group.items[goviStoryItemIndex];if(!item)return;
-  $('goviStoryAuthor').textContent=group.profile.full_name||'Usuario GOVI';$('goviStoryAvatar').src=group.profile.avatar_url||'';$('goviStoryAvatar').style.visibility=group.profile.avatar_url?'visible':'hidden';
+  $('goviStoryAuthor').textContent=group.profile.display_name||group.profile.full_name||'Usuario GOVI';$('goviStoryAvatar').src=group.profile.avatar_url||'';$('goviStoryAvatar').style.visibility=group.profile.avatar_url?'visible':'hidden';
   $('goviStoryTime').textContent=new Date(item.created_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
   const img=$('goviStoryMedia'),video=$('goviStoryVideo');goviStopStoryPlayback();
   let content=$('goviStoryContent');if(!content){content=document.createElement('div');content.id='goviStoryContent';$('goviStoryCard').appendChild(content)}
@@ -2001,7 +2013,7 @@ async function goviLoadProfilePosts(userId) {
   const userIds=[...new Set([...posts.map(p=>p.user_id),...(likes||[]).map(x=>x.user_id),...(comments||[]).map(x=>x.user_id)])];
   const profiles={};
   if(userIds.length){
-    const {data}=await supabaseClient.from('profiles').select('id,full_name,avatar_url').in('id',userIds);
+    const {data}=await supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').in('id',userIds);
     (data||[]).forEach(p=>profiles[p.id]={name:p.full_name,avatar:p.avatar_url});
   }
   feed.replaceChildren();
@@ -4235,7 +4247,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
       const {data:requests,error}=await client().from('govi_friendships').select('id,requester_id,created_at').eq('addressee_id',user.id).eq('status','pending').order('created_at',{ascending:false});
       if(error)throw error;if(!requests?.length)return;
       const ids=requests.map(r=>r.requester_id);
-      const {data:profiles,error:pe}=await client().from('profiles').select('id,full_name,avatar_url').in('id',ids);if(pe)throw pe;
+      const {data:profiles,error:pe}=await client().from('profiles').select('id,full_name,display_name,avatar_url').in('id',ids);if(pe)throw pe;
       const map=Object.fromEntries((profiles||[]).map(p=>[p.id,p]));
       box=document.createElement('section');box.id='goviFriendRequests';
       box.innerHTML='<h3>Solicitudes de amistad ('+requests.length+')</h3>';
@@ -5727,7 +5739,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     const userIds=[...new Set([...(posts||[]).map(post=>post.user_id),...likes.map(x=>x.user_id),...comments.map(x=>x.user_id)])];
     const profiles={};
     if(userIds.length){
-      const {data:profileRows,error:profilesError}=await client.from('profiles').select('id,full_name,avatar_url').in('id',userIds);
+      const {data:profileRows,error:profilesError}=await client.from('profiles').select('id,full_name,display_name,avatar_url').in('id',userIds);
       if(profilesError)throw profilesError;
       (profileRows||[]).forEach(row=>profiles[row.id]={name:row.full_name,avatar:row.avatar_url});
     }
