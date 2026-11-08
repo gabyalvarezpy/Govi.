@@ -2154,7 +2154,7 @@ async function goviUploadProfileImage(file,type) {
   // Bloqueo definitivo de subida directa: cualquier imagen original debe
   // pasar primero por el editor. Solo el JPEG generado al guardar el recorte
   // puede continuar hacia Supabase.
-  const isCroppedProfileImage=!!file && file.type==='image/jpeg' && /-govi\\.jpg$/i.test(file.name||'');
+  const isCroppedProfileImage=!!file && file.type==='image/jpeg' && /-govi\.jpg$/i.test(file.name||'');
   if(file && file.type && file.type.startsWith('image/') && !isCroppedProfileImage){
     const cropEditor=window.goviOpenCropEditor;
     if(typeof cropEditor==='function'){
