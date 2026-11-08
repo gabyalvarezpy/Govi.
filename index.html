@@ -1130,7 +1130,7 @@ function renderPost(post,likes,comments,profiles){
   const postLikes=likes.filter(x=>x.post_id===post.id), postComments=comments.filter(x=>x.post_id===post.id);    
   const liked=!!currentUser&&postLikes.some(x=>x.user_id===currentUser.id);    
   const authorProfile=profiles[post.user_id]||{}; const author=authorProfile.name|| (mine?(currentUser?.user_metadata?.display_name||currentUser?.user_metadata?.full_name||'Tú'):'Usuario GOVI'); const authorAvatar=authorProfile.avatar;    
-  const isMilagros=/^milagros(?:\\s|$)/i.test(String(author||'').trim()); const article=document.createElement('article');article.className='post panel';article.id='post-'+post.id;article.dataset.kind=post.media_type||'text';article.dataset.search=(author+' '+(post.content||'')).toLowerCase();    
+  const isMilagros=/^milagros(?:\s|$)/i.test(String(author||'').trim()); const article=document.createElement('article');article.className='post panel';article.id='post-'+post.id;article.dataset.kind=post.media_type||'text';article.dataset.search=(author+' '+(post.content||'')).toLowerCase();    
   let media='';    
   if(post.media_url){    
     media=post.media_type==='video'    
@@ -4411,7 +4411,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 </script>
 
 <style id="govi-user-identity-style-v1">
-.post-author.govi-user-milagros,.govi-profile-name.govi-user-milagros{color:#e7a8bd!important;text-shadow:0 0 14px #d98aa533}
+.post-author.govi-user-milagros,.profile-name.govi-user-milagros{color:#e7a8bd!important;text-shadow:0 0 14px #d98aa533}
 .post-head .avatar.govi-user-milagros,.profile-avatar.govi-user-milagros{box-shadow:0 0 0 2px #d98aa5,0 0 16px #d98aa544}
 .post-head .avatar.govi-user-milagros:not(:has(img)),.profile-avatar.govi-user-milagros:not(:has(img)){background:linear-gradient(145deg,#f4c7d5,#b96f8c)!important;color:#321522!important}
 </style>
@@ -4473,9 +4473,9 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     if(pe)throw pe;
     const profile=p||{id:userId,full_name:'Usuario GOVI'};
     const name=String(profile.display_name||profile.full_name||'Usuario GOVI');
-    const nameEl=view.querySelector('#goviProfileName');if(nameEl)nameEl.textContent=name;
+    const isMilagros=/^milagros(?:\s|$)/i.test(name.trim());const nameEl=view.querySelector('#goviProfileName');if(nameEl){nameEl.textContent=name;nameEl.classList.toggle('govi-user-milagros',isMilagros)}
     const bioEl=view.querySelector('#goviProfileDescription');if(bioEl)bioEl.textContent=profile.bio||'Tu mundo. Tu gente.';
-    const avatar=view.querySelector('#goviAvatar');if(avatar){avatar.replaceChildren();if(profile.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';avatar.append(img)}else avatar.textContent=name.slice(0,1).toUpperCase()}
+    const avatar=view.querySelector('#goviAvatar');if(avatar){avatar.classList.toggle('govi-user-milagros',isMilagros);avatar.replaceChildren();if(profile.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';avatar.append(img)}else avatar.textContent=name.slice(0,1).toUpperCase()}
     const cover=view.querySelector('#goviCover');if(cover){cover.style.backgroundImage=profile.cover_url?'url("'+String(profile.cover_url).replace(/"/g,'%22')+'")':'';cover.style.backgroundSize='cover';cover.style.backgroundPosition='center'}
     const controls=view.querySelector('#goviProfileControls');if(controls)controls.replaceChildren();
     const {data:posts,error:postError}=await client.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').eq('user_id',userId).order('created_at',{ascending:false}).limit(100);
