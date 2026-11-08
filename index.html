@@ -2151,6 +2151,20 @@ goviCoverGalleryInput.addEventListener('change',e=>{goviUploadGallery(e.target.f
 
 /* Subir foto de perfil o portada */
 async function goviUploadProfileImage(file,type) {
+  // Bloqueo definitivo de subida directa: cualquier imagen original debe
+  // pasar primero por el editor. Solo el JPEG generado al guardar el recorte
+  // puede continuar hacia Supabase.
+  const isCroppedProfileImage=!!file && file.type==='image/jpeg' && /-govi\\.jpg$/i.test(file.name||'');
+  if(file && file.type && file.type.startsWith('image/') && !isCroppedProfileImage){
+    const cropEditor=window.goviOpenCropEditor;
+    if(typeof cropEditor==='function'){
+      cropEditor(file,type==='cover'?'cover':'avatar');
+    }else{
+      console.error('GOVI: editor de recorte no disponible; subida bloqueada.');
+      if(typeof toast==='function')toast('No se pudo abrir el editor. La imagen no se subió.');
+    }
+    return;
+  }
   if(!currentUser) {
     toast('Inicia sesión para cambiar tu perfil');
     openModal('authModal');
