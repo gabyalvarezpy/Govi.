@@ -4099,7 +4099,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     const target=event.target instanceof Element?event.target:null;if(!target)return;
     const navButton=target.closest('nav.govi-mobile-nav button');
     const isProfileNav=!!navButton && navButton.textContent.toLowerCase().includes('perfil');
-    const button=target.closest('#goviHomeViewProfile,#goviHomeEditProfile,#goviHomeEditAvatar,#goviProfileCoverEdit,#goviProfileAvatarEdit');
+    const button=target.closest('#goviHomeViewProfile,#goviHomeEditProfile,#goviHomeEditAvatar,#goviProfileCoverEdit,#goviProfileAvatarEdit,[data-own-avatar],[data-own-cover]');
     if(!button&&!isProfileNav)return;
     event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
     if(isProfileNav||button?.id==='goviHomeViewProfile'){
@@ -4107,7 +4107,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
       else showMyProfile();
       return;
     }
-    chooseImage(button.id==='goviHomeEditAvatar'||button.id==='goviProfileAvatarEdit'?'avatar':'cover');
+    chooseImage(button.id==='goviHomeEditAvatar'||button.id==='goviProfileAvatarEdit'||button.hasAttribute('data-own-avatar')?'avatar':'cover');
   },true);
   // Navegación directa y verificable al perfil propio desde la barra móvil.
   // Conserva la vista dinámica y las funciones existentes de perfil/álbumes.
