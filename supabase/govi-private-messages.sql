@@ -37,7 +37,6 @@ create policy "Users can send messages as themselves"
   with check (
     auth.uid() = sender_id
     and sender_id <> recipient_id
-    and exists (select 1 from auth.users u where u.id = recipient_id)
   );
 
 -- Private bucket for message photos. No public URLs are used.
