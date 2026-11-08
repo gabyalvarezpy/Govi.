@@ -4,6 +4,7 @@ const BUCKET='govi-private-messages',$=id=>document.getElementById(id),client=()
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nm=p=>p?.display_name||p?.full_name||'Usuario GOVI',ini=s=>String(s||'G').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()||'G';
 let peer=null,peerProfile=null,photo=null,channel=null,busy=false,notifyChannel=null,unreadCount=0;
+const notifiedMessageIds=new Set();let notificationSince=null,notificationPollTimer=null;
 const css='#goviMessagesApp{position:fixed;inset:0;z-index:18000;display:none;background:#070708;color:#f7f1e5;font-family:inherit}'+
 '#goviMessagesApp.open{display:flex;flex-direction:column}#goviMessagesApp *{box-sizing:border-box}'+
 '#goviMessagesApp .gm-top{height:65px;flex:0 0 65px;display:flex;align-items:center;gap:12px;padding:0 18px;background:#09090a;border-bottom:1px solid #b98b3d55}'+
@@ -29,7 +30,8 @@ async function openChat(id,mobile=false,known=null){if(!me()||!id||id===me().id)
 async function loadMessages(){const u=me(),id=peer;if(!u||!id)return;const host=$('gmMessageList');const r=await client().from('govi_messages').select('id,sender_id,recipient_id,content,media_path,created_at').or('and(sender_id.eq.'+u.id+',recipient_id.eq.'+id+'),and(sender_id.eq.'+id+',recipient_id.eq.'+u.id+')').order('created_at',{ascending:true}).limit(300);if(r.error)throw r.error;host.innerHTML='';for(const m of r.data||[]){const row=document.createElement('div');row.className='gm-row'+(m.sender_id===u.id?' mine':'');const bubble=document.createElement('div');bubble.className='gm-bubble';if(m.media_path){const l=await client().storage.from(BUCKET).createSignedUrl(m.media_path,3600);if(!l.error&&l.data?.signedUrl){const img=document.createElement('img');img.src=l.data.signedUrl;img.alt='Foto privada';bubble.appendChild(img)}}if(m.content){const t=document.createElement('div');t.className='gm-bubble-text';t.textContent=m.content;bubble.appendChild(t)}const time=document.createElement('time');time.textContent=new Date(m.created_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});bubble.appendChild(time);row.appendChild(bubble);host.appendChild(row)}if(!r.data?.length){const p=document.createElement('p');p.className='gm-hint';p.style.textAlign='center';p.textContent='Este es el inicio de vuestra conversación. Enviad vuestro primer mensaje.';host.appendChild(p)}host.scrollTop=host.scrollHeight}
 async function sendMessage(){const u=me(),id=peer,text=$('gmText').value.trim(),file=photo;if(!u||!id||(!text&&!file)||busy)return;busy=true;$('gmSend').disabled=true;let path=null;try{if(file){if(file.size>15*1024*1024)throw new Error('La foto supera el límite de 15 MB.');if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type))throw new Error('Usa JPG, PNG, WEBP o GIF.');const ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'}[file.type];path=u.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;const up=await client().storage.from(BUCKET).upload(path,file,{upsert:false,contentType:file.type});if(up.error)throw up.error}const ins=await client().from('govi_messages').insert({sender_id:u.id,recipient_id:id,content:text,media_path:path,media_type:path?'image':null});if(ins.error){if(path)await client().storage.from(BUCKET).remove([path]);throw ins.error}$('gmText').value='';$('gmFile').value='';photo=null;$('gmPhotoPreview').style.display='none';await loadMessages();await loadInbox()}catch(e){console.error('GOVI enviar mensaje',e);if(typeof toast==='function')toast('No se pudo enviar: '+(e.message||'Error'))}finally{busy=false;$('gmSend').disabled=false}}
 function showMessageNotice(m){
- const u=me();if(!u||!m||m.recipient_id!==u.id)return;
+ const u=me();if(!u||!m||m.recipient_id!==u.id||!m.id||notifiedMessageIds.has(m.id))return;
+ notifiedMessageIds.add(m.id);
  unreadCount++;const b=$('gmTopButton');if(b){b.innerHTML='✉<span class="gm-notice-count">'+(unreadCount>99?'99+':unreadCount)+'</span>';b.style.position='relative'}
  let toastBox=$('gmIncomingToast');if(!toastBox){toastBox=document.createElement('button');toastBox.id='gmIncomingToast';toastBox.style.cssText='position:fixed;right:18px;top:82px;z-index:25000;max-width:min(360px,calc(100vw - 28px));padding:14px 17px;border:1px solid #c99a32;border-radius:14px;background:#17140e;color:#f8e8c1;box-shadow:0 12px 35px #0009;text-align:left;font-weight:700;display:none';document.body.appendChild(toastBox)}
  toastBox.textContent='💬 Tienes un mensaje nuevo en GOVI';toastBox.style.display='block';toastBox.onclick=()=>{toastBox.style.display='none';launch(m.sender_id)};
@@ -37,11 +39,23 @@ function showMessageNotice(m){
  setTimeout(()=>{if(toastBox)toastBox.style.display='none'},6500);
 }
 function startNotificationChannel(){
- const u=me();if(!u||!client()||notifyChannel)return;
+ const u=me();if(!u||!client())return;
+ if(!notificationSince)notificationSince=new Date().toISOString();
+ if(!notificationPollTimer){
+  notificationPollTimer=setInterval(async()=>{
+   const active=me();if(!active||active.id!==u.id)return;
+   try{
+    const q=await client().from('govi_messages').select('id,sender_id,recipient_id,content,media_path,created_at').eq('recipient_id',active.id).gt('created_at',notificationSince).order('created_at',{ascending:true}).limit(100);
+    if(q.error)throw q.error;
+    for(const m of q.data||[])showMessageNotice(m);
+   }catch(e){console.warn('GOVI: comprobación de mensajes pendientes',e)}
+  },5000);
+ }
+ if(notifyChannel)return;
  notifyChannel=client().channel('govi-message-notifications-'+u.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'govi_messages',filter:'recipient_id=eq.'+u.id},p=>{
   const m=p.new||{};showMessageNotice(m);
   if(app.classList.contains('open')){loadInbox();if(peer===m.sender_id)loadMessages()}
- }).subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('GOVI: canal de notificaciones',status)});
+ }).subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){console.warn('GOVI: canal de notificaciones',status);notifyChannel=null}});
 }
 function launch(id){
  if(!me()){if(typeof openModal==='function')openModal('authModal');return}
