@@ -5898,6 +5898,26 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
 </script>
 
 
+
+<script id="govi-force-crop-before-upload-v1">
+/* Seguridad: ninguna imagen original puede llegar a Supabase sin pasar por el recortador. */
+(function(){
+  if(window.__goviForceCropBeforeUploadV1)return;
+  window.__goviForceCropBeforeUploadV1=true;
+  const originalUpload=window.goviUploadProfileImage;
+  if(typeof originalUpload!=='function'){console.error('GOVI: no se encontró la función de subida');return}
+  window.goviUploadProfileImage=async function(file,type){
+    if(!file)return;
+    const isCropped=/-govi\.jpg$/i.test(file.name||'') && file.type==='image/jpeg';
+    if(!isCropped){
+      if(typeof window.goviOpenCropEditor!=='function'){toast('No se encontró el editor de recorte. No se subió la imagen.');return}
+      window.goviOpenCropEditor(file,type==='cover'?'cover':'avatar');
+      return;
+    }
+    return originalUpload.call(this,file,type);
+  };
+})();
+</script>
 <script id="govi-image-viewer-v1">
 /* GOVI: ver fotos ampliadas sin entrar en Mi perfil */
 (function(){
