@@ -4613,83 +4613,82 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 })();
 </script>
 
-<script id="govi-crop-android-final-fix-v1">
+<script id="govi-crop-android-final-fix-v2">
 (function(){
-  if(window.__goviCropAndroidFinalFixV1)return;
-  window.__goviCropAndroidFinalFixV1=true;
-  const canvas=document.getElementById('goviCropCanvas');
-  const button=document.getElementById('goviCropSave');
-  if(!canvas||!button)return;
-  canvas.style.setProperty('touch-action','none','important');
-  let points=new Map(),gesture=null;
-  function point(t){
-    const r=canvas.getBoundingClientRect();
-    return {x:(t.clientX-r.left)*canvas.width/Math.max(1,r.width),y:(t.clientY-r.top)*canvas.height/Math.max(1,r.height)};
+ const canvas=document.getElementById('goviCropCanvas'),saveButton=document.getElementById('goviCropSave');
+ if(!canvas||!saveButton)return;
+ canvas.style.setProperty('touch-action','none','important');
+ let gesture=null;
+ const point=t=>{const r=canvas.getBoundingClientRect();return{x:(t.clientX-r.left)*canvas.width/Math.max(1,r.width),y:(t.clientY-r.top)*canvas.height/Math.max(1,r.height)}};
+ const mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+ const dist=(a,b)=>Math.max(1,Math.hypot(a.x-b.x,a.y-b.y));
+ const draw=()=>{if(typeof goviDrawCrop==='function')goviDrawCrop()};
+ function startGesture(touches){
+  const p=Array.from(touches).map(point),s=window.goviCropState;
+  if(!s||!p.length){gesture=null;return}
+  if(p.length>=2)gesture={kind:'pinch',mid:mid(p[0],p[1]),distance:dist(p[0],p[1]),zoom:s.zoom,x:s.x,y:s.y};
+  else gesture={kind:'move',last:p[0]};
+ }
+ canvas.addEventListener('touchstart',e=>{if(!window.goviCropState)return;e.preventDefault();e.stopImmediatePropagation();startGesture(e.touches)},{capture:true,passive:false});
+ canvas.addEventListener('touchmove',e=>{
+  const s=window.goviCropState;if(!s)return;e.preventDefault();e.stopImmediatePropagation();
+  const p=Array.from(e.touches).map(point);
+  if(p.length===1){
+   if(gesture?.kind==='move'){s.x+=p[0].x-gesture.last.x;s.y+=p[0].y-gesture.last.y}
+   gesture={kind:'move',last:p[0]};
+  }else if(p.length>=2){
+   if(gesture?.kind!=='pinch')startGesture(e.touches);
+   if(gesture?.kind==='pinch'){
+    const m=mid(p[0],p[1]),z=Math.max(1,Math.min(4,gesture.zoom*dist(p[0],p[1])/gesture.distance)),scale=z/gesture.zoom;
+    s.x=m.x-(gesture.mid.x-gesture.x)*scale;s.y=m.y-(gesture.mid.y-gesture.y)*scale;s.zoom=z;
+   }
   }
-  function mid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2};}
-  function dist(a,b){return Math.max(1,Math.hypot(a.x-b.x,a.y-b.y));}
-  function draw(){if(typeof goviDrawCrop==='function')goviDrawCrop();}
-  canvas.addEventListener('touchstart',function(e){
-    if(!window.goviCropState)return;
-    e.preventDefault();e.stopImmediatePropagation();
-    points.clear();Array.from(e.touches).forEach(t=>points.set(t.identifier,point(t)));
-    const p=[...points.values()],s=window.goviCropState;
-    gesture=p.length>1?{kind:'pinch',mid:mid(p[0],p[1]),distance:dist(p[0],p[1]),zoom:s.zoom}:{kind:'move',last:p[0]};
-  },{capture:true,passive:false});
-  canvas.addEventListener('touchmove',function(e){
-    if(!window.goviCropState)return;
-    e.preventDefault();e.stopImmediatePropagation();
-    const p=Array.from(e.touches).map(point),s=window.goviCropState;
-    if(p.length===1){
-      if(gesture&&gesture.kind==='move'){s.x+=p[0].x-gesture.last.x;s.y+=p[0].y-gesture.last.y;}
-      gesture={kind:'move',last:p[0]};
-    }else if(p.length>=2){
-      if(!gesture||gesture.kind!=='pinch')gesture={kind:'pinch',mid:mid(p[0],p[1]),distance:dist(p[0],p[1]),zoom:s.zoom};
-      const m=mid(p[0],p[1]),z=Math.max(1,Math.min(4,gesture.zoom*dist(p[0],p[1])/gesture.distance)),scale=z/s.zoom;
-      s.x=m.x-(gesture.mid.x-s.x)*scale;s.y=m.y-(gesture.mid.y-s.y)*scale;s.zoom=z;
-    }
-    draw();
-  },{capture:true,passive:false});
-  function end(e){
-    if(!window.goviCropState)return;
-    e.preventDefault();e.stopImmediatePropagation();
-    const p=Array.from(e.touches).map(point),s=window.goviCropState;
-    if(!p.length){gesture=null;return;}
-    gesture=p.length>1?{kind:'pinch',mid:mid(p[0],p[1]),distance:dist(p[0],p[1]),zoom:s.zoom}:{kind:'move',last:p[0]};
-  }
-  canvas.addEventListener('touchend',end,{capture:true,passive:false});
-  canvas.addEventListener('touchcancel',end,{capture:true,passive:false});
-  async function save(e){
-    if(e){e.preventDefault();e.stopPropagation();}
-    const s=window.goviCropState;
-    if(!s){if(typeof toast==='function')toast('No se detectó la imagen. Elegí la foto otra vez.');return;}
-    if(button.dataset.saving==='1')return;
-    button.dataset.saving='1';button.disabled=true;button.textContent='Preparando foto…';
-    try{
-      const blob=await new Promise((resolve,reject)=>{
-        if(canvas.toBlob){canvas.toBlob(b=>b?resolve(b):reject(new Error('El recorte quedó vacío')),'image/jpeg',.92);return;}
-        try{const data=canvas.toDataURL('image/jpeg',.92),raw=atob(data.split(',')[1]),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);resolve(new Blob([bytes],{type:'image/jpeg'}));}catch(err){reject(err);}
-      });
-      if(!blob||!blob.size)throw new Error('No se pudo generar la imagen recortada');
-      if(blob.size>10*1024*1024)throw new Error('La imagen supera los 10 MB');
-      const type=s.type,file=new File([blob],type+'-govi.jpg',{type:'image/jpeg',lastModified:Date.now()});
-      button.textContent='Subiendo imagen…';
-      if(typeof window.goviUploadProfileImage!=='function')throw new Error('No está disponible la subida de imágenes');
-      await window.goviUploadProfileImage(file,type);
-      const modal=document.getElementById('goviCropModal');
-      if(modal)modal.style.display='none';
-      window.goviCropState=null;canvas.style.borderRadius='12px';
-    }catch(err){
-      console.error('GOVI recorte Android:',err);
-      if(typeof toast==='function')toast('No se pudo guardar: '+(err&&err.message?err.message:'error desconocido'));
-    }finally{
-      button.dataset.saving='0';button.disabled=false;button.textContent='Guardar recorte';
-    }
-  }
-  button.onclick=save;
-  button.removeAttribute('ontouchend');
-  button.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();},{passive:false});
-  window.goviSaveCropNow=save;
+  draw();
+ },{capture:true,passive:false});
+ function touchEnd(e){if(!window.goviCropState)return;e.preventDefault();e.stopImmediatePropagation();if(e.touches.length)startGesture(e.touches);else gesture=null}
+ canvas.addEventListener('touchend',touchEnd,{capture:true,passive:false});
+ canvas.addEventListener('touchcancel',touchEnd,{capture:true,passive:false});
+ // Controles visibles de zoom: funcionan también si el gesto de pinza falla en el navegador.
+ let controls=document.getElementById('goviCropZoomControls');
+ if(!controls){
+  controls=document.createElement('div');controls.id='goviCropZoomControls';
+  controls.style.cssText='display:flex;align-items:center;justify-content:center;gap:18px;margin:10px 0';
+  controls.innerHTML='<button type="button" id="goviCropZoomOut" aria-label="Alejar" style="width:48px;height:42px;border-radius:10px;font-size:25px;background:#292929;color:white;border:1px solid #777">−</button><span id="goviCropZoomLabel" style="color:white;font-weight:600;min-width:54px;text-align:center">100%</span><button type="button" id="goviCropZoomIn" aria-label="Ampliar" style="width:48px;height:42px;border-radius:10px;font-size:25px;background:#292929;color:white;border:1px solid #777">+</button>';
+  saveButton.parentNode.insertBefore(controls,saveButton);
+ }
+ function zoomBy(factor){
+  const s=window.goviCropState;if(!s)return;
+  const old=s.zoom,next=Math.max(1,Math.min(4,old*factor)),scale=next/old,cx=canvas.width/2,cy=canvas.height/2;
+  s.x=cx-(cx-s.x)*scale;s.y=cy-(cy-s.y)*scale;s.zoom=next;
+  const label=document.getElementById('goviCropZoomLabel');if(label)label.textContent=Math.round(next*100)+'%';
+  draw();
+ }
+ document.getElementById('goviCropZoomIn').onclick=()=>zoomBy(1.2);
+ document.getElementById('goviCropZoomOut').onclick=()=>zoomBy(1/1.2);
+ // Un solo disparador click: no cancelar touchend para que Android genere el click.
+ try{saveButton.removeEventListener('touchend',goviSaveCropNow)}catch(_){}
+ async function save(e){
+  if(e){e.preventDefault();e.stopPropagation()}
+  const s=window.goviCropState;if(!s){if(typeof toast==='function')toast('No se detectó la imagen. Elegí la foto otra vez.');return}
+  if(saveButton.dataset.saving==='1')return;
+  saveButton.dataset.saving='1';saveButton.disabled=true;saveButton.textContent='Preparando foto…';
+  try{
+   const blob=await new Promise((resolve,reject)=>{
+    if(canvas.toBlob){canvas.toBlob(v=>v?resolve(v):reject(new Error('No se pudo generar el recorte')),'image/jpeg',.92);return}
+    try{const d=canvas.toDataURL('image/jpeg',.92),raw=atob(d.split(',')[1]),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);resolve(new Blob([bytes],{type:'image/jpeg'}))}catch(err){reject(err)}
+   });
+   if(!blob?.size)throw new Error('El recorte quedó vacío');
+   if(blob.size>10*1024*1024)throw new Error('La imagen supera los 10 MB');
+   const type=s.type,file=new File([blob],type+'-govi.jpg',{type:'image/jpeg',lastModified:Date.now()});
+   saveButton.textContent='Subiendo imagen…';
+   if(typeof window.goviUploadProfileImage!=='function')throw new Error('No está disponible la subida de imágenes');
+   await window.goviUploadProfileImage(file,type);
+   document.getElementById('goviCropModal').style.display='none';window.goviCropState=null;canvas.style.borderRadius='12px';
+  }catch(err){console.error('GOVI guardar recorte:',err);if(typeof toast==='function')toast('No se pudo guardar: '+(err?.message||'error desconocido'))}
+  finally{saveButton.dataset.saving='0';saveButton.disabled=false;saveButton.textContent='Guardar recorte'}
+ }
+ saveButton.onclick=save;
+ window.goviSaveCropNow=save;
 })();
 </script>
 
