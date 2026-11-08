@@ -2193,14 +2193,16 @@ async function goviUploadProfileImage(file,type) {
     const column = type === 'avatar' ? 'avatar_url' : 'cover_url';
     const oldUrl = goviCurrentProfile?.[column];
 
-    const {error:updateError} = await supabaseClient
+    const {data:savedProfile,error:updateError} = await supabaseClient
       .from('profiles')
       .update({[column]:urlData.publicUrl})
-      .eq('id',currentUser.id);
+      .eq('id',currentUser.id)
+      .select('id,avatar_url,cover_url')
+      .maybeSingle();
 
-    if(updateError) {
+    if(updateError || !savedProfile || savedProfile[column] !== urlData.publicUrl) {
       await supabaseClient.storage.from(BUCKET).remove([path]);
-      throw updateError;
+      throw updateError || new Error('Supabase no confirmó el guardado del perfil. La actualización no afectó ninguna fila; comprueba que exista tu registro en profiles y que la política RLS permita actualizarlo.');
     }
 
     if(oldUrl) {
@@ -2212,7 +2214,8 @@ async function goviUploadProfileImage(file,type) {
 
     // La subida ya quedó guardada en Supabase. Refrescar los elementos visibles
     // directamente, sin reconstruir la pantalla ni cambiar de sección.
-    goviCurrentProfile = {...(goviCurrentProfile || {}), id:currentUser.id, [column]:urlData.publicUrl};
+    goviCurrentProfile = {...(goviCurrentProfile || {}), ...savedProfile, id:currentUser.id, [column]:urlData.publicUrl};
+    if(typeof window.goviSyncHomeProfile==='function') await window.goviSyncHomeProfile();
     const safeUrl = String(urlData.publicUrl).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     if(type==='cover'){
       const homeCover=document.getElementById('goviHomeCover');
