@@ -2577,59 +2577,84 @@ function goviDrawCrop(){
   ctx.drawImage(s.image,s.x,s.y,w,h);
 }
 const goviCropCanvas=document.getElementById('goviCropCanvas');
-const goviCropPointers=new Map();
-function goviCropPoint(e){
+goviCropCanvas.style.touchAction='none';
+let goviTouchStartDistance=0,goviTouchStartZoom=1,goviTouchStartMid=null,goviTouchStartX=0,goviTouchStartY=0;
+function goviCropPointFromTouch(t){
  const r=goviCropCanvas.getBoundingClientRect();
- return {x:(e.clientX-r.left)*goviCropCanvas.width/r.width,y:(e.clientY-r.top)*goviCropCanvas.height/r.height};
+ return {x:(t.clientX-r.left)*goviCropCanvas.width/r.width,y:(t.clientY-r.top)*goviCropCanvas.height/r.height};
 }
 function goviCropDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 function goviCropMid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
-goviCropCanvas.style.touchAction='none';
-goviCropCanvas.addEventListener('pointerdown',e=>{
+goviCropCanvas.addEventListener('touchstart',e=>{
  if(!window.goviCropState)return;
  e.preventDefault();
- try{goviCropCanvas.setPointerCapture(e.pointerId)}catch(_){}
- const p=goviCropPoint(e);goviCropPointers.set(e.pointerId,p);
- window.goviCropState.pointers=Object.fromEntries(goviCropPointers);
-});
-goviCropCanvas.addEventListener('pointermove',e=>{
- const s=window.goviCropState;if(!s||!goviCropPointers.has(e.pointerId))return;
+ const s=window.goviCropState;
+ if(e.touches.length===1){
+  const p=goviCropPointFromTouch(e.touches[0]);goviTouchStartX=p.x;goviTouchStartY=p.y;
+ }else if(e.touches.length>=2){
+  const p1=goviCropPointFromTouch(e.touches[0]),p2=goviCropPointFromTouch(e.touches[1]);
+  goviTouchStartDistance=Math.max(1,goviCropDistance(p1,p2));goviTouchStartZoom=s.zoom;
+  goviTouchStartMid=goviCropMid(p1,p2);
+ }
+},{passive:false});
+goviCropCanvas.addEventListener('touchmove',e=>{
+ const s=window.goviCropState;if(!s)return;
  e.preventDefault();
- const next=goviCropPoint(e),previous=goviCropPointers.get(e.pointerId);
- if(goviCropPointers.size===1){
-  s.x+=next.x-previous.x;s.y+=next.y-previous.y;
- }else if(goviCropPointers.size>=2){
-  const entries=[...goviCropPointers.entries()].slice(0,2);
-  const [idA,oldA]=entries[0],[idB,oldB]=entries[1];
-  const newA=idA===e.pointerId?next:oldA,newB=idB===e.pointerId?next:oldB;
-  const oldMid=goviCropMid(oldA,oldB),newMid=goviCropMid(newA,newB);
-  const oldDistance=Math.max(1,goviCropDistance(oldA,oldB)),newDistance=goviCropDistance(newA,newB);
-  const factor=Math.max(0.5,Math.min(2,newDistance/oldDistance));
-  const nextZoom=Math.max(1,Math.min(4,s.zoom*factor)),actual=nextZoom/s.zoom;
-  s.x=newMid.x-(oldMid.x-s.x)*actual;
-  s.y=newMid.y-(oldMid.y-s.y)*actual;
+ if(e.touches.length===1){
+  const p=goviCropPointFromTouch(e.touches[0]);
+  s.x+=p.x-goviTouchStartX;s.y+=p.y-goviTouchStartY;
+  goviTouchStartX=p.x;goviTouchStartY=p.y;
+ }else if(e.touches.length>=2&&goviTouchStartDistance){
+  const p1=goviCropPointFromTouch(e.touches[0]),p2=goviCropPointFromTouch(e.touches[1]);
+  const mid=goviCropMid(p1,p2),distance=goviCropDistance(p1,p2);
+  const nextZoom=Math.max(1,Math.min(4,goviTouchStartZoom*distance/goviTouchStartDistance));
+  const factor=nextZoom/s.zoom;
+  s.x=mid.x-(goviTouchStartMid.x-s.x)*factor;
+  s.y=mid.y-(goviTouchStartMid.y-s.y)*factor;
   s.zoom=nextZoom;
  }
- goviCropPointers.set(e.pointerId,next);goviDrawCrop();
+ goviDrawCrop();
+},{passive:false});
+['touchend','touchcancel'].forEach(name=>goviCropCanvas.addEventListener(name,e=>{
+ if(e.touches.length===1){const p=goviCropPointFromTouch(e.touches[0]);goviTouchStartX=p.x;goviTouchStartY=p.y}
+ else if(e.touches.length===0){goviTouchStartDistance=0;goviTouchStartMid=null}
+},{passive:true}));
+// Ratón/trackpad en escritorio; en móvil se usan los eventos touch anteriores.
+goviCropCanvas.addEventListener('pointerdown',e=>{
+ if(e.pointerType==='touch'||!window.goviCropState)return;
+ e.preventDefault();goviCropCanvas.setPointerCapture(e.pointerId);
+ goviCropCanvas.dataset.mouseX=e.clientX;goviCropCanvas.dataset.mouseY=e.clientY;
 });
-['pointerup','pointercancel','lostpointercapture'].forEach(name=>goviCropCanvas.addEventListener(name,e=>{
- goviCropPointers.delete(e.pointerId);
- if(window.goviCropState)window.goviCropState.pointers=Object.fromEntries(goviCropPointers);
-}));
+goviCropCanvas.addEventListener('pointermove',e=>{
+ if(e.pointerType==='touch'||!e.buttons||!window.goviCropState)return;
+ const r=goviCropCanvas.getBoundingClientRect(),lastX=Number(goviCropCanvas.dataset.mouseX),lastY=Number(goviCropCanvas.dataset.mouseY);
+ window.goviCropState.x+=(e.clientX-lastX)*goviCropCanvas.width/r.width;
+ window.goviCropState.y+=(e.clientY-lastY)*goviCropCanvas.height/r.height;
+ goviCropCanvas.dataset.mouseX=e.clientX;goviCropCanvas.dataset.mouseY=e.clientY;goviDrawCrop();
+});
 document.getElementById('goviCropCancel').addEventListener('click',()=>{
  window.goviCropState=null;document.getElementById('goviCropModal').style.display='none';goviCropCanvas.style.borderRadius='12px';
 });
-document.getElementById('goviCropSave').addEventListener('click',()=>{
- if(!window.goviCropState)return;
- const s=window.goviCropState,canvas=document.getElementById('goviCropCanvas'),type=s.type,button=document.getElementById('goviCropSave');
- button.disabled=true;button.textContent='Guardando recorte…';
- canvas.toBlob(async blob=>{
-  button.disabled=false;button.textContent='Guardar recorte';
-  if(!blob){toast('No se pudo preparar la imagen');return}
-  const file=new File([blob],type+'-govi.jpg',{type:'image/jpeg'});
-  document.getElementById('goviCropModal').style.display='none';window.goviCropState=null;canvas.style.borderRadius='12px';
+document.getElementById('goviCropSave').addEventListener('click',async()=>{
+ const s=window.goviCropState;if(!s)return;
+ const canvas=document.getElementById('goviCropCanvas'),button=document.getElementById('goviCropSave');
+ button.disabled=true;button.textContent='Preparando foto…';
+ try{
+  const blob=await new Promise((resolve,reject)=>{
+   canvas.toBlob(value=>value?resolve(value):reject(new Error('El navegador no pudo generar el recorte JPEG')),'image/jpeg',.92);
+  });
+  if(blob.size>10*1024*1024)throw new Error('El recorte supera los 10 MB');
+  const type=s.type,file=new File([blob],type+'-govi.jpg',{type:'image/jpeg',lastModified:Date.now()});
+  button.textContent='Subiendo imagen…';
   await goviUploadProfileImage(file,type);
- },'image/jpeg',.92);
+  document.getElementById('goviCropModal').style.display='none';
+  window.goviCropState=null;canvas.style.borderRadius='12px';
+ }catch(error){
+  console.error('GOVI guardar recorte:',error);
+  toast('No se pudo guardar el recorte: '+(error.message||'error desconocido'));
+ }finally{
+  button.disabled=false;button.textContent='Guardar recorte';
+ }
 });
 /* Recuperar la sesión y mostrar el perfil actualizado */
 refreshSession();
