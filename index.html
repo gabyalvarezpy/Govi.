@@ -5990,3 +5990,29 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   },false);
 })();
 </script>
+
+
+<script id="govi-crop-input-capture-v1">
+/* Capturar la selección de portada/foto antes que otros controladores:
+   ambas rutas deben abrir el editor, sin iniciar una subida directa. */
+(function(){
+  if(window.__goviCropInputCaptureV1)return;
+  window.__goviCropInputCaptureV1=true;
+  document.addEventListener('change',function(event){
+    const input=event.target;
+    if(!input || (input.id!=='goviAvatarInput' && input.id!=='goviCoverInput'))return;
+    const file=input.files && input.files[0];
+    input.value='';
+    if(!file)return;
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    const kind=input.id==='goviCoverInput'?'cover':'avatar';
+    if(typeof window.goviOpenCropEditor!=='function'){
+      console.error('GOVI: editor de recorte no disponible');
+      if(typeof toast==='function')toast('No se pudo abrir el editor de recorte. No se subió la imagen.');
+      return;
+    }
+    window.goviOpenCropEditor(file,kind);
+  },true);
+})();
+</script>
