@@ -4112,7 +4112,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   // Navegación directa y verificable al perfil propio desde la barra móvil.
   // Conserva la vista dinámica y las funciones existentes de perfil/álbumes.
   window.goviGoToMyProfile=async function(button){
-    const view=(typeof goviProfileView!=='undefined'?goviProfileView:document.getElementById('goviProfileView'));
+    const view=document.getElementById('goviProfileView');
     const feed=document.getElementById('feed');
     const home=document.getElementById('goviHomeProfile');
     if(!view||!feed){console.error('GOVI: falta el contenedor del perfil',{view:!!view,feed:!!feed,profileNodes:document.querySelectorAll('#goviProfileView').length});if(typeof toast==='function')toast('No se encontró la pantalla del perfil');return}
@@ -5817,7 +5817,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
  function prepare(){
   let view=document.getElementById('goviProfileView');
   const feed=document.getElementById('feed');
-  if(!view&&typeof goviProfileView!=='undefined')view=goviProfileView;
+  
   if(!view){view=document.createElement('section');view.id='goviProfileView';view.className='profile-view'}
   if(feed&&feed.parentNode&&view.parentNode!==feed.parentNode)feed.parentNode.insertBefore(view,feed);
   const defs=[['goviCover','div','profile-cover'],['goviAvatar','div','profile-avatar'],['goviProfileName','div','profile-name'],['goviProfileDescription','div','profile-description'],['goviProfileControls','div','profile-controls'],['goviProfileTabs','div','govi-profile-tabs']];
