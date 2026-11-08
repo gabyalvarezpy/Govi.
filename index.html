@@ -4604,7 +4604,28 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     const isMilagros=/^milagros(?:\s|$)/i.test(name.trim());const nameEl=view.querySelector('#goviProfileName');if(nameEl){nameEl.textContent=name;nameEl.classList.toggle('govi-user-milagros',isMilagros)}
     const bioEl=view.querySelector('#goviProfileDescription');if(bioEl)bioEl.textContent=profile.bio||'Tu mundo. Tu gente.';
     const avatar=view.querySelector('#goviAvatar');if(avatar){avatar.classList.toggle('govi-user-milagros',isMilagros);avatar.replaceChildren();if(profile.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';avatar.append(img)}else avatar.textContent=name.slice(0,1).toUpperCase()}
-    const cover=view.querySelector('#goviCover');if(cover){cover.style.backgroundImage=profile.cover_url?'url("'+String(profile.cover_url).replace(/"/g,'%22')+'")':'';cover.style.backgroundSize='cover';cover.style.backgroundPosition='center'}
+    const cover=view.querySelector('#goviCover');
+    if(cover){
+      const coverUrl=String(profile.cover_url||'').trim();
+      cover.style.setProperty('position','relative','important');
+      cover.style.setProperty('overflow','hidden','important');
+      cover.style.setProperty('background-image',coverUrl?'url("'+coverUrl.replace(/"/g,'%22')+'")':'none','important');
+      cover.style.setProperty('background-size','cover','important');
+      cover.style.setProperty('background-position','center center','important');
+      cover.style.setProperty('background-repeat','no-repeat','important');
+      const previousCover=cover.querySelector('[data-govi-public-cover-image]');
+      if(previousCover)previousCover.remove();
+      if(coverUrl){
+        const coverImg=document.createElement('img');
+        coverImg.setAttribute('data-govi-public-cover-image','1');
+        coverImg.src=coverUrl;coverImg.alt='Portada de '+name;
+        coverImg.style.cssText='position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;display:block!important;z-index:1!important;pointer-events:none!important';
+        cover.prepend(coverImg);
+        coverImg.addEventListener('error',()=>{console.error('GOVI: error cargando portada pública',userId,coverUrl);cover.style.setProperty('background-image','none','important')},{once:true});
+      }
+      const coverEdit=cover.querySelector('.govi-cover-edit');
+      if(coverEdit)coverEdit.style.setProperty('z-index','3','important');
+    }
     const controls=view.querySelector('#goviProfileControls');if(controls)controls.replaceChildren();
     const {data:posts,error:postError}=await client.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').eq('user_id',userId).order('created_at',{ascending:false}).limit(100);
     if(postError)throw postError;
