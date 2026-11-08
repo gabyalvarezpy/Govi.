@@ -59,5 +59,19 @@ function hookProfile(){const old=window.openGoviProfile;if(typeof old==='functio
 $('gmClose').onclick=close;$('gmBack').onclick=()=>{app.classList.remove('chat-open');$('gmEmpty').style.display='block';$('gmChat').style.display='none';peer=null;peerProfile=null;loadInbox()};$('gmSend').onclick=sendMessage;$('gmText').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}};$('gmPhotoBtn').onclick=()=>$('gmFile').click();$('gmFile').onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(!['image/jpeg','image/png','image/webp','image/gif'].includes(f.type)||f.size>15*1024*1024){if(typeof toast==='function')toast('Foto no válida o superior a 15 MB.');e.target.value='';return}photo=f;$('gmPhotoThumb').src=URL.createObjectURL(f);$('gmPhotoName').textContent=f.name;$('gmPhotoPreview').style.display='flex'};$('gmRemovePhoto').onclick=()=>{photo=null;$('gmFile').value='';$('gmPhotoPreview').style.display='none'};$('gmEmojiBtn').onclick=()=>$('gmEmojiTray').classList.toggle('open');$('gmEmojiTray').onclick=e=>{const b=e.target.closest('[data-emoji]');if(b){$('gmText').value+=b.dataset.emoji;$('gmText').focus()}};
 let timer=null;$('gmSearch').oninput=e=>{clearTimeout(timer);const v=e.target.value;timer=setTimeout(()=>searchPeople(v),250);if(v.trim().length<2){$('gmResults').innerHTML='';loadInbox()}};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&app.classList.contains('open'))close()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&app.classList.contains('open')){loadInbox();if(peer)loadMessages()}});
+// Mantener las notificaciones conectadas cuando la sesión se restaura o inicia más tarde.
+const authClient=client()?.auth;
+if(authClient?.onAuthStateChange){
+ authClient.onAuthStateChange((event,session)=>{
+  if(session?.user){setTimeout(startNotificationChannel,0)}
+  else if(notifyChannel){client().removeChannel(notifyChannel);notifyChannel=null}
+ });
+}
+let notifyBootAttempts=0;
+const notifyBootTimer=setInterval(()=>{
+ notifyBootAttempts++;
+ if(me()){startNotificationChannel();if(notifyChannel||notifyBootAttempts>=90)clearInterval(notifyBootTimer)}
+ else if(notifyBootAttempts>=90)clearInterval(notifyBootTimer);
+},1000);
 addLaunchers();hookProfile();new MutationObserver(()=>{addLaunchers();hookProfile()}).observe(document.body,{childList:true,subtree:true});window.goviOpenMessages=launch;
 })();
