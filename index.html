@@ -822,6 +822,12 @@ body{display:block!important;margin:0!important;padding:0!important;overflow-x:h
 #goviStoryRepairV8 .govi-ig-link-panel input{width:100%;min-height:42px;background:#24202b;color:#fff;border:1px solid #ffffff35;border-radius:10px;padding:10px}
 #goviStoryRepairV8 .govi-ig-link-panel small,#goviStoryRepairV8 .govi-ig-video-limit{font-size:11px;color:#bdb5c6}
 #goviStoryRepairV8 .govi-ig-video-limit{padding:4px 2px}
+</style>
+<script>document.documentElement.classList.add('govi-auth-pending');</script>
+<style id="govi-auth-gate-v1">
+html.govi-auth-pending body{background:#080808!important}
+html.govi-auth-pending body>:not(#authModal){display:none!important}
+html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important}
 </style></head>    
 <body>    
 <header class="topbar govi-topbar">
@@ -1034,7 +1040,7 @@ let currentUser=null, authMode='register', selectedFile=null, activeFilter='Inic
 const $=id=>document.getElementById(id);    
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),3000)}    
 function openModal(id){$(id).classList.add('show')}    
-function closeModal(id){$(id).classList.remove('show')}    
+function closeModal(id){if(id==='authModal'&&document.documentElement.classList.contains('govi-auth-pending')&&!currentUser)return;$(id).classList.remove('show')}    
 async function accountAction(){
   if(currentUser){
     if(!confirm('¿Quieres cerrar tu sesión de GOVI?'))return;
@@ -1280,6 +1286,21 @@ async function refreshSession(){
     console.warn('GOVI: sesión no disponible al iniciar:',sessionError);
     currentUser=null;
   }
+  if(!currentUser){
+    document.documentElement.classList.add('govi-auth-pending');
+    authMode='login';
+    $('authTitle').textContent='Acceder a GOVI';
+    $('authName').style.display='block';
+    $('authName').placeholder='Nombre (opcional)';
+    $('authPassword').autocomplete='current-password';
+    $('authPassword').value='';
+    $('authSubmit').textContent='Iniciar sesión';
+    $('authSwitch').textContent='¿No tienes cuenta? · Registrarme';
+    openModal('authModal');
+    return;
+  }
+  document.documentElement.classList.remove('govi-auth-pending');
+  $('authModal').classList.remove('show');
   if(currentUser){
     const registeredName=String(currentUser.user_metadata?.display_name||currentUser.user_metadata?.full_name||'').trim();
     if(registeredName){
