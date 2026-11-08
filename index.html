@@ -4051,23 +4051,21 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   // input fue recreado por la vista. Se ejecuta antes de los listeners antiguos.
   if(!window.__goviProfileFileChangeV2){
     window.__goviProfileFileChangeV2=true;
-    document.addEventListener('change',async function(event){
+    document.addEventListener('change',function(event){
       const input=event.target;
       if(!input||!['goviCoverInput','goviAvatarInput'].includes(input.id))return;
       const file=input.files&&input.files[0];
       if(!file)return;
       event.stopImmediatePropagation();
       try{
-        if(typeof toast==='function')toast('Imagen recibida. Preparando subida…');
-        const user=await getUser();
-        if(!user)throw new Error('La sesión no está activa. Inicia sesión y vuelve a intentarlo.');
-        if(typeof currentUser!=='undefined')currentUser=user;
-        if(typeof goviUploadProfileImage!=='function')throw new Error('No se encontró el módulo de subida de imágenes.');
+        // Abrir el recortador inmediatamente en el gesto de selección.
+        // No esperar una consulta de sesión: en Android podía dejar el flujo
+        // detenido en "Preparando subida" sin mostrar el editor.
         if(typeof goviOpenCropEditor!=='function')throw new Error('No se encontró el editor de recorte.');
-         goviOpenCropEditor(file,input.id==='goviCoverInput'?'cover':'avatar');
+        goviOpenCropEditor(file,input.id==='goviCoverInput'?'cover':'avatar');
       }catch(error){
-        console.error('GOVI selección de portada/foto:',error);
-        const msg=error?.message||'No se pudo procesar la imagen';
+        console.error('GOVI editor de recorte:',error);
+        const msg=error?.message||'No se pudo abrir el editor de recorte';
         if(typeof toast==='function')toast(msg);
         window.alert('GOVI: '+msg);
       }finally{
