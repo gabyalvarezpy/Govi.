@@ -4264,6 +4264,8 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
       const tabs=view.querySelector('#goviProfileTabs');if(tabs)tabs.parentNode.insertBefore(box,tabs);
     }catch(e){console.error('GOVI solicitudes:',e);toastMsg('No se pudieron cargar las solicitudes. Comprueba la configuración de amistades.')}
   }
+  window.goviRenderFriendControls=renderFriendControls;
+  window.goviRenderIncomingRequests=renderIncomingRequests;
   const original=window.openGoviProfile;
   if(typeof original!=='function'){console.error('GOVI: no se encontró openGoviProfile para añadir amistades');return}
   window.openGoviProfile=async function(userId){
@@ -4286,6 +4288,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     if(!feed)return;
     const author=target.closest('[data-user-id]');
     if(!author)return;
+    if(target.closest('.govi-inline-friend,button,a,input,select,textarea'))return;
     const userId=author.dataset.userId;
     if(!userId)return;
     event.preventDefault();
@@ -4490,7 +4493,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     const tabs=view.querySelector('#goviProfileTabs');
     const render=filter=>{feed.replaceChildren();const list=(posts||[]).filter(x=>filter==='all'||(filter==='image'&&x.media_type==='image')||(filter==='video'&&x.media_type==='video'));if(!list.length){const empty=document.createElement('div');empty.className='panel profile-empty';empty.textContent='Todavía no hay publicaciones en este perfil.';feed.append(empty);return}list.forEach(x=>feed.append(renderPost(x,likes,comments,profiles)))};
     if(tabs&&!tabs.dataset.publicHotfix){tabs.dataset.publicHotfix='1';tabs.addEventListener('click',e=>{const b=e.target.closest('[data-profile-filter]');if(b)render(b.dataset.profileFilter)})}
-    window.goviProfileViewingUserId=userId;window.goviProfileId=userId;render('all');history.replaceState({goviProfile:true},'','#profile-'+userId);window.scrollTo({top:0,behavior:'smooth'});
+    window.goviProfileViewingUserId=userId;window.goviProfileId=userId;render('all');if(typeof window.goviRenderFriendControls==='function')await window.goviRenderFriendControls(userId);if(typeof window.goviRenderIncomingRequests==='function')await window.goviRenderIncomingRequests(userId);history.replaceState({goviProfile:true},'','#profile-'+userId);window.scrollTo({top:0,behavior:'smooth'});
   };
 })();
 </script>
