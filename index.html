@@ -4728,6 +4728,14 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 #goviCover>img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;z-index:0!important}
 #goviCover>.govi-cover-edit{position:absolute!important;z-index:2!important;right:12px!important;bottom:12px!important}
 </style>
+<style id="govi-public-profile-cover-layer-fix">
+#goviProfileView #goviCover{position:relative!important;isolation:isolate!important;z-index:0!important}
+#goviProfileView #goviCover>[data-govi-public-cover-image]{z-index:0!important}
+#goviProfileView .profile-info{position:relative!important;z-index:2!important}
+#goviProfileView .profile-avatar{position:relative!important;z-index:3!important}
+#goviProfileView .profile-name,#goviProfileView .profile-description,#goviProfileView #goviProfileControls{position:relative!important;z-index:2!important}
+#goviProfileView #goviCover>.govi-cover-edit{z-index:4!important}
+</style>
 </body>
 </html>
 
