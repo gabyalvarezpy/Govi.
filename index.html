@@ -2503,6 +2503,7 @@ function goviOpenCropEditor(file,type){
   image.onerror=()=>{URL.revokeObjectURL(url);toast('No se pudo abrir esta imagen')};
   image.src=url;
 }
+window.goviOpenCropEditor = goviOpenCropEditor;
 function goviDrawCrop(){
   if(!goviCropState)return;
   const s=goviCropState,canvas=document.getElementById('goviCropCanvas'),ctx=canvas.getContext('2d');
@@ -5900,6 +5901,11 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
 
 
 
+<script id="govi-expose-profile-functions-v1">
+/* Hacer accesibles las funciones de perfil a los controladores posteriores. */
+window.goviUploadProfileImage = goviUploadProfileImage;
+window.goviOpenCropEditor = goviOpenCropEditor;
+</script>
 <script id="govi-force-crop-before-upload-v1">
 /* Seguridad: ninguna imagen original puede llegar a Supabase sin pasar por el recortador. */
 (function(){
