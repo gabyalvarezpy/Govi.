@@ -2511,36 +2511,43 @@ function goviOpenCropEditor(file,type){
   const zoom=document.getElementById('goviCropZoom');
   const title=document.getElementById('goviCropTitle');
   if(!modal||!canvas||!zoom){toast('Error GOVI: falta el panel del recortador');return}
-  toast('Imagen recibida. Preparando recorte…');
-  const reader=new FileReader();
-  reader.onerror=()=>toast('Android devolvió la foto, pero GOVI no pudo leer el archivo.');
-  reader.onload=()=>{
-    const image=new Image();
-    image.onerror=()=>toast('La foto llegó a GOVI, pero el navegador no puede decodificarla. Probá JPG o PNG.');
-    image.onload=()=>{
-      const width=type==='avatar'?720:1440;
-      const height=type==='avatar'?720:600;
-      canvas.width=width;canvas.height=height;
-      canvas.style.aspectRatio=width+'/'+height;
-      canvas.style.maxHeight='55vh';
-      canvas.style.borderRadius=type==='avatar'?'50%':'12px';
-      canvas.style.objectFit='contain';
-      const base=Math.max(width/image.naturalWidth,height/image.naturalHeight);
-      const drawnW=image.naturalWidth*base,drawnH=image.naturalHeight*base;
-      goviCropState={image,type,base,zoom:1,x:(width-drawnW)/2,y:(height-drawnH)/2,drag:false,lastX:0,lastY:0};
-      zoom.value='1';zoom.min='1';zoom.max='4';zoom.step='.01';
-      if(title)title.textContent=type==='avatar'?'Ajustar foto de perfil':'Ajustar foto de portada';
-      const hint=modal.querySelector('.demo-note');
-      if(hint)hint.textContent='Arrastrá la imagen para acomodarla y usá el zoom. Así se verá en tu perfil.';
-      goviDrawCrop();
-      modal.style.display='flex';
-      const sourceInput=document.getElementById(type==='cover'?'goviCoverInput':'goviAvatarInput');
-      if(sourceInput)sourceInput.value='';
-      toast('Ya podés ajustar la foto y guardar el recorte.');
-    };
-    image.src=reader.result;
+  toast('Imagen recibida. Abriendo imagen…');
+  const image=new Image();
+  let objectUrl='';
+  const releaseUrl=()=>{if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl='';}};
+  image.onerror=()=>{
+    releaseUrl();
+    toast('Android entregó la foto, pero el navegador no pudo abrirla. Probá elegirla como JPG o PNG.');
   };
-  reader.readAsDataURL(file);
+  image.onload=()=>{
+    releaseUrl();
+    const width=type==='avatar'?720:1440;
+    const height=type==='avatar'?720:600;
+    canvas.width=width;canvas.height=height;
+    canvas.style.aspectRatio=width+'/'+height;
+    canvas.style.maxHeight='55vh';
+    canvas.style.borderRadius=type==='avatar'?'50%':'12px';
+    canvas.style.objectFit='contain';
+    const base=Math.max(width/image.naturalWidth,height/image.naturalHeight);
+    const drawnW=image.naturalWidth*base,drawnH=image.naturalHeight*base;
+    goviCropState={image,type,base,zoom:1,x:(width-drawnW)/2,y:(height-drawnH)/2,drag:false,lastX:0,lastY:0};
+    zoom.value='1';zoom.min='1';zoom.max='4';zoom.step='.01';
+    if(title)title.textContent=type==='avatar'?'Ajustar foto de perfil':'Ajustar foto de portada';
+    const hint=modal.querySelector('.demo-note');
+    if(hint)hint.textContent='Arrastrá la imagen para acomodarla y usá el zoom. Así se verá en tu perfil.';
+    goviDrawCrop();
+    modal.style.display='flex';
+    const sourceInput=document.getElementById(type==='cover'?'goviCoverInput':'goviAvatarInput');
+    if(sourceInput)sourceInput.value='';
+    toast('Ya podés ajustar la foto y guardar el recorte.');
+  };
+  try{
+    objectUrl=URL.createObjectURL(file);
+    image.src=objectUrl;
+  }catch(error){
+    console.error('GOVI: no se pudo crear URL temporal de la imagen',error);
+    toast('No se pudo abrir la foto seleccionada en este navegador.');
+  }
 }
 window.goviOpenCropEditor = goviOpenCropEditor;
 function goviDrawCrop(){
