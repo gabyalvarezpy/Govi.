@@ -1035,7 +1035,39 @@ const $=id=>document.getElementById(id);
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),3000)}    
 function openModal(id){$(id).classList.add('show')}    
 function closeModal(id){$(id).classList.remove('show')}    
-async function accountAction(){if(currentUser){if(confirm('¿Quieres cerrar tu sesión de GOVI?')){await supabaseClient.auth.signOut();const story=document.getElementById('goviStoryComposer');if(story){story.classList.remove('open');story.style.setProperty('display','none','important');story.setAttribute('aria-hidden','true');}const video=document.getElementById('goviStoryPreviewVideo');if(video){video.pause();video.removeAttribute('src');video.load();}}}else openModal('authModal')}    
+async function accountAction(){
+  if(currentUser){
+    if(!confirm('¿Quieres cerrar tu sesión de GOVI?'))return;
+    try{
+      const {error}=await supabaseClient.auth.signOut();
+      if(error)throw error;
+      currentUser=null;
+      const story=document.getElementById('goviStoryComposer');
+      if(story){story.classList.remove('open');story.style.setProperty('display','none','important');story.setAttribute('aria-hidden','true');}
+      const video=document.getElementById('goviStoryPreviewVideo');
+      if(video){video.pause();video.removeAttribute('src');video.load();}
+      authMode='login';
+      $('authTitle').textContent='Acceder a GOVI';
+      $('authName').style.display='block';
+      $('authName').placeholder='Nombre (opcional)';
+      $('authPassword').autocomplete='current-password';
+      $('authPassword').value='';
+      $('authSubmit').textContent='Iniciar sesión';
+      $('authSwitch').textContent='¿No tienes cuenta? · Registrarme';
+      await refreshSession();
+      openModal('authModal');
+    }catch(error){console.error('GOVI cierre de sesión:',error);toast('No se pudo cerrar la sesión: '+(error.message||'Error'))}
+  }else{
+    authMode='login';
+    $('authTitle').textContent='Acceder a GOVI';
+    $('authName').style.display='block';
+    $('authName').placeholder='Nombre (opcional)';
+    $('authPassword').autocomplete='current-password';
+    $('authSubmit').textContent='Iniciar sesión';
+    $('authSwitch').textContent='¿No tienes cuenta? · Registrarme';
+    openModal('authModal');
+  }
+}    
 function escapeHTML(value=''){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}    
 function initials(name='G'){return name.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'G'}    
 function timeLabel(date){return new Date(date).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'})}    
@@ -1219,7 +1251,7 @@ async function managePost(id){
     toast('Publicación eliminada');await loadFeed();    
   }else toast('Opción no reconocida. Escribe EDITAR o ELIMINAR.');    
 }    
-function toggleAuthMode(){authMode=authMode==='register'?'login':'register';$('authTitle').textContent=authMode==='register'?'Únete a GOVI':'Bienvenido de nuevo';$('authName').style.display=authMode==='register'?'block':'none';$('authPassword').autocomplete=authMode==='register'?'new-password':'current-password';$('authSubmit').textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión';$('authSwitch').textContent=authMode==='register'?'Ya tengo una cuenta · Iniciar sesión':'No tengo cuenta · Registrarme'}    
+function toggleAuthMode(){authMode=authMode==='register'?'login':'register';$('authTitle').textContent=authMode==='register'?'Únete a GOVI':'Acceder a GOVI';$('authName').style.display='block';$('authName').placeholder=authMode==='register'?'Tu nombre':'Nombre (opcional)';$('authPassword').autocomplete=authMode==='register'?'new-password':'current-password';$('authSubmit').textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión';$('authSwitch').textContent=authMode==='register'?'Ya tengo una cuenta · Iniciar sesión':'¿No tienes cuenta? · Registrarme'}    
 async function handleAuth(){    
   const name=$('authName').value.trim(),email=$('authEmail').value.trim(),password=$('authPassword').value,button=$('authSubmit');    
   if(authMode==='register'&&!name){toast('Escribe tu nombre');return}    
@@ -6226,3 +6258,20 @@ window.goviOpenCropEditor = goviOpenCropEditor;
 
 
 
+
+<style id="govi-login-white-gold-v1">
+
+/* GOVI LOGIN WHITE & GOLD - pantalla de acceso tras cerrar sesión */
+#authModal{background:rgba(10,8,4,.72)!important;backdrop-filter:blur(7px)}
+#authModal .modal{background:#fff!important;color:#211a0c!important;border:2px solid #c99a32!important;border-radius:24px!important;box-shadow:0 24px 90px #0009,0 0 0 5px #c99a3222!important;padding:clamp(22px,5vw,34px)!important;width:min(440px,100%)!important}
+#authModal .modal-head h2{color:#8b6418!important;font-size:25px!important;font-weight:900!important}
+#authModal .close{color:#8b6418!important}
+#authModal .auth-fields input{background:#fff!important;color:#211a0c!important;border:1.5px solid #d9bd78!important;border-radius:13px!important;padding:14px 15px!important;min-height:50px!important}
+#authModal .auth-fields input::placeholder{color:#8d826b!important}
+#authModal .auth-fields input:focus{outline:2px solid #e8c66a!important;border-color:#b77b18!important}
+#authModal .primary-btn{width:100%!important;justify-content:center!important;background:linear-gradient(120deg,#f4d989,#c99a32)!important;color:#211707!important;border:1px solid #b77b18!important;border-radius:13px!important;padding:14px!important;font-size:16px!important;font-weight:900!important}
+#authModal .modal-actions{display:block!important}
+#authModal .auth-switch{color:#946a1b!important;width:100%!important}
+#authModal .demo-note{color:#756b57!important}
+
+</style>
