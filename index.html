@@ -2509,25 +2509,41 @@ async function goviOpenCropEditor(file,type){
   const zoom=document.getElementById('goviCropZoom');
   const title=document.getElementById('goviCropTitle');
   if(!modal||!canvas||!zoom){toast('Error GOVI: falta el panel del recortador');return}
-  toast('Imagen recibida. Procesando archivo…');
-  let image=null;
+  toast('Imagen recibida. Intentando abrir…');
+  let image=null,bitmap=false;
+  const loadWithImageElement=async source=>{
+    const img=new Image();
+    await new Promise((resolve,reject)=>{
+      const timer=setTimeout(()=>reject(new Error('Tiempo agotado al decodificar la imagen')),12000);
+      img.onload=()=>{clearTimeout(timer);resolve()};
+      img.onerror=()=>{clearTimeout(timer);reject(new Error('El navegador rechazó el formato de imagen'))};
+      img.src=source;
+      if(img.complete&&img.naturalWidth) {clearTimeout(timer);resolve()}
+    });
+    return img;
+  };
   try{
     if(typeof createImageBitmap==='function'){
-      image=await createImageBitmap(file);
-    }else{
-      image=new Image();
-      const url=URL.createObjectURL(file);
-      try{
-        image.src=url;
-        if(typeof image.decode==='function')await image.decode();
-        else await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=()=>reject(new Error('El navegador no pudo decodificar la imagen'))});
-      }finally{URL.revokeObjectURL(url)}
+      try{image=await createImageBitmap(file);bitmap=true}
+      catch(bitmapError){
+        console.warn('GOVI createImageBitmap falló; probando lector alternativo:',bitmapError);
+      }
+    }
+    if(!image){
+      const dataUrl=await new Promise((resolve,reject)=>{
+        const reader=new FileReader();
+        const timer=setTimeout(()=>{try{reader.abort()}catch(_){}reject(new Error('Android no terminó de leer el archivo'))},12000);
+        reader.onload=()=>{clearTimeout(timer);resolve(reader.result)};
+        reader.onerror=()=>{clearTimeout(timer);reject(new Error('No se pudo leer el archivo seleccionado'))};
+        reader.onabort=()=>{clearTimeout(timer);reject(new Error('La lectura del archivo fue cancelada'))};
+        reader.readAsDataURL(file);
+      });
+      image=await loadWithImageElement(dataUrl);
     }
     const imageWidth=image.width||image.naturalWidth;
     const imageHeight=image.height||image.naturalHeight;
     if(!imageWidth||!imageHeight)throw new Error('La imagen no tiene dimensiones válidas');
-    const width=type==='avatar'?720:1440;
-    const height=type==='avatar'?720:600;
+    const width=type==='avatar'?720:1440,height=type==='avatar'?720:600;
     canvas.width=width;canvas.height=height;
     canvas.style.aspectRatio=width+'/'+height;
     canvas.style.maxHeight='55vh';
@@ -2535,20 +2551,20 @@ async function goviOpenCropEditor(file,type){
     canvas.style.objectFit='contain';
     const base=Math.max(width/imageWidth,height/imageHeight);
     const drawnW=imageWidth*base,drawnH=imageHeight*base;
-    goviCropState={image,type,base,zoom:1,x:(width-drawnW)/2,y:(height-drawnH)/2,drag:false,lastX:0,lastY:0};
+    goviCropState={image,type,base,zoom:1,x:(width-drawnW)/2,y:(height-drawnH)/2,drag:false,lastX:0,lastY:0,bitmap};
     zoom.value='1';zoom.min='1';zoom.max='4';zoom.step='.01';
     if(title)title.textContent=type==='avatar'?'Ajustar foto de perfil':'Ajustar foto de portada';
     const hint=modal.querySelector('.demo-note');
     if(hint)hint.textContent='Arrastrá la imagen para acomodarla y usá el zoom. Así se verá en tu perfil.';
     goviDrawCrop();
-    modal.style.display='flex';
-    modal.setAttribute('aria-hidden','false');
+    modal.style.display='flex';modal.setAttribute('aria-hidden','false');
     const sourceInput=document.getElementById(type==='cover'?'goviCoverInput':'goviAvatarInput');
     if(sourceInput)sourceInput.value='';
     toast('Ya podés ajustar la foto y guardar el recorte.');
   }catch(error){
-    console.error('GOVI: error procesando imagen seleccionada',{name:file.name,type:file.type,size:file.size,error});
-    toast('No se pudo procesar esta foto ('+(file.type||'formato no identificado')+'). Probá una imagen JPG o PNG.');
+    console.error('GOVI error procesando foto:',error);
+    const detail=(error&&error.message)?error.message:'Error desconocido';
+    toast('No se pudo abrir la foto: '+detail);
   }
 }
 window.goviOpenCropEditor = goviOpenCropEditor;
