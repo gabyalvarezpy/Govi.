@@ -2578,60 +2578,60 @@ function goviDrawCrop(){
 }
 const goviCropCanvas=document.getElementById('goviCropCanvas');
 goviCropCanvas.style.touchAction='none';
-let goviTouchStartDistance=0,goviTouchStartZoom=1,goviTouchStartMid=null,goviTouchStartX=0,goviTouchStartY=0;
-function goviCropPointFromTouch(t){
+goviCropCanvas.style.pointerEvents='auto';
+goviCropCanvas.style.userSelect='none';
+goviCropCanvas.style.webkitUserSelect='none';
+const goviCropActivePointers=new Map();
+let goviCropGesture=null;
+function goviCropPointerPoint(e){
  const r=goviCropCanvas.getBoundingClientRect();
- return {x:(t.clientX-r.left)*goviCropCanvas.width/r.width,y:(t.clientY-r.top)*goviCropCanvas.height/r.height};
+ return {x:(e.clientX-r.left)*goviCropCanvas.width/r.width,y:(e.clientY-r.top)*goviCropCanvas.height/r.height};
 }
-function goviCropDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
-function goviCropMid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
-goviCropCanvas.addEventListener('touchstart',e=>{
+function goviCropPointerDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function goviCropPointerMid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+goviCropCanvas.addEventListener('pointerdown',e=>{
  if(!window.goviCropState)return;
  e.preventDefault();
- const s=window.goviCropState;
- if(e.touches.length===1){
-  const p=goviCropPointFromTouch(e.touches[0]);goviTouchStartX=p.x;goviTouchStartY=p.y;
- }else if(e.touches.length>=2){
-  const p1=goviCropPointFromTouch(e.touches[0]),p2=goviCropPointFromTouch(e.touches[1]);
-  goviTouchStartDistance=Math.max(1,goviCropDistance(p1,p2));goviTouchStartZoom=s.zoom;
-  goviTouchStartMid=goviCropMid(p1,p2);
- }
+ try{goviCropCanvas.setPointerCapture(e.pointerId)}catch(_){}
+ goviCropActivePointers.set(e.pointerId,goviCropPointerPoint(e));
+ const pts=[...goviCropActivePointers.values()],s=window.goviCropState;
+ if(pts.length===1)goviCropGesture={mode:'move',last:pts[0]};
+ else if(pts.length>=2)goviCropGesture={mode:'pinch',distance:Math.max(1,goviCropPointerDistance(pts[0],pts[1])),mid:goviCropPointerMid(pts[0],pts[1]),zoom:s.zoom};
 },{passive:false});
-goviCropCanvas.addEventListener('touchmove',e=>{
- const s=window.goviCropState;if(!s)return;
+goviCropCanvas.addEventListener('pointermove',e=>{
+ const s=window.goviCropState;
+ if(!s||!goviCropActivePointers.has(e.pointerId))return;
  e.preventDefault();
- if(e.touches.length===1){
-  const p=goviCropPointFromTouch(e.touches[0]);
-  s.x+=p.x-goviTouchStartX;s.y+=p.y-goviTouchStartY;
-  goviTouchStartX=p.x;goviTouchStartY=p.y;
- }else if(e.touches.length>=2&&goviTouchStartDistance){
-  const p1=goviCropPointFromTouch(e.touches[0]),p2=goviCropPointFromTouch(e.touches[1]);
-  const mid=goviCropMid(p1,p2),distance=goviCropDistance(p1,p2);
-  const nextZoom=Math.max(1,Math.min(4,goviTouchStartZoom*distance/goviTouchStartDistance));
-  const factor=nextZoom/s.zoom;
-  s.x=mid.x-(goviTouchStartMid.x-s.x)*factor;
-  s.y=mid.y-(goviTouchStartMid.y-s.y)*factor;
+ const next=goviCropPointerPoint(e),previous=goviCropActivePointers.get(e.pointerId);
+ if(goviCropActivePointers.size===1){
+  if(goviCropGesture&&goviCropGesture.mode==='move'){
+   s.x+=next.x-goviCropGesture.last.x;s.y+=next.y-goviCropGesture.last.y;
+  }
+  goviCropGesture={mode:'move',last:next};
+ }else{
+  const ids=[...goviCropActivePointers.keys()].slice(0,2);
+  const p1=ids[0]===e.pointerId?next:goviCropActivePointers.get(ids[0]);
+  const p2=ids[1]===e.pointerId?next:goviCropActivePointers.get(ids[1]);
+  const mid=goviCropPointerMid(p1,p2),distance=Math.max(1,goviCropPointerDistance(p1,p2));
+  if(!goviCropGesture||goviCropGesture.mode!=='pinch')goviCropGesture={mode:'pinch',distance,mid,zoom:s.zoom};
+  const factor=distance/goviCropGesture.distance;
+  const nextZoom=Math.max(1,Math.min(4,goviCropGesture.zoom*factor));
+  const scale=nextZoom/s.zoom;
+  s.x=mid.x-(goviCropGesture.mid.x-s.x)*scale;
+  s.y=mid.y-(goviCropGesture.mid.y-s.y)*scale;
   s.zoom=nextZoom;
  }
+ goviCropActivePointers.set(e.pointerId,next);
  goviDrawCrop();
 },{passive:false});
-['touchend','touchcancel'].forEach(name=>goviCropCanvas.addEventListener(name,e=>{
- if(e.touches.length===1){const p=goviCropPointFromTouch(e.touches[0]);goviTouchStartX=p.x;goviTouchStartY=p.y}
- else if(e.touches.length===0){goviTouchStartDistance=0;goviTouchStartMid=null}
-},{passive:true}));
-// Ratón/trackpad en escritorio; en móvil se usan los eventos touch anteriores.
-goviCropCanvas.addEventListener('pointerdown',e=>{
- if(e.pointerType==='touch'||!window.goviCropState)return;
- e.preventDefault();goviCropCanvas.setPointerCapture(e.pointerId);
- goviCropCanvas.dataset.mouseX=e.clientX;goviCropCanvas.dataset.mouseY=e.clientY;
-});
-goviCropCanvas.addEventListener('pointermove',e=>{
- if(e.pointerType==='touch'||!e.buttons||!window.goviCropState)return;
- const r=goviCropCanvas.getBoundingClientRect(),lastX=Number(goviCropCanvas.dataset.mouseX),lastY=Number(goviCropCanvas.dataset.mouseY);
- window.goviCropState.x+=(e.clientX-lastX)*goviCropCanvas.width/r.width;
- window.goviCropState.y+=(e.clientY-lastY)*goviCropCanvas.height/r.height;
- goviCropCanvas.dataset.mouseX=e.clientX;goviCropCanvas.dataset.mouseY=e.clientY;goviDrawCrop();
-});
+function goviCropEndPointer(e){
+ goviCropActivePointers.delete(e.pointerId);
+ const pts=[...goviCropActivePointers.values()],s=window.goviCropState;
+ if(!s||!pts.length){goviCropGesture=null;return}
+ if(pts.length===1)goviCropGesture={mode:'move',last:pts[0]};
+ else goviCropGesture={mode:'pinch',distance:Math.max(1,goviCropPointerDistance(pts[0],pts[1])),mid:goviCropPointerMid(pts[0],pts[1]),zoom:s.zoom};
+}
+['pointerup','pointercancel','lostpointercapture'].forEach(name=>goviCropCanvas.addEventListener(name,goviCropEndPointer));
 document.getElementById('goviCropCancel').addEventListener('click',()=>{
  window.goviCropState=null;document.getElementById('goviCropModal').style.display='none';goviCropCanvas.style.borderRadius='12px';
 });
