@@ -2521,9 +2521,17 @@ function goviOpenCropEditor(file,type){
     if(title)title.textContent=type==='avatar'?'Ajustar foto de perfil':'Ajustar foto de portada';
     const hint=modal.querySelector('.demo-note');if(hint)hint.textContent='Arrastrá la imagen para acomodarla y usá el zoom. Así se verá en tu perfil.';
     goviDrawCrop();modal.style.display='flex';
+    // Mantener vivo el archivo de Android hasta terminar la decodificación.
+    const sourceInput=document.getElementById(type==='cover'?'goviCoverInput':'goviAvatarInput');
+    if(sourceInput)sourceInput.value='';
     URL.revokeObjectURL(url);
   };
-  image.onerror=()=>{URL.revokeObjectURL(url);toast('No se pudo abrir esta imagen')};
+  image.onerror=()=>{
+    const sourceInput=document.getElementById(type==='cover'?'goviCoverInput':'goviAvatarInput');
+    if(sourceInput)sourceInput.value='';
+    URL.revokeObjectURL(url);
+    toast('No se pudo abrir esta imagen');
+  };
   image.src=url;
 }
 window.goviOpenCropEditor = goviOpenCropEditor;
@@ -5997,58 +6005,10 @@ window.goviOpenCropEditor = goviOpenCropEditor;
       console.error('GOVI: error al abrir el recortador',error);
       if(typeof toast==='function')toast('No se pudo abrir el recortador: '+(error.message||'error'));
     }
-    input.value='';
+    // El editor limpia el input solo cuando image.onload termina.
   },true);
 })();
 </script>
 
 
-<script id="govi-android-picker-return-fallback-v1">
-/* Android/Google Photos: recuperar el archivo si el selector vuelve sin change. */
-(function(){
-  if(window.__goviAndroidPickerFallbackV1)return;
-  window.__goviAndroidPickerFallbackV1=true;
-  let pending=null,checking=false;
-  const ids=['goviAvatarInput','goviCoverInput'];
-  function getInput(id){return document.getElementById(id)}
-  function openCrop(input){
-    if(!input||!input.files||!input.files.length)return false;
-    const file=input.files[0];
-    if(!file.type||!file.type.startsWith('image/')){
-      if(typeof toast==='function')toast('El archivo elegido no es una imagen compatible.');
-      input.value='';pending=null;return true;
-    }
-    const type=input.id==='goviCoverInput'?'cover':'avatar';
-    const editor=window.goviOpenCropEditor;
-    if(typeof editor!=='function'){
-      if(typeof toast==='function')toast('El editor de recorte no está disponible. No se subió la imagen.');
-      input.value='';pending=null;return true;
-    }
-    pending=null;
-    try{editor(file,type)}
-    catch(error){console.error('GOVI Android picker fallback:',error);if(typeof toast==='function')toast('No se pudo abrir el recortador: '+(error.message||'error'))}
-    input.value='';
-    return true;
-  }
-  ids.forEach(id=>{
-    const input=getInput(id);
-    if(!input)return;
-    input.accept='image/*';
-    input.addEventListener('click',()=>{pending=input},true);
-    input.addEventListener('change',()=>{pending=null},false);
-  });
-  window.addEventListener('focus',()=>{
-    if(checking||!pending)return;
-    checking=true;
-    setTimeout(()=>{
-      checking=false;
-      const input=pending;
-      if(!input)return;
-      // Si el evento change ya fue procesado, el controlador principal habrá
-      // limpiado el valor. Solo recuperamos un archivo que siga seleccionado.
-      if(input.files&&input.files.length)openCrop(input);
-      else pending=null;
-    },500);
-  },true);
-})();
-</script>
+
