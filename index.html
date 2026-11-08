@@ -1283,7 +1283,7 @@ document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=
 refreshSession();  
 </script>
 
-<div class="overlay" id="goviCropModal" style="display:none;z-index:10000"><div class="modal" style="width:min(94vw,520px)"><div class="modal-head"><h2 id="goviCropTitle">Ajustar imagen</h2><button class="close" id="goviCropCancel">×</button></div><p class="demo-note">Arrastra la imagen para centrarla y usa el zoom.</p><canvas id="goviCropCanvas" style="width:100%;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none"></canvas><p class="demo-note" style="margin:12px 0;color:#bdb6a5">Mové la foto con un dedo y acercá o alejála juntando o separando dos dedos.</p><button class="primary" id="goviCropSave" style="width:100%">Guardar recorte</button></div></div>
+<div class="overlay" id="goviCropModal" style="display:none;z-index:10000"><div class="modal" style="width:min(94vw,520px)"><div class="modal-head"><h2 id="goviCropTitle">Ajustar imagen</h2><button class="close" id="goviCropCancel">×</button></div><p class="demo-note">Arrastra la imagen para centrarla y usa el zoom.</p><canvas id="goviCropCanvas" style="width:100%;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none"></canvas><p class="demo-note" style="margin:12px 0;color:#bdb6a5">Mové la foto con un dedo y acercá o alejála juntando o separando dos dedos.</p><button type="button" class="primary" id="goviCropSave" style="width:100%;position:relative;z-index:10002;pointer-events:auto;touch-action:manipulation">Guardar recorte</button></div></div>
 <script>
 /* ==========================================
    GOVI — PERFILES PÚBLICOS Y FOTOS DE PERFIL
@@ -2635,16 +2635,31 @@ function goviCropEndPointer(e){
 document.getElementById('goviCropCancel').addEventListener('click',()=>{
  window.goviCropState=null;document.getElementById('goviCropModal').style.display='none';goviCropCanvas.style.borderRadius='12px';
 });
-document.getElementById('goviCropSave').addEventListener('click',async()=>{
- const s=window.goviCropState;if(!s)return;
- const canvas=document.getElementById('goviCropCanvas'),button=document.getElementById('goviCropSave');
- button.disabled=true;button.textContent='Preparando foto…';
+/* Guardado delegado en captura: evita que otros controladores móviles bloqueen el toque */
+document.addEventListener('click',async function(event){
+ const button=event.target&&event.target.closest?event.target.closest('#goviCropSave'):null;
+ if(!button)return;
+ event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+ if(button.dataset.saving==='1')return;
+ const crop=window.goviCropState;
+ if(!crop){
+  toast('No se detectó la imagen recortada. Cerrá el editor y elegí la foto otra vez.');
+  console.error('GOVI: se pulsó Guardar recorte sin goviCropState.');
+  return;
+ }
+ const canvas=document.getElementById('goviCropCanvas');
+ if(!canvas||!canvas.width||!canvas.height){
+  toast('El recortador no está listo. Volvé a elegir la foto.');
+  return;
+ }
+ button.dataset.saving='1';button.disabled=true;button.textContent='Preparando foto…';
  try{
+  if(typeof canvas.toBlob!=='function')throw new Error('Este navegador no permite generar la imagen recortada.');
   const blob=await new Promise((resolve,reject)=>{
    canvas.toBlob(value=>value?resolve(value):reject(new Error('El navegador no pudo generar el recorte JPEG')),'image/jpeg',.92);
   });
   if(blob.size>10*1024*1024)throw new Error('El recorte supera los 10 MB');
-  const type=s.type,file=new File([blob],type+'-govi.jpg',{type:'image/jpeg',lastModified:Date.now()});
+  const type=crop.type,file=new File([blob],type+'-govi.jpg',{type:'image/jpeg',lastModified:Date.now()});
   button.textContent='Subiendo imagen…';
   await goviUploadProfileImage(file,type);
   document.getElementById('goviCropModal').style.display='none';
@@ -2653,9 +2668,9 @@ document.getElementById('goviCropSave').addEventListener('click',async()=>{
   console.error('GOVI guardar recorte:',error);
   toast('No se pudo guardar el recorte: '+(error.message||'error desconocido'));
  }finally{
-  button.disabled=false;button.textContent='Guardar recorte';
+  button.dataset.saving='0';button.disabled=false;button.textContent='Guardar recorte';
  }
-});
+},true);
 /* Recuperar la sesión y mostrar el perfil actualizado */
 refreshSession();
 </script>
