@@ -1275,6 +1275,19 @@ supabaseClient.auth.onAuthStateChange(()=>{setTimeout(goviLoadStories,0)});
   }catch(error){toast(error.message||'No se pudo completar la operación')}    
   finally{button.disabled=false;button.textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión'}    
 }    
+let goviLastSessionUserId=null;
+function goviResetAccountView(){
+  goviProfileId=null;window.goviProfileViewingUserId=null;window.goviProfileId=null;
+  const view=document.getElementById('goviProfileView'),home=document.getElementById('goviHomeProfile');
+  const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
+  const heading=document.querySelector('.govi-feed-block .govi-section-heading');
+  const composer=document.querySelector('.govi-feed-block .composer');
+  if(view){view.hidden=true;view.style.setProperty('display','none','important')}
+  if(home){home.hidden=false;home.style.setProperty('display','block','important')}
+  [stories,heading,composer].forEach(el=>{if(el)el.style.removeProperty('display')});
+  if(typeof window.goviSyncHomeProfile==='function')window.goviSyncHomeProfile();
+  window.scrollTo(0,0);
+}
 async function refreshSession(){
   try{
     const sessionResult=await Promise.race([
@@ -1285,6 +1298,11 @@ async function refreshSession(){
   }catch(sessionError){
     console.warn('GOVI: sesión no disponible al iniciar:',sessionError);
     currentUser=null;
+  }
+  const activeSessionUserId=currentUser?.id||null;
+  if(activeSessionUserId!==goviLastSessionUserId){
+    goviLastSessionUserId=activeSessionUserId;
+    goviResetAccountView();
   }
   if(!currentUser){
     document.documentElement.classList.add('govi-auth-pending');
