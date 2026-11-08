@@ -2577,100 +2577,92 @@ function goviDrawCrop(){
   ctx.drawImage(s.image,s.x,s.y,w,h);
 }
 const goviCropCanvas=document.getElementById('goviCropCanvas');
-goviCropCanvas.style.touchAction='none';
-goviCropCanvas.style.pointerEvents='auto';
-goviCropCanvas.style.userSelect='none';
-goviCropCanvas.style.webkitUserSelect='none';
-const goviCropActivePointers=new Map();
-let goviCropGesture=null;
-function goviCropPointerPoint(e){
+goviCropCanvas.style.setProperty('touch-action','none','important');
+goviCropCanvas.style.setProperty('user-select','none','important');
+goviCropCanvas.style.setProperty('-webkit-user-select','none','important');
+let goviTouchPoints=[],goviTouchGesture=null;
+function goviCropLocalPoint(clientX,clientY){
  const r=goviCropCanvas.getBoundingClientRect();
- return {x:(e.clientX-r.left)*goviCropCanvas.width/r.width,y:(e.clientY-r.top)*goviCropCanvas.height/r.height};
+ return {x:(clientX-r.left)*goviCropCanvas.width/r.width,y:(clientY-r.top)*goviCropCanvas.height/r.height};
 }
-function goviCropPointerDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
-function goviCropPointerMid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
-goviCropCanvas.addEventListener('pointerdown',e=>{
+function goviCropDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function goviCropMid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+/* Android: usar Touch Events nativos directamente sobre el lienzo */
+goviCropCanvas.addEventListener('touchstart',e=>{
  if(!window.goviCropState)return;
  e.preventDefault();
- try{goviCropCanvas.setPointerCapture(e.pointerId)}catch(_){}
- goviCropActivePointers.set(e.pointerId,goviCropPointerPoint(e));
- const pts=[...goviCropActivePointers.values()],s=window.goviCropState;
- if(pts.length===1)goviCropGesture={mode:'move',last:pts[0]};
- else if(pts.length>=2)goviCropGesture={mode:'pinch',distance:Math.max(1,goviCropPointerDistance(pts[0],pts[1])),mid:goviCropPointerMid(pts[0],pts[1]),zoom:s.zoom};
-},{passive:false});
-goviCropCanvas.addEventListener('pointermove',e=>{
+ goviTouchPoints=[...e.touches].map(t=>goviCropLocalPoint(t.clientX,t.clientY));
  const s=window.goviCropState;
- if(!s||!goviCropActivePointers.has(e.pointerId))return;
- e.preventDefault();
- const next=goviCropPointerPoint(e),previous=goviCropActivePointers.get(e.pointerId);
- if(goviCropActivePointers.size===1){
-  if(goviCropGesture&&goviCropGesture.mode==='move'){
-   s.x+=next.x-goviCropGesture.last.x;s.y+=next.y-goviCropGesture.last.y;
-  }
-  goviCropGesture={mode:'move',last:next};
- }else{
-  const ids=[...goviCropActivePointers.keys()].slice(0,2);
-  const p1=ids[0]===e.pointerId?next:goviCropActivePointers.get(ids[0]);
-  const p2=ids[1]===e.pointerId?next:goviCropActivePointers.get(ids[1]);
-  const mid=goviCropPointerMid(p1,p2),distance=Math.max(1,goviCropPointerDistance(p1,p2));
-  if(!goviCropGesture||goviCropGesture.mode!=='pinch')goviCropGesture={mode:'pinch',distance,mid,zoom:s.zoom};
-  const factor=distance/goviCropGesture.distance;
-  const nextZoom=Math.max(1,Math.min(4,goviCropGesture.zoom*factor));
-  const scale=nextZoom/s.zoom;
-  s.x=mid.x-(goviCropGesture.mid.x-s.x)*scale;
-  s.y=mid.y-(goviCropGesture.mid.y-s.y)*scale;
-  s.zoom=nextZoom;
- }
- goviCropActivePointers.set(e.pointerId,next);
- goviDrawCrop();
+ if(goviTouchPoints.length===1)goviTouchGesture={mode:'move',last:goviTouchPoints[0]};
+ else if(goviTouchPoints.length>=2)goviTouchGesture={mode:'pinch',distance:Math.max(1,goviCropDistance(goviTouchPoints[0],goviTouchPoints[1])),mid:goviCropMid(goviTouchPoints[0],goviTouchPoints[1]),zoom:s.zoom};
 },{passive:false});
-function goviCropEndPointer(e){
- goviCropActivePointers.delete(e.pointerId);
- const pts=[...goviCropActivePointers.values()],s=window.goviCropState;
- if(!s||!pts.length){goviCropGesture=null;return}
- if(pts.length===1)goviCropGesture={mode:'move',last:pts[0]};
- else goviCropGesture={mode:'pinch',distance:Math.max(1,goviCropPointerDistance(pts[0],pts[1])),mid:goviCropPointerMid(pts[0],pts[1]),zoom:s.zoom};
+goviCropCanvas.addEventListener('touchmove',e=>{
+ const s=window.goviCropState;if(!s)return;
+ e.preventDefault();
+ const pts=[...e.touches].map(t=>goviCropLocalPoint(t.clientX,t.clientY));
+ if(pts.length===1){
+  if(goviTouchGesture&&goviTouchGesture.mode==='move'){
+   s.x+=pts[0].x-goviTouchGesture.last.x;s.y+=pts[0].y-goviTouchGesture.last.y;
+  }
+  goviTouchGesture={mode:'move',last:pts[0]};
+ }else if(pts.length>=2){
+  if(!goviTouchGesture||goviTouchGesture.mode!=='pinch')goviTouchGesture={mode:'pinch',distance:Math.max(1,goviCropDistance(pts[0],pts[1])),mid:goviCropMid(pts[0],pts[1]),zoom:s.zoom};
+  const mid=goviCropMid(pts[0],pts[1]),distance=Math.max(1,goviCropDistance(pts[0],pts[1]));
+  const nextZoom=Math.max(1,Math.min(4,goviTouchGesture.zoom*distance/goviTouchGesture.distance));
+  const scale=nextZoom/s.zoom;
+  s.x=mid.x-(goviTouchGesture.mid.x-s.x)*scale;s.y=mid.y-(goviTouchGesture.mid.y-s.y)*scale;s.zoom=nextZoom;
+ }
+ goviTouchPoints=pts;goviDrawCrop();
+},{passive:false});
+function goviCropTouchEnd(e){
+ if(e.cancelable)e.preventDefault();
+ const s=window.goviCropState,pts=[...e.touches].map(t=>goviCropLocalPoint(t.clientX,t.clientY));
+ if(!s||!pts.length){goviTouchGesture=null;goviTouchPoints=[];return}
+ if(pts.length===1)goviTouchGesture={mode:'move',last:pts[0]};
+ else goviTouchGesture={mode:'pinch',distance:Math.max(1,goviCropDistance(pts[0],pts[1])),mid:goviCropMid(pts[0],pts[1]),zoom:s.zoom};
+ goviTouchPoints=pts;
 }
-['pointerup','pointercancel','lostpointercapture'].forEach(name=>goviCropCanvas.addEventListener(name,goviCropEndPointer));
+goviCropCanvas.addEventListener('touchend',goviCropTouchEnd,{passive:false});
+goviCropCanvas.addEventListener('touchcancel',goviCropTouchEnd,{passive:false});
+/* Ratón para ordenador */
+let goviMouseDrag=null;
+goviCropCanvas.addEventListener('mousedown',e=>{
+ if(!window.goviCropState)return;
+ e.preventDefault();goviMouseDrag=goviCropLocalPoint(e.clientX,e.clientY);
+});
+window.addEventListener('mousemove',e=>{
+ if(!goviMouseDrag||!window.goviCropState)return;
+ const p=goviCropLocalPoint(e.clientX,e.clientY),s=window.goviCropState;
+ s.x+=p.x-goviMouseDrag.x;s.y+=p.y-goviMouseDrag.y;goviMouseDrag=p;goviDrawCrop();
+});
+window.addEventListener('mouseup',()=>{goviMouseDrag=null});
 document.getElementById('goviCropCancel').addEventListener('click',()=>{
  window.goviCropState=null;document.getElementById('goviCropModal').style.display='none';goviCropCanvas.style.borderRadius='12px';
 });
-/* Guardado delegado en captura: evita que otros controladores móviles bloqueen el toque */
-document.addEventListener('click',async function(event){
- const button=event.target&&event.target.closest?event.target.closest('#goviCropSave'):null;
- if(!button)return;
- event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+/* Guardado directo en el propio botón, sin depender de la propagación del documento */
+async function goviSaveCropNow(event){
+ if(event){event.preventDefault();event.stopPropagation();}
+ const button=document.getElementById('goviCropSave'),crop=window.goviCropState,canvas=document.getElementById('goviCropCanvas');
+ if(!crop){toast('No se detectó la imagen. Cerrá el editor y elegí la foto otra vez.');return}
  if(button.dataset.saving==='1')return;
- const crop=window.goviCropState;
- if(!crop){
-  toast('No se detectó la imagen recortada. Cerrá el editor y elegí la foto otra vez.');
-  console.error('GOVI: se pulsó Guardar recorte sin goviCropState.');
-  return;
- }
- const canvas=document.getElementById('goviCropCanvas');
- if(!canvas||!canvas.width||!canvas.height){
-  toast('El recortador no está listo. Volvé a elegir la foto.');
-  return;
- }
  button.dataset.saving='1';button.disabled=true;button.textContent='Preparando foto…';
  try{
-  if(typeof canvas.toBlob!=='function')throw new Error('Este navegador no permite generar la imagen recortada.');
   const blob=await new Promise((resolve,reject)=>{
-   canvas.toBlob(value=>value?resolve(value):reject(new Error('El navegador no pudo generar el recorte JPEG')),'image/jpeg',.92);
+   if(!canvas||typeof canvas.toBlob!=='function')return reject(new Error('El navegador no permite generar el recorte'));
+   canvas.toBlob(value=>value?resolve(value):reject(new Error('No se pudo generar el JPEG del recorte')),'image/jpeg',.92);
   });
   if(blob.size>10*1024*1024)throw new Error('El recorte supera los 10 MB');
   const type=crop.type,file=new File([blob],type+'-govi.jpg',{type:'image/jpeg',lastModified:Date.now()});
   button.textContent='Subiendo imagen…';
   await goviUploadProfileImage(file,type);
-  document.getElementById('goviCropModal').style.display='none';
-  window.goviCropState=null;canvas.style.borderRadius='12px';
+  document.getElementById('goviCropModal').style.display='none';window.goviCropState=null;canvas.style.borderRadius='12px';
  }catch(error){
-  console.error('GOVI guardar recorte:',error);
-  toast('No se pudo guardar el recorte: '+(error.message||'error desconocido'));
- }finally{
-  button.dataset.saving='0';button.disabled=false;button.textContent='Guardar recorte';
- }
-},true);
+  console.error('GOVI guardar recorte:',error);toast('No se pudo guardar: '+(error.message||'error desconocido'));
+ }finally{button.dataset.saving='0';button.disabled=false;button.textContent='Guardar recorte'}
+}
+const goviCropSaveButton=document.getElementById('goviCropSave');
+goviCropSaveButton.onclick=goviSaveCropNow;
+goviCropSaveButton.addEventListener('touchend',goviSaveCropNow,{passive:false});
 /* Recuperar la sesión y mostrar el perfil actualizado */
 refreshSession();
 </script>
