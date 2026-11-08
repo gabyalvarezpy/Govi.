@@ -1878,7 +1878,7 @@ goviCoverGalleryInput.type='file';goviCoverGalleryInput.accept='image/*';goviCov
 async function goviGetProfile(userId) {
   const {data,error} = await supabaseClient
     .from('profiles')
-    .select('id,full_name,avatar_url,cover_url')
+    .select('id,full_name,display_name,avatar_url,cover_url')
     .eq('id',userId)
     .maybeSingle();
 
@@ -1913,11 +1913,11 @@ async function openGoviProfile(userId) {
     goviCurrentProfile._gallery=[];
 
     $('goviProfileName').textContent =
-      goviCurrentProfile.full_name || 'Usuario GOVI';
+      goviCurrentProfile.display_name || goviCurrentProfile.full_name || 'Usuario GOVI';
 
     $('goviAvatar').innerHTML = goviCurrentProfile.avatar_url
       ? `<img src="${escapeHTML(goviCurrentProfile.avatar_url)}" alt="Foto de perfil">`
-      : escapeHTML(initials(goviCurrentProfile.full_name || 'G'));
+      : escapeHTML(initials(goviCurrentProfile.display_name || goviCurrentProfile.full_name || 'G'));
 
     $('goviCover').innerHTML = (goviCurrentProfile.cover_url
       ? `<img src="${escapeHTML(goviCurrentProfile.cover_url)}" alt="Foto de portada">`
@@ -4424,19 +4424,24 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 #goviNotificationsPanel small{display:block;color:#a99e88;margin-top:4px}
 @media(max-width:700px){#goviNotificationsPanel{top:82px;right:10px}}
 </style>
-<script id="govi-notifications-ui-v1">
+<script id="govi-notifications-ui-v2">
 (function(){
- if(window.__goviNotificationsUIV1)return;window.__goviNotificationsUIV1=true;
+ if(window.__goviNotificationsUIV2)return;window.__goviNotificationsUIV2=true;
  var panel=null,labels={friend_request:"te envió una solicitud de amistad",friend_accepted:"aceptó tu solicitud de amistad",like:"reaccionó a tu publicación",comment:"comentó tu publicación",follow:"empezó a seguirte"};
  function db(){return typeof supabaseClient!=="undefined"?supabaseClient:window.supabaseClient}
  function user(){return typeof currentUser!=="undefined"?currentUser:null}
+ function toastMsg(m){if(typeof toast==="function")toast(m);else alert(m)}
  function ensure(){if(panel&&panel.isConnected)return panel;panel=document.createElement("section");panel.id="goviNotificationsPanel";panel.hidden=true;panel.innerHTML='<div class="head"><h3>Notificaciones</h3><button id="goviNotifyReadAll" type="button">Marcar todo leído</button></div><div id="goviNotifyList">Cargando…</div>';document.body.appendChild(panel);panel.querySelector("#goviNotifyReadAll").onclick=markAll;return panel}
- async function count(){var u=user(),b=document.getElementById("goviNotifyBadge"),c=db();if(!u||!b||!c)return;var r=await c.from("govi_notifications").select("id",{count:"exact",head:true}).eq("recipient_id",u.id).is("read_at",null);if(r.error){console.warn(r.error.message);return}b.textContent=r.count>99?"99+":String(r.count||0);b.hidden=!r.count}
- async function load(){var u=user(),c=db(),list=ensure().querySelector("#goviNotifyList");if(!u){list.textContent="Iniciá sesión para ver tus notificaciones.";return}list.textContent="Cargando…";var r=await c.from("govi_notifications").select("id,actor_id,type,created_at,read_at").eq("recipient_id",u.id).order("created_at",{ascending:false}).limit(40);if(r.error){list.textContent="Falta ejecutar el archivo supabase/govi-notifications.sql en Supabase.";console.warn(r.error);return}if(!r.data||!r.data.length){list.textContent="Todavía no tenés notificaciones.";await count();return}var ids=[...new Set(r.data.map(x=>x.actor_id).filter(Boolean))],profiles={};if(ids.length){var p=await c.from("profiles").select("id,full_name,avatar_url").in("id",ids);if(!p.error)(p.data||[]).forEach(x=>profiles[x.id]=x)}list.replaceChildren();r.data.forEach(function(n){var a=profiles[n.actor_id]||{},row=document.createElement("div");row.className="item"+(n.read_at?"":" unread");var img=document.createElement("img");img.alt="";if(a.avatar_url)img.src=a.avatar_url;var copy=document.createElement("div");copy.className="copy";var strong=document.createElement("strong");strong.textContent=a.full_name||"Alguien de GOVI";copy.append(strong,document.createTextNode(" "+(labels[n.type]||"interactuó contigo")));var small=document.createElement("small");small.textContent=new Date(n.created_at).toLocaleString("es-ES");copy.appendChild(small);row.append(img,copy);if(!n.read_at)row.onclick=async function(){var m=await c.from("govi_notifications").update({read_at:new Date().toISOString()}).eq("id",n.id).eq("recipient_id",u.id);if(!m.error){row.classList.remove("unread");count()}};list.appendChild(row)});count()}
- async function markAll(){var u=user(),c=db();if(!u)return;var r=await c.from("govi_notifications").update({read_at:new Date().toISOString()}).eq("recipient_id",u.id).is("read_at",null);if(r.error){if(typeof toast==="function")toast("No se pudieron marcar como leídas");return}load()}
- window.goviToggleNotifications=async function(){var p=ensure();p.hidden=!p.hidden;document.getElementById("goviNotifyButton").setAttribute("aria-expanded",String(!p.hidden));if(!p.hidden)await load()};
- document.addEventListener("click",function(e){if(panel&&!panel.hidden&&!panel.contains(e.target)&&!e.target.closest("#goviNotifyButton")){panel.hidden=true;document.getElementById("goviNotifyButton").setAttribute("aria-expanded","false")}});
- window.goviRefreshNotificationCount=count;setTimeout(count,1800);
+ async function count(){var u=user(),b=document.getElementById("goviNotifyBadge"),c=db();if(!u||!b||!c)return;var r=await c.from("govi_notifications").select("id",{count:"exact",head:true}).eq("recipient_id",u.id).is("read_at",null);if(r.error){console.warn("GOVI notificaciones:",r.error);return}b.textContent=r.count>99?"99+":String(r.count||0);b.hidden=!r.count}
+ async function markRead(id){var u=user(),c=db();if(!u)return;var r=await c.from("govi_notifications").update({read_at:new Date().toISOString()}).eq("id",id).eq("recipient_id",u.id);if(r.error)throw r.error}
+ async function respond(friendshipId,accept,button){var c=db();if(!user())return;if(button)button.disabled=true;try{var r=await c.rpc("govi_respond_friend_request",{request_id:friendshipId,accept_request:accept});if(r.error)throw r.error;if(r.data==="follow_required"){toastMsg("Se alcanzó el límite de 500 amistades. La solicitud no se pudo convertir automáticamente.");}else toastMsg(accept?"¡Solicitud aceptada! Ya son amigos en GOVI.":"Solicitud rechazada.");await markRead(button?.dataset.notificationId);await load();if(typeof window.goviRefreshFriendControls==="function")window.goviRefreshFriendControls()}catch(e){if(button)button.disabled=false;toastMsg("No se pudo responder: "+(e.message||"Error"))}}
+ async function load(){var u=user(),c=db(),list=ensure().querySelector("#goviNotifyList");if(!u){list.textContent="Iniciá sesión para ver tus notificaciones.";return}list.textContent="Cargando…";var r=await c.from("govi_notifications").select("id,actor_id,type,friendship_id,created_at,read_at,post_id").eq("recipient_id",u.id).order("created_at",{ascending:false}).limit(40);if(r.error){list.textContent="No se pudieron cargar las notificaciones. Comprueba supabase/govi-notifications.sql.";console.warn(r.error);return}if(!r.data||!r.data.length){list.textContent="Todavía no tenés notificaciones.";await count();return}var ids=[...new Set(r.data.map(x=>x.actor_id).filter(Boolean))],profiles={};if(ids.length){var p=await c.from("profiles").select("id,full_name,display_name,avatar_url").in("id",ids);if(!p.error)(p.data||[]).forEach(x=>profiles[x.id]=x)}list.replaceChildren();r.data.forEach(function(n){var a=profiles[n.actor_id]||{},name=a.display_name||a.full_name||"Alguien de GOVI",row=document.createElement("div");row.className="item"+(n.read_at?"":" unread");var img=document.createElement("img");img.alt="";if(a.avatar_url)img.src=a.avatar_url;var copy=document.createElement("div");copy.className="copy";var strong=document.createElement("strong");strong.textContent=name;copy.append(strong,document.createTextNode(" "+(labels[n.type]||"interactuó contigo")));var small=document.createElement("small");small.textContent=new Date(n.created_at).toLocaleString("es-ES");copy.appendChild(small);row.append(img,copy);if(n.type==="friend_request"&&n.friendship_id){var actions=document.createElement("div");actions.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px";var accept=document.createElement("button");accept.type="button";accept.textContent="Aceptar";accept.dataset.notificationId=n.id;accept.onclick=function(e){e.stopPropagation();respond(n.friendship_id,true,accept)};var reject=document.createElement("button");reject.type="button";reject.textContent="Rechazar";reject.dataset.notificationId=n.id;reject.onclick=function(e){e.stopPropagation();respond(n.friendship_id,false,reject)};actions.append(accept,reject);copy.appendChild(actions)}row.onclick=async function(){if(n.read_at)return;try{await markRead(n.id);row.classList.remove("unread");count()}catch(e){console.warn(e)}};list.appendChild(row)});count()}
+ async function markAll(){var u=user(),c=db();if(!u)return;var r=await c.from("govi_notifications").update({read_at:new Date().toISOString()}).eq("recipient_id",u.id).is("read_at",null);if(r.error){toastMsg("No se pudieron marcar como leídas");return}load()}
+ window.goviToggleNotifications=async function(){var p=ensure();p.hidden=!p.hidden;document.getElementById("goviNotifyButton")?.setAttribute("aria-expanded",String(!p.hidden));if(!p.hidden)await load()};
+ window.goviRefreshNotificationCount=count;
+ document.addEventListener("click",function(e){if(panel&&!panel.hidden&&!panel.contains(e.target)&&!e.target.closest("#goviNotifyButton")){panel.hidden=true;document.getElementById("goviNotifyButton")?.setAttribute("aria-expanded","false")}});
+ document.addEventListener("visibilitychange",function(){if(!document.hidden)count()});
+ window.addEventListener("focus",count);setTimeout(count,1200);
 })();
 </script>
 
