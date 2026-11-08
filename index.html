@@ -5896,3 +5896,70 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
  };
 })();
 </script>
+
+
+<script id="govi-image-viewer-v1">
+/* GOVI: ver fotos ampliadas sin entrar en Mi perfil */
+(function(){
+  if(window.__goviImageViewerV1)return;
+  window.__goviImageViewerV1=true;
+  const style=document.createElement('style');
+  style.textContent=`
+    #goviImageViewer{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center;padding:18px}
+    #goviImageViewer.show{display:flex}
+    #goviImageViewer img{display:block;max-width:96vw;max-height:88vh;object-fit:contain;border-radius:12px;box-shadow:0 18px 70px #0009}
+    #goviImageViewer button{position:absolute;top:14px;right:16px;width:44px;height:44px;border:1px solid #ffffff55;border-radius:50%;background:#171717;color:#fff;font-size:30px;line-height:1;cursor:pointer}
+    #goviHomeCover,#goviHomeAvatar,#goviCover,#goviAvatar{cursor:zoom-in}
+    #goviHomeCover .govi-home-cover-shade,#goviHomeCover .govi-home-cover-brand{pointer-events:none}
+  `;
+  document.head.appendChild(style);
+  const viewer=document.createElement('div');
+  viewer.id='goviImageViewer';
+  viewer.setAttribute('role','dialog');
+  viewer.setAttribute('aria-modal','true');
+  viewer.setAttribute('aria-label','Foto ampliada');
+  viewer.innerHTML='<button type="button" aria-label="Cerrar">×</button><img alt="Imagen ampliada">';
+  document.body.appendChild(viewer);
+  const image=viewer.querySelector('img');
+  function imageUrl(el,kind){
+    if(!el)return '';
+    const img=el.querySelector('img');
+    if(img?.src)return img.src;
+    if(kind==='cover'){
+      const bg=getComputedStyle(el).backgroundImage||el.style.backgroundImage||'';
+      const match=bg.match(/^url\(["']?(.*?)["']?\)$/);
+      if(match)return match[1];
+    }
+    return '';
+  }
+  function open(url,alt){
+    if(!url)return;
+    image.src=url;image.alt=alt||'Imagen ampliada';
+    viewer.classList.add('show');
+    document.body.style.overflow='hidden';
+  }
+  function close(){
+    viewer.classList.remove('show');
+    image.removeAttribute('src');
+    document.body.style.overflow='';
+  }
+  viewer.querySelector('button').addEventListener('click',close);
+  viewer.addEventListener('click',e=>{if(e.target===viewer)close()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&viewer.classList.contains('show'))close()});
+  document.addEventListener('click',function(e){
+    const target=e.target instanceof Element?e.target:null;
+    if(!target)return;
+    // Los controles de cámara siguen abriendo el selector para editar.
+    if(target.closest('#goviProfileCoverEdit,#goviProfileAvatarEdit,#goviHomeEditProfile,#goviHomeEditAvatar'))return;
+    const avatar=target.closest('#goviHomeAvatar,#goviAvatar');
+    const cover=target.closest('#goviHomeCover,#goviCover');
+    if(avatar){
+      e.preventDefault();e.stopPropagation();
+      open(imageUrl(avatar,'avatar'),'Foto de perfil');
+    }else if(cover){
+      e.preventDefault();e.stopPropagation();
+      open(imageUrl(cover,'cover'),'Foto de portada');
+    }
+  },false);
+})();
+</script>
