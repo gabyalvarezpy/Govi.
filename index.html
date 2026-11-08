@@ -5967,3 +5967,37 @@ window.goviOpenCropEditor = goviOpenCropEditor;
 
 
 
+
+
+<script id="govi-final-profile-crop-routing-v2">
+/* Ruta final única: interceptar la selección antes de cualquier listener del input.
+   Evita que los botones dinámicos del perfil salten el editor en Android. */
+(function(){
+  if(window.__goviFinalProfileCropRoutingV2)return;
+  window.__goviFinalProfileCropRoutingV2=true;
+  document.addEventListener('change',function(event){
+    const input=event.target;
+    if(!input || (input.id!=='goviAvatarInput' && input.id!=='goviCoverInput'))return;
+    const file=input.files && input.files[0];
+    if(!file)return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    const type=input.id==='goviCoverInput'?'cover':'avatar';
+    const editor=window.goviOpenCropEditor;
+    if(typeof editor!=='function'){
+      console.error('GOVI: no está disponible el editor de recorte');
+      if(typeof toast==='function')toast('No se pudo abrir el recortador. La imagen no se subió.');
+      input.value='';
+      return;
+    }
+    try{
+      editor(file,type);
+    }catch(error){
+      console.error('GOVI: error al abrir el recortador',error);
+      if(typeof toast==='function')toast('No se pudo abrir el recortador: '+(error.message||'error'));
+    }
+    input.value='';
+  },true);
+})();
+</script>
