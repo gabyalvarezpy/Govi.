@@ -1283,7 +1283,7 @@ document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=
 refreshSession();  
 </script>
 
-<div class="overlay" id="goviCropModal" style="display:none;z-index:10000"><div class="modal" style="width:min(94vw,520px)"><div class="modal-head"><h2 id="goviCropTitle">Ajustar imagen</h2><button class="close" id="goviCropCancel">×</button></div><p class="demo-note">Arrastra la imagen para centrarla y usa el zoom.</p><canvas id="goviCropCanvas" style="width:100%;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none"></canvas><label style="display:block;margin:15px 0">Zoom <input id="goviCropZoom" type="range" min="1" max="3" step=".01" value="1" style="width:100%"></label><button class="primary" id="goviCropSave" style="width:100%">Guardar recorte</button></div></div>
+<div class="overlay" id="goviCropModal" style="display:none;z-index:10000"><div class="modal" style="width:min(94vw,520px)"><div class="modal-head"><h2 id="goviCropTitle">Ajustar imagen</h2><button class="close" id="goviCropCancel">×</button></div><p class="demo-note">Arrastra la imagen para centrarla y usa el zoom.</p><canvas id="goviCropCanvas" style="width:100%;max-height:55vh;object-fit:contain;background:#111;border-radius:12px;touch-action:none"></canvas><p class="demo-note" style="margin:12px 0;color:#bdb6a5">Mové la foto con un dedo y acercá o alejála juntando o separando dos dedos.</p><button class="primary" id="goviCropSave" style="width:100%">Guardar recorte</button></div></div>
 <script>
 /* ==========================================
    GOVI — PERFILES PÚBLICOS Y FOTOS DE PERFIL
@@ -2506,9 +2506,9 @@ async function goviOpenCropEditor(file,type){
   if(file.size>20*1024*1024){toast('La imagen no puede superar los 20 MB');return}
   const modal=document.getElementById('goviCropModal');
   const canvas=document.getElementById('goviCropCanvas');
-  const zoom=document.getElementById('goviCropZoom');
+  
   const title=document.getElementById('goviCropTitle');
-  if(!modal||!canvas||!zoom){toast('Error GOVI: falta el panel del recortador');return}
+  if(!modal||!canvas){toast('Error GOVI: falta el panel del recortador');return}
   toast('Imagen recibida. Intentando abrir…');
   let image=null,bitmap=false;
   const loadWithImageElement=async source=>{
@@ -2543,7 +2543,7 @@ async function goviOpenCropEditor(file,type){
     const imageWidth=image.width||image.naturalWidth;
     const imageHeight=image.height||image.naturalHeight;
     if(!imageWidth||!imageHeight)throw new Error('La imagen no tiene dimensiones válidas');
-    const width=type==='avatar'?720:1440,height=type==='avatar'?720:600;
+    const width=type==='avatar'?720:1600,height=type==='avatar'?720:900;
     canvas.width=width;canvas.height=height;
     canvas.style.aspectRatio=width+'/'+height;
     canvas.style.maxHeight='55vh';
@@ -2551,11 +2551,10 @@ async function goviOpenCropEditor(file,type){
     canvas.style.objectFit='contain';
     const base=Math.max(width/imageWidth,height/imageHeight);
     const drawnW=imageWidth*base,drawnH=imageHeight*base;
-    window.goviCropState={image,type,base,zoom:1,x:(width-drawnW)/2,y:(height-drawnH)/2,drag:false,lastX:0,lastY:0,bitmap};
-    zoom.value='1';zoom.min='1';zoom.max='4';zoom.step='.01';
+    window.goviCropState={image,type,base,zoom:1,x:(width-drawnW)/2,y:(height-drawnH)/2,pointers:{},lastX:0,lastY:0,bitmap};
     if(title)title.textContent=type==='avatar'?'Ajustar foto de perfil':'Ajustar foto de portada';
     const hint=modal.querySelector('.demo-note');
-    if(hint)hint.textContent='Arrastrá la imagen para acomodarla y usá el zoom. Así se verá en tu perfil.';
+    if(hint)hint.textContent='Mové la foto con un dedo y ajustá el tamaño juntando o separando dos dedos. Portada 16:9.';
     goviDrawCrop();
     modal.style.display='flex';modal.setAttribute('aria-hidden','false');
     const sourceInput=document.getElementById(type==='cover'?'goviCoverInput':'goviAvatarInput');
@@ -2577,20 +2576,46 @@ function goviDrawCrop(){
   ctx.fillStyle='#111';ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.drawImage(s.image,s.x,s.y,w,h);
 }
-document.getElementById('goviCropZoom').addEventListener('input',e=>{
- if(!window.goviCropState)return;
- const s=window.goviCropState,canvas=document.getElementById('goviCropCanvas'),next=Number(e.target.value),factor=next/s.zoom,cx=canvas.width/2,cy=canvas.height/2;
- s.x=cx-(cx-s.x)*factor;s.y=cy-(cy-s.y)*factor;s.zoom=next;goviDrawCrop();
-});
 const goviCropCanvas=document.getElementById('goviCropCanvas');
+const goviCropPointers=new Map();
+function goviCropPoint(e){
+ const r=goviCropCanvas.getBoundingClientRect();
+ return {x:(e.clientX-r.left)*goviCropCanvas.width/r.width,y:(e.clientY-r.top)*goviCropCanvas.height/r.height};
+}
+function goviCropDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+function goviCropMid(a,b){return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+goviCropCanvas.style.touchAction='none';
 goviCropCanvas.addEventListener('pointerdown',e=>{
- if(!window.goviCropState)return;e.preventDefault();window.goviCropState.drag=true;window.goviCropState.lastX=e.clientX;window.goviCropState.lastY=e.clientY;goviCropCanvas.setPointerCapture(e.pointerId);
+ if(!window.goviCropState)return;
+ e.preventDefault();
+ try{goviCropCanvas.setPointerCapture(e.pointerId)}catch(_){}
+ const p=goviCropPoint(e);goviCropPointers.set(e.pointerId,p);
+ window.goviCropState.pointers=Object.fromEntries(goviCropPointers);
 });
 goviCropCanvas.addEventListener('pointermove',e=>{
- if(!window.goviCropState?.drag)return;e.preventDefault();const r=goviCropCanvas.getBoundingClientRect(),s=window.goviCropState;
- s.x+=(e.clientX-s.lastX)*goviCropCanvas.width/r.width;s.y+=(e.clientY-s.lastY)*goviCropCanvas.height/r.height;s.lastX=e.clientX;s.lastY=e.clientY;goviDrawCrop();
+ const s=window.goviCropState;if(!s||!goviCropPointers.has(e.pointerId))return;
+ e.preventDefault();
+ const next=goviCropPoint(e),previous=goviCropPointers.get(e.pointerId);
+ if(goviCropPointers.size===1){
+  s.x+=next.x-previous.x;s.y+=next.y-previous.y;
+ }else if(goviCropPointers.size>=2){
+  const entries=[...goviCropPointers.entries()].slice(0,2);
+  const [idA,oldA]=entries[0],[idB,oldB]=entries[1];
+  const newA=idA===e.pointerId?next:oldA,newB=idB===e.pointerId?next:oldB;
+  const oldMid=goviCropMid(oldA,oldB),newMid=goviCropMid(newA,newB);
+  const oldDistance=Math.max(1,goviCropDistance(oldA,oldB)),newDistance=goviCropDistance(newA,newB);
+  const factor=Math.max(0.5,Math.min(2,newDistance/oldDistance));
+  const nextZoom=Math.max(1,Math.min(4,s.zoom*factor)),actual=nextZoom/s.zoom;
+  s.x=newMid.x-(oldMid.x-s.x)*actual;
+  s.y=newMid.y-(oldMid.y-s.y)*actual;
+  s.zoom=nextZoom;
+ }
+ goviCropPointers.set(e.pointerId,next);goviDrawCrop();
 });
-['pointerup','pointercancel','lostpointercapture'].forEach(name=>goviCropCanvas.addEventListener(name,()=>{if(window.goviCropState)window.goviCropState.drag=false}));
+['pointerup','pointercancel','lostpointercapture'].forEach(name=>goviCropCanvas.addEventListener(name,e=>{
+ goviCropPointers.delete(e.pointerId);
+ if(window.goviCropState)window.goviCropState.pointers=Object.fromEntries(goviCropPointers);
+}));
 document.getElementById('goviCropCancel').addEventListener('click',()=>{
  window.goviCropState=null;document.getElementById('goviCropModal').style.display='none';goviCropCanvas.style.borderRadius='12px';
 });
