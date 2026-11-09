@@ -6371,6 +6371,58 @@ window.goviOpenCropEditor = goviOpenCropEditor;
 <script src="/messages.js" defer></script>
 
 
+<!-- GOVI STORY GALLERY PICKER FIX V2: Android PWA picker + explicit media preview -->
+<script id="govi-story-gallery-picker-fix-v2">
+(function(){
+ function bind(){
+  const root=document.getElementById('goviStoryComposer');
+  const file=document.getElementById('goviStoryFile');
+  if(!root||!file||file.dataset.goviPickerV2==='1')return;
+  file.dataset.goviPickerV2='1';
+  if(file.closest('[hidden]')||file.closest('#goviStoryLegacyFields'))root.appendChild(file);
+  file.disabled=false;file.hidden=false;file.removeAttribute('hidden');
+  file.setAttribute('accept','image/*,video/*');
+  file.setAttribute('aria-label','Seleccionar foto o vídeo para tu historia');
+  Object.entries({display:'block',visibility:'visible',position:'fixed',left:'2px',top:'2px',width:'2px',height:'2px',opacity:'0',pointerEvents:'none',zIndex:'2147483647'}).forEach(([k,v])=>file.style.setProperty(k,v,'important'));
+  // En Android/PWA el selector debe abrirse desde el gesto del usuario.
+  document.addEventListener('click',function(ev){
+   const button=ev.target.closest('#goviStoryRepairV8 [data-a="media"],#goviStoryQuickUpload,.govi-story-file,[data-story-tab="media"]');
+   if(!button)return;
+   ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
+   file.value='';
+   try{if(typeof file.showPicker==='function')file.showPicker();else file.click()}
+   catch(err){try{file.click()}catch(e){console.warn('GOVI selector de galería:',e)}}
+  },true);
+  file.addEventListener('change',function(){
+   const selected=file.files&&file.files[0];if(!selected)return;
+   window.goviStorySelectedFile=selected;
+   const gif=document.getElementById('goviStoryGifFile');if(gif)gif.value='';
+   const name=document.getElementById('goviStoryFileName');if(name)name.textContent=selected.name;
+   const image=document.getElementById('goviStoryPreviewImage'),video=document.getElementById('goviStoryPreviewVideo');
+   const stage=document.querySelector('#goviStoryComposer .govi-story-v3-stage');
+   if(stage)stage.style.display='block';
+   if(selected.type.startsWith('video/')){
+    if(image){image.removeAttribute('src');image.style.display='none'}
+    if(video){
+     video.pause();video.removeAttribute('src');video.src=URL.createObjectURL(selected);
+     video.muted=true;video.defaultMuted=true;video.playsInline=true;video.loop=true;
+     video.style.display='block';video.load();video.play().catch(()=>{});
+    }
+   }else{
+    if(video){video.pause();video.removeAttribute('src');video.load();video.style.display='none'}
+    if(image){image.src=URL.createObjectURL(selected);image.style.display='block'}
+   }
+   const empty=stage?.querySelector('.govi-story-v3-empty');if(empty)empty.style.display='none';
+   if(typeof window.goviUpdateStoryPreview==='function')window.goviUpdateStoryPreview();
+   if(typeof window.goviGetStoryEditorPayload==='function')console.info('GOVI: archivo seleccionado para la historia',selected.name,selected.size);
+  });
+  console.info('GOVI: selector Android/PWA V2 preparado');
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+ const observer=new MutationObserver(bind);observer.observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+
 <!-- GOVI STORY GALLERY PICKER FIX 2026-11-09: keep the file input outside hidden legacy wrappers so Android can open the picker -->
 <script id="govi-story-gallery-picker-fix">
 (function(){
