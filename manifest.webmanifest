@@ -5,10 +5,10 @@
   "description": "Tu mundo. Tu gente. Conecta con tu comunidad en GOVI.",
   "start_url": "/",
   "scope": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#080808",
   "theme_color": "#080808",
-  "orientation": "portrait",
+  "orientation": "any",
   "icons": [
     {
       "src": "/govi-icon.svg",
@@ -16,5 +16,9 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
+  ],
+  "display_override": [
+    "fullscreen",
+    "standalone"
   ]
 }
