@@ -1015,7 +1015,8 @@ html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important
 <script>    
 const SUPABASE_URL='https://ennfigjdboxpkmfhttze.supabase.co';    
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_Jhya35mcZXssCNI9u3uzNQ_CfcvaTyH';    
-const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);    
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+window.supabaseClient=supabaseClient; // Acceso aislado para el módulo GOVI LIVE    
 const BUCKET='govi-media';
 function goviIsVideoFile(file){
   const type=String(file?.type||'').toLowerCase();
