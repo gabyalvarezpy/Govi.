@@ -1243,19 +1243,33 @@ async function sharePost(id){
   else if(navigator.clipboard){await navigator.clipboard.writeText(url);toast('Enlace copiado para compartir')}    
   else{prompt('Copia este enlace:',url)}}catch(e){if(e.name!=='AbortError')toast('No se pudo compartir el enlace')}    
 }    
-async function managePost(id){    
-  const choice=prompt('Escribe EDITAR o ELIMINAR:');if(!choice)return;    
-  const {data:post,error}=await supabaseClient.from('posts').select('*').eq('id',id).eq('user_id',currentUser.id).single();    
-  if(error||!post){toast('No se encontró tu publicación');return}    
-  if(choice.trim().toLowerCase()==='editar'){    
-    resetComposer();$('postModalTitle').textContent='Editar publicación';$('postText').value=post.content||'';$('publishButton').textContent='Guardar cambios';$('publishButton').dataset.editId=id;openModal('postModal');    
-  }else if(['eliminar','borrar'].includes(choice.trim().toLowerCase())){    
-    if(!confirm('¿Seguro que quieres eliminar esta publicación?'))return;    
-    const {error:deleteError}=await supabaseClient.from('posts').delete().eq('id',id).eq('user_id',currentUser.id);    
-    if(deleteError){toast('No se pudo eliminar: '+deleteError.message);return}    
-    if(post.media_path)await supabaseClient.storage.from(BUCKET).remove([post.media_path]);    
-    toast('Publicación eliminada');await loadFeed();    
-  }else toast('Opción no reconocida. Escribe EDITAR o ELIMINAR.');    
+async function managePost(id){
+  if(!currentUser){toast('Inicia sesión para gestionar tu publicación');return}
+  const {data:post,error}=await supabaseClient.from('posts').select('*').eq('id',id).eq('user_id',currentUser.id).single();
+  if(error||!post){toast('No se encontró tu publicación');return}
+  const previous=document.getElementById('goviPostActions');
+  if(previous)previous.remove();
+  const overlay=document.createElement('div');
+  overlay.id='goviPostActions';
+  overlay.style.cssText='position:fixed;inset:0;z-index:30000;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML='<div role="dialog" aria-modal="true" aria-label="Opciones de publicación" style="width:min(100%,360px);background:#171717;border:1px solid #b99345;border-radius:20px;padding:22px;box-shadow:0 18px 60px #000b;color:#f7e7bd"><h3 style="margin:0 0 18px;font-size:20px;color:#f4d27b">Gestionar publicación</h3><button type="button" data-post-choice="edit" style="width:100%;padding:15px;margin:0 0 10px;border:1px solid #c7a34e;border-radius:12px;background:linear-gradient(135deg,#f2d889,#bd902c);color:#171108;font-weight:800;font-size:16px">✏️ Editar publicación</button><button type="button" data-post-choice="delete" style="width:100%;padding:15px;margin:0 0 10px;border:1px solid #9b4545;border-radius:12px;background:#351b1b;color:#ffdada;font-weight:800;font-size:16px">🗑️ Eliminar publicación</button><button type="button" data-post-choice="cancel" style="width:100%;padding:13px;border:1px solid #554a34;border-radius:12px;background:#242424;color:#eee;font-weight:700;font-size:15px">Cancelar</button></div>';
+  document.body.appendChild(overlay);
+  const closeActions=()=>overlay.remove();
+  overlay.addEventListener('click',async ev=>{
+    if(ev.target===overlay||ev.target.closest('[data-post-choice="cancel"]')){closeActions();return}
+    const action=ev.target.closest('[data-post-choice]')?.dataset.postChoice;
+    if(!action)return;
+    closeActions();
+    if(action==='edit'){
+      resetComposer();$('postModalTitle').textContent='Editar publicación';$('postText').value=post.content||'';$('publishButton').textContent='Guardar cambios';$('publishButton').dataset.editId=id;openModal('postModal');
+    }else if(action==='delete'){
+      if(!confirm('¿Seguro que quieres eliminar esta publicación?'))return;
+      const {error:deleteError}=await supabaseClient.from('posts').delete().eq('id',id).eq('user_id',currentUser.id);
+      if(deleteError){toast('No se pudo eliminar: '+deleteError.message);return}
+      if(post.media_path)await supabaseClient.storage.from(BUCKET).remove([post.media_path]);
+      toast('Publicación eliminada');await loadFeed();
+    }
+  });
 }    
 function toggleAuthMode(){authMode=authMode==='register'?'login':'register';$('authTitle').textContent=authMode==='register'?'Únete a GOVI':'Acceder a GOVI';$('authName').style.display='block';$('authName').placeholder=authMode==='register'?'Tu nombre':'Nombre (opcional)';$('authPassword').autocomplete=authMode==='register'?'new-password':'current-password';$('authSubmit').textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión';$('authSwitch').textContent=authMode==='register'?'Ya tengo una cuenta · Iniciar sesión':'¿No tienes cuenta? · Registrarme'}    
 async function handleAuth(){    
