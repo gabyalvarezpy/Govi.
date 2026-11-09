@@ -1290,8 +1290,8 @@ async function handleAuth(){
       if(data.user&&!data.session)toast('Registro enviado. Revisa tu correo para confirmar la cuenta.');else toast('¡Cuenta creada en GOVI!');    
     }else{const {error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;toast('¡Bienvenido a GOVI!')}    
     closeModal('authModal');await refreshSession();
-goviLoadStories();
-supabaseClient.auth.onAuthStateChange(()=>{setTimeout(goviLoadStories,0)});    
+window.goviLoadStories();
+supabaseClient.auth.onAuthStateChange(()=>{setTimeout(()=>window.goviLoadStories?.(),0)});    
   }catch(error){toast(error.message||'No se pudo completar la operación')}    
   finally{button.disabled=false;button.textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión'}    
 }    
@@ -1355,8 +1355,8 @@ async function refreshSession(){
   $('accountButton').textContent=initials(label);
   $('composerAvatar').textContent=initials(label);
   await loadFeed();
-  if(typeof goviLoadStories==='function'){
-    try{await Promise.race([goviLoadStories(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Historias tardaron demasiado.')),12000))]);}
+  if(typeof window.goviLoadStories==='function'){
+    try{await Promise.race([window.goviLoadStories(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Historias tardaron demasiado.')),12000))]);}
     catch(storyError){console.warn('GOVI: no se pudieron cargar las historias:',storyError);}
   }
 }    
@@ -1523,7 +1523,7 @@ function goviToggleStoryPart(part,button){
 }
 document.querySelectorAll('.govi-story-choice').forEach(button=>button.addEventListener('click',()=>goviToggleStoryPart(button.dataset.part,button)));
 
-async function goviLoadStories(){
+async function window.goviLoadStories(){
   const bar=$('goviStories');if(!bar)return;
   /* Las historias dejan de mostrarse al cumplir 24 h; al volver el dueño, también se purgan sus filas y archivos vencidos. */
   if(currentUser){try{const now=new Date().toISOString();const {data:expired}=await supabaseClient.from('stories').select('id,media_path,story_audio_path').eq('user_id',currentUser.id).lt('expires_at',now);if(expired?.length){await supabaseClient.from('stories').delete().eq('user_id',currentUser.id).lt('expires_at',now);const paths=expired.flatMap(s=>[s.media_path,s.story_audio_path]).filter(Boolean);if(paths.length)await supabaseClient.storage.from(BUCKET).remove(paths);}}catch(cleanError){console.warn('Limpieza de historias vencidas pendiente:',cleanError)}}
@@ -1636,7 +1636,7 @@ async function goviPublishStory(){
     const composer=$('goviStoryComposer');
     if(composer){composer.classList.remove('open');composer.style.display='none';}
     try{
-      await goviLoadStories();
+      await window.goviLoadStories();
       const groupIndex=goviStoryGroups.findIndex(group=>group.userId===currentUser.id);
       if(groupIndex>=0){
         const items=goviStoryGroups[groupIndex].items;
@@ -1831,7 +1831,7 @@ $('goviStoryDelete').addEventListener('click',async()=>{
     toast('Historia eliminada');
     if(!group.items.length){goviStoryGroups.splice(goviStoryGroupIndex,1);if(!goviStoryGroups.length){goviCloseStoryViewer()}else{goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}}
     else{goviStoryItemIndex=Math.min(goviStoryItemIndex,group.items.length-1);goviRenderStory()}
-    goviLoadStories().catch(err=>console.warn('No se pudo refrescar la lista de historias',err));
+    window.goviLoadStories().catch(err=>console.warn('No se pudo refrescar la lista de historias',err));
     if(paths.length)supabaseClient.storage.from(BUCKET).remove(paths).then(({error})=>{if(error)console.warn('Archivo de historia pendiente de limpiar',error)}).catch(err=>console.warn(err));
   }catch(error){console.error(error);toast('No se pudo eliminar: '+error.message)}
   finally{deleteButton.disabled=false;deleteButton.textContent='Eliminar historia'}
@@ -1861,7 +1861,7 @@ let goviStoryTouchX=0;$('goviStoryCard').addEventListener('touchstart',e=>{goviS
         if(!goviStoryGroups.length){closeToProfile();toast('Historia eliminada');}
         else{goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}
       }else{goviStoryItemIndex=Math.min(goviStoryItemIndex,group.items.length-1);goviRenderStory()}
-      goviLoadStories().catch(err=>console.warn('No se pudo actualizar historias',err));
+      window.goviLoadStories().catch(err=>console.warn('No se pudo actualizar historias',err));
       if(paths.length)supabaseClient.storage.from(BUCKET).remove(paths).catch(err=>console.warn(err));
       toast('Historia eliminada');
     }catch(error){console.error('GOVI eliminar historia:',error);toast('No se pudo eliminar: '+(error.message||'Error desconocido'))}
@@ -2196,7 +2196,7 @@ $('goviProfileActionMenu').addEventListener('click',e=>{if(e.target===$('goviPro
 $('goviActionViewProfile').addEventListener('click',()=>{const id=goviActionUserId;goviCloseProfileActions();if(id)openGoviProfile(id)});
 $('goviActionViewStory').addEventListener('click',async()=>{
   const id=goviActionUserId;goviCloseProfileActions();if(!id)return;
-  await goviLoadStories();
+  await window.goviLoadStories();
   const i=goviStoryGroups.findIndex(g=>g.userId===id);
   if(i<0){toast('Este usuario no tiene historias activas');return}
   goviOpenStoryGroup(i,0);
@@ -4185,7 +4185,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
      group.items.splice(goviStoryItemIndex,1);
      if(!group.items.length){goviStoryGroups.splice(goviStoryGroupIndex,1);if(!goviStoryGroups.length)closeViewer(true);else{goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}}
      else{goviStoryItemIndex=Math.min(goviStoryItemIndex,group.items.length-1);goviRenderStory()}
-     goviLoadStories().catch(console.warn);
+     window.goviLoadStories().catch(console.warn);
      if(paths.length)supabaseClient.storage.from(BUCKET).remove(paths).catch(console.warn);
      toast('Historia eliminada');
    }catch(err){console.error('Eliminar historia',err);toast('No se pudo eliminar: '+(err.message||'error'))}
@@ -4848,7 +4848,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   running=true;lastRun=Date.now();
   try{
    if(typeof loadFeed==='function')await loadFeed();
-   if(typeof window.goviLoadStories==='function')await window.goviLoadStories();
+   if(typeof window.goviLoadStories==='function')await window.window.goviLoadStories();
   }catch(error){console.warn('GOVI actualización automática:',error)}
   finally{running=false}
  }
@@ -5835,7 +5835,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
       if(!group.items.length){goviStoryGroups.splice(goviStoryGroupIndex,1);if(!goviStoryGroups.length){goviStopStoryPlayback();viewer.style.display='none';window.__goviStoryHistoryEntry=false;history.replaceState({goviProfile:true},'','#profile-'+currentUser.id);window.goviGoToMyProfile?.(null)}else{goviStoryGroupIndex=Math.min(goviStoryGroupIndex,goviStoryGroups.length-1);goviStoryItemIndex=0;goviRenderStory()}}
       else{goviStoryItemIndex=Math.min(goviStoryItemIndex,group.items.length-1);goviRenderStory()}
       if(paths.length){const {error:storageError}=await supabaseClient.storage.from(BUCKET).remove(paths);if(storageError)console.warn('Archivo pendiente de limpiar:',storageError)}
-      goviLoadStories().catch(err=>console.warn('No se pudo actualizar historias:',err));toast('Historia eliminada');
+      window.goviLoadStories().catch(err=>console.warn('No se pudo actualizar historias:',err));toast('Historia eliminada');
     }catch(error){console.error('GOVI eliminar historia:',error);toast('No se pudo eliminar: '+(error.message||'Error desconocido'))}
     finally{button.disabled=false;button.textContent='Eliminar historia'}
   }
