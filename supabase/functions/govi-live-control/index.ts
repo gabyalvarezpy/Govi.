@@ -56,10 +56,15 @@ Deno.serve(async (req: Request) => {
       const title = String(body?.title || "Directo GOVI").trim().slice(0, 100);
       const description = String(body?.description || "").trim().slice(0, 500);
       const category = String(body?.category || "General").trim().slice(0, 40);
+      // The existing database constraint permits only "irl" or "obs".
+      const requestedType = String(body?.stream_type || "irl").toLowerCase();
+      if (requestedType !== "irl" && requestedType !== "obs") {
+        return reply(400, { error: "Tipo de directo no válido. Usa irl u obs." });
+      }
       const roomName = "govi-" + authData.user.id + "-" + crypto.randomUUID();
       const { data: created, error: createError } = await admin.from("govi_live_sessions").insert({
         streamer_id: authData.user.id, host_id: authData.user.id, provider_room_id: roomName, room_name: roomName,
-        title, description, category, stream_type: "livekit", status: "live", chat_enabled: true, started_at: new Date().toISOString(),
+        title, description, category, stream_type: requestedType, status: "live", chat_enabled: true, started_at: new Date().toISOString(),
       }).select("id,host_id,room_name,title,description,category,status,started_at").single();
       if (createError) throw createError;
       return reply(200, { session: created });
