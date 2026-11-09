@@ -1523,7 +1523,7 @@ function goviToggleStoryPart(part,button){
 }
 document.querySelectorAll('.govi-story-choice').forEach(button=>button.addEventListener('click',()=>goviToggleStoryPart(button.dataset.part,button)));
 
-async function window.goviLoadStories(){
+async function goviLoadStories(){
   const bar=$('goviStories');if(!bar)return;
   /* Las historias dejan de mostrarse al cumplir 24 h; al volver el dueño, también se purgan sus filas y archivos vencidos. */
   if(currentUser){try{const now=new Date().toISOString();const {data:expired}=await supabaseClient.from('stories').select('id,media_path,story_audio_path').eq('user_id',currentUser.id).lt('expires_at',now);if(expired?.length){await supabaseClient.from('stories').delete().eq('user_id',currentUser.id).lt('expires_at',now);const paths=expired.flatMap(s=>[s.media_path,s.story_audio_path]).filter(Boolean);if(paths.length)await supabaseClient.storage.from(BUCKET).remove(paths);}}catch(cleanError){console.warn('Limpieza de historias vencidas pendiente:',cleanError)}}
