@@ -1664,33 +1664,42 @@ async function goviPublishStory(){
   }finally{btn.disabled=false;btn.textContent=btn.matches?.('#goviStoryRepairV8 [data-a="publish"]')?'Compartir historia ➜':'PUBLICAR HISTORIA'}
 }
 window.goviPublishStory=goviPublishStory;
-/* GOVI publish tap rescue: intercept the real mobile click before legacy handlers. */
+/* GOVI PUBLISH ROUTER: captura el toque físico antes de los controladores antiguos. */
 (function(){
- if(window.__goviPublishTapRescue)return;
- window.__goviPublishTapRescue=true;
- window.addEventListener('click',async function(e){
-  const target=e.target;
-  const button=target&&target.closest?target.closest('#goviStoryRepairV8 [data-a="publish"],#goviStoryPreviewBar [data-preview-action="publish"]'):null;
+ if(window.__goviPublishRouterV2)return;
+ window.__goviPublishRouterV2=true;
+ let lastStart=0;
+ const findButton=e=>{
+  const path=typeof e.composedPath==='function'?e.composedPath():[];
+  for(const node of path){if(node instanceof Element){const b=node.closest('#goviStoryRepairV8 button[data-a="publish"],#goviStoryPreviewBar button[data-preview-action="publish"],#goviStoryPublish');if(b)return b;}}
+  const t=e.target;return t&&t.closest?t.closest('#goviStoryRepairV8 button[data-a="publish"],#goviStoryPreviewBar button[data-preview-action="publish"],#goviStoryPublish'):null;
+ };
+ const run=async(button,e)=>{
   if(!button)return;
   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-  if(button.dataset.goviPublishing==='1')return;
-  button.dataset.goviPublishing='1';button.disabled=true;
+  const now=Date.now();
+  if(button.dataset.goviPublishing==='1'||now-lastStart<1200)return;
+  lastStart=now;button.dataset.goviPublishing='1';button.disabled=true;
   const original=button.innerHTML;button.textContent='PUBLICANDO…';
   const status=document.getElementById('goviStoryStatus');
-  if(status){status.hidden=false;status.style.display='block';status.textContent='El botón respondió. Iniciando publicación…'}
+  const show=m=>{if(status){status.hidden=false;status.style.display='block';status.textContent=m;}};
+  show('Conectando con GOVI para publicar…');
   try{
-   if(typeof window.goviPublishStory!=='function')throw new Error('El módulo de publicación no está cargado. Cierra y vuelve a abrir GOVI.');
+   if(typeof window.goviPublishStory!=='function')throw new Error('El módulo de publicación no está cargado. Recarga GOVI.');
    await window.goviPublishStory();
-   if(status&&status.textContent==='El botón respondió. Iniciando publicación…')status.textContent='La solicitud terminó. Revisa el resultado de la publicación.';
   }catch(err){
-   console.error('GOVI publicación desde toque:',err);
-   if(status){status.hidden=false;status.style.display='block';status.textContent='No se pudo publicar: '+(err&&err.message||'error inesperado')}
+   console.error('GOVI: fallo al iniciar la publicación',err);
+   show('No se pudo publicar: '+(err&&err.message||'error inesperado'));
    if(typeof toast==='function')toast('No se pudo publicar: '+(err&&err.message||'error inesperado'));
   }finally{
    button.dataset.goviPublishing='0';button.disabled=false;
    if(button.isConnected)button.innerHTML=original;
   }
- },true);
+ };
+ // pointerup catches Android taps even if older click handlers swallow the click.
+ window.addEventListener('pointerup',e=>{const b=findButton(e);if(b)run(b,e)},true);
+ // Keyboard/assistive-technology fallback; pointer taps are de-duplicated.
+ window.addEventListener('click',e=>{const b=findButton(e);if(b)run(b,e)},true);
 })();
 function goviStopStoryPlayback(){
   const video=$('goviStoryVideo'),audio=$('goviStoryAudio');
