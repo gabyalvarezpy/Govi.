@@ -854,7 +854,7 @@ html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important
     <div class="nav-item" onclick="filterSection('Fotos',this)"><span>▧</span> Fotografías</div>
     <div class="nav-item" onclick="filterSection('Vídeos',this)"><span>▷</span> Vídeos</div>
     <div class="nav-item" onclick="goviGoToMyProfile(this)"><span>♙</span> Mi perfil</div>
-    <div class="nav-item" onclick="if(window.GOVILive)GOVILive.open()"><span>👽</span> GOVI LIVE</div>
+    <div class="nav-item" onclick="window.openGoviLive()"><span>👽</span> GOVI LIVE</div>
     <div class="govi-sidebar-divider"></div>
     <div class="govi-side-label">TU ESPACIO</div>
     <button class="govi-side-create" onclick="openModal('postModal')"><span>＋</span><span><b>Crear algo nuevo</b><small>Comparte con tu gente</small></span></button>
@@ -893,7 +893,7 @@ html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important
   <button onclick="filterSection('Fotos',this)"><span>▧</span>Fotos</button>
   <button class="govi-mobile-plus" onclick="openModal('postModal')" aria-label="Crear publicación">＋</button>
   <button onclick="filterSection('Vídeos',this)"><span>▷</span>Vídeos</button>
-  <button onclick="if(window.GOVILive)GOVILive.open()"><span>👽</span>LIVE</button>
+  <button onclick="window.openGoviLive()"><span>👽</span>LIVE</button>
   <button onclick="goviGoToMyProfile(this)"><span>♙</span>Perfil</button>
 </nav>
 <div class="overlay" id="postModal"><div class="modal">    
@@ -4952,6 +4952,19 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 </script>
 
 <script src="/govi-live.js?v=26fa26d" defer></script>
+<script>
+window.openGoviLive=function(){
+  if(window.GOVILive&&typeof window.GOVILive.open==='function'){window.GOVILive.open();return;}
+  var old=document.getElementById('govi-live-retry-script');
+  if(old){old.addEventListener('load',function(){if(window.GOVILive)window.GOVILive.open();else alert('GOVI LIVE no pudo inicializarse.');},{once:true});return;}
+  var s=document.createElement('script');
+  s.id='govi-live-retry-script';
+  s.src='/govi-live.js?v=26fa26d-retry';
+  s.onload=function(){if(window.GOVILive&&typeof window.GOVILive.open==='function')window.GOVILive.open();else alert('El archivo LIVE se descargó, pero no pudo inicializarse. Necesitamos revisar el error de JavaScript.');};
+  s.onerror=function(){alert('No se pudo cargar GOVI LIVE. Comprueba la conexión y vuelve a intentarlo.');};
+  document.head.appendChild(s);
+};
+</script>
 <script src="/govi-badges.js?v=1" defer></script>
 </body>
 </html>
