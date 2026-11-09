@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { AccessToken, IngressInput, LiveKitAPI } from "npm:livekit-server-sdk@2.19.2";
+import { AccessToken, IngressInput, LiveKitAPI, EncodedFileOutput, S3Upload, EncodedFileType } from "npm:livekit-server-sdk@2.19.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,6 +31,11 @@ Deno.serve(async (req: Request) => {
     const livekitUrl = Deno.env.get("LIVEKIT_URL");
     const livekitApiKey = Deno.env.get("LIVEKIT_API_KEY");
     const livekitApiSecret = Deno.env.get("LIVEKIT_API_SECRET");
+    const s3AccessKey = Deno.env.get("S3_ACCESS_KEY_ID");
+    const s3SecretKey = Deno.env.get("S3_SECRET_ACCESS_KEY");
+    const s3Endpoint = Deno.env.get("S3_ENDPOINT") ?? "https://ennfigjdboxpkmfhttze.storage.supabase.co/storage/v1/s3";
+    const s3Region = Deno.env.get("S3_REGION") ?? "eu-west-1";
+    const recordingsBucket = "govi-live-recordings";
 
     if (!supabaseUrl || !anonKey || !serviceRoleKey || !livekitUrl || !livekitApiKey || !livekitApiSecret) {
       return reply(503, { error: "GOVI LIVE todavía no está configurado en el servidor" });
@@ -77,12 +82,85 @@ Deno.serve(async (req: Request) => {
     if (!session || session.status !== "live") return reply(404, { error: "Este directo ya no está disponible" });
     const isHost = session.host_id === authData.user.id;
 
+    if (action === "start-recording") {
+      if (!isHost) return reply(403, { error: "Solo el anfitrión puede iniciar la grabación" });
+      if (!s3AccessKey || !s3SecretKey) return reply(503, { error: "Faltan las credenciales S3 en el servidor" });
+      const { data: existing } = await admin.from("govi_live_recordings").select("id,egress_id,status,object_path").eq("session_id", session.id).maybeSingle();
+      if (existing) return reply(200, { ok: true, egress_id: existing.egress_id, status: existing.status, object_path: existing.object_path });
+      const apiHost = livekitUrl.replace(/^wss:/i, "https:").replace(/^ws:/i, "http:");
+      const api = new LiveKitAPI({ host: apiHost, apiKey: livekitApiKey, secret: livekitApiSecret });
+      const objectPath = `${authData.user.id}/${session.id}/directo.mp4`;
+      const output = new EncodedFileOutput({
+        fileType: EncodedFileType.MP4,
+        filepath: objectPath,
+        output: { case: "s3", value: new S3Upload({
+          accessKey: s3AccessKey,
+          secret: s3SecretKey,
+          bucket: recordingsBucket,
+          region: s3Region,
+          endpoint: s3Endpoint,
+          forcePathStyle: true,
+        }) },
+      });
+      const egress = await api.egress.startRoomCompositeEgress(session.room_name, output, { layout: "speaker" });
+      const { error: saveRecordingError } = await admin.from("govi_live_recordings").insert({
+        session_id: session.id, host_id: authData.user.id, egress_id: egress.egressId,
+        bucket: recordingsBucket, object_path: objectPath, status: "recording",
+      });
+      if (saveRecordingError) {
+        try { await api.egress.stopEgress(egress.egressId); } catch { /* best effort */ }
+        throw saveRecordingError;
+      }
+      return reply(200, { ok: true, egress_id: egress.egressId, object_path: objectPath, status: "recording" });
+    }
+
+    if (action === "list-recordings") {
+      const { data: rows, error: rowsError } = await admin.from("govi_live_recordings")
+        .select("id,session_id,object_path,status,started_at,ended_at,created_at")
+        .eq("host_id", authData.user.id).order("created_at", { ascending: false }).limit(50);
+      if (rowsError) throw rowsError;
+      const recordings = [];
+      for (const row of rows ?? []) {
+        let downloadUrl = null;
+        const signed = await admin.storage.from(recordingsBucket).createSignedUrl(row.object_path, 3600);
+        if (!signed.error && signed.data?.signedUrl) {
+          downloadUrl = signed.data.signedUrl;
+          if (row.status !== "ready") await admin.from("govi_live_recordings").update({ status: "ready" }).eq("id", row.id);
+        }
+        recordings.push({ ...row, status: downloadUrl ? "ready" : row.status === "recording" ? "recording" : "processing", download_url: downloadUrl });
+      }
+      return reply(200, { recordings });
+    }
+
+    if (action === "delete-recording") {
+      const recordingId = typeof body?.recording_id === "string" ? body.recording_id : "";
+      if (!recordingId) return reply(400, { error: "Falta recording_id" });
+      const { data: row, error: rowError } = await admin.from("govi_live_recordings").select("id,host_id,bucket,object_path").eq("id", recordingId).maybeSingle();
+      if (rowError) throw rowError;
+      if (!row || row.host_id !== authData.user.id) return reply(404, { error: "Grabación no encontrada" });
+      const { error: removeError } = await admin.storage.from(row.bucket).remove([row.object_path]);
+      if (removeError) throw removeError;
+      const { error: deleteError } = await admin.from("govi_live_recordings").delete().eq("id", row.id).eq("host_id", authData.user.id);
+      if (deleteError) throw deleteError;
+      return reply(200, { ok: true });
+    }
+
     if (action === "end-session") {
       if (!isHost) return reply(403, { error: "Solo el anfitrión puede finalizar este directo" });
       if (session.ingress_id) {
         const apiHost = livekitUrl.replace(/^wss:/i, "https:").replace(/^ws:/i, "http:");
         const api = new LiveKitAPI({ host: apiHost, apiKey: livekitApiKey, secret: livekitApiSecret });
         try { await api.ingress.deleteIngress(session.ingress_id); } catch (cleanupError) { console.warn("No se pudo eliminar ingress OBS:", cleanupError); }
+      }
+      const { data: recording } = await admin.from("govi_live_recordings").select("id,egress_id").eq("session_id", session.id).maybeSingle();
+      if (recording?.egress_id) {
+        try {
+          await api.egress.stopEgress(recording.egress_id);
+          await admin.from("govi_live_recordings").update({ status: "processing", ended_at: new Date().toISOString() }).eq("id", recording.id);
+        } catch (recordingError) {
+          console.warn("No se pudo detener la grabación GOVI LIVE:", recordingError);
+          await admin.from("govi_live_recordings").update({ status: "failed", ended_at: new Date().toISOString() }).eq("id", recording.id);
+        }
       }
       const { error: endError } = await admin.from("govi_live_sessions").update({ status: "ended", ended_at: new Date().toISOString() })
         .eq("id", session.id).eq("host_id", authData.user.id).eq("status", "live");
