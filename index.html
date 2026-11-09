@@ -4807,6 +4807,36 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 #goviProfileView .profile-name,#goviProfileView .profile-description,#goviProfileView #goviProfileControls{position:relative!important;z-index:2!important}
 #goviProfileView #goviCover>.govi-cover-edit{z-index:4!important}
 </style>
+
+<script id="govi-auto-refresh-v1">
+(function(){
+ if(window.__goviAutoRefreshV1)return;
+ window.__goviAutoRefreshV1=true;
+ let running=false,lastRun=0;
+ async function refreshHome(){
+  if(running||document.hidden)return;
+  const messages=document.getElementById('goviMessagesApp');
+  if(messages?.classList.contains('open'))return;
+  const home=document.getElementById('goviHomeProfile');
+  const profile=document.getElementById('goviProfileView');
+  if(profile&&getComputedStyle(profile).display!=='none')return;
+  if(!home||getComputedStyle(home).display==='none')return;
+  if(Date.now()-lastRun<12000)return;
+  running=true;lastRun=Date.now();
+  try{
+   if(typeof loadFeed==='function')await loadFeed();
+   if(typeof window.goviLoadStories==='function')await window.goviLoadStories();
+  }catch(error){console.warn('GOVI actualización automática:',error)}
+  finally{running=false}
+ }
+ // Comprobación periódica sin recargar el documento ni alterar la posición.
+ const timer=setInterval(refreshHome,30000);
+ window.addEventListener('focus',()=>{if(Date.now()-lastRun>12000)refreshHome()});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastRun>12000)refreshHome()});
+ window.goviRefreshNow=refreshHome;
+})();
+</script>
+
 </body>
 </html>
 
