@@ -6366,3 +6366,37 @@ window.goviOpenCropEditor = goviOpenCropEditor;
 </style>
 
 <script src="/messages.js" defer></script>
+
+
+<!-- GOVI STORY GALLERY PICKER FIX 2026-11-09: keep the file input outside hidden legacy wrappers so Android can open the picker -->
+<script id="govi-story-gallery-picker-fix">
+(function(){
+  function repairStoryGalleryPicker(){
+    const root=document.getElementById('goviStoryComposer');
+    const file=document.getElementById('goviStoryFile');
+    if(!root||!file)return;
+    // V8 mueve los campos antiguos a un contenedor [hidden]. Un input file
+    // dentro de ese ancestro no puede abrir la galería mediante .click() en Android.
+    if(file.closest('[hidden]')||file.closest('#goviStoryLegacyFields')){
+      root.appendChild(file);
+    }
+    file.hidden=false;
+    file.removeAttribute('hidden');
+    // Mantenerlo renderizado (aunque invisible) permite que Chrome Android
+    // acepte el .click() invocado directamente desde el toque del botón Galería.
+    const styles={
+      display:'block',visibility:'visible',position:'fixed',
+      left:'1px',top:'1px',width:'2px',height:'2px',
+      opacity:'0',pointerEvents:'none',zIndex:'2147483647'
+    };
+    Object.entries(styles).forEach(([key,value])=>file.style.setProperty(key,value,'important'));
+    file.setAttribute('aria-label','Seleccionar foto o vídeo para tu historia');
+    console.info('GOVI: selector de galería preparado fuera del contenedor oculto');
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',repairStoryGalleryPicker,{once:true});
+  }else{
+    repairStoryGalleryPicker();
+  }
+})();
+</script>
