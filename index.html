@@ -5804,6 +5804,48 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     }else{sound.style.display='none';video.pause();if(limit)limit.textContent='Imagen seleccionada · También puedes añadir un enlace.'}
   });
   bindMoveResize(textNode,()=>({x,y}),p=>{x=p.x;y=p.y;sync()},()=>Number(size.value),v=>{size.value=String(Math.max(14,Math.min(110,v)));sync()},14,110);
+  // GOVI R8 text gesture override: stable one-finger drag + two-finger pinch on Android/PWA.
+  textNode.style.setProperty('pointer-events','auto','important');
+  textNode.style.setProperty('touch-action','none','important');
+  textNode.style.setProperty('user-select','none','important');
+  textNode.style.setProperty('-webkit-user-select','none','important');
+  textNode.style.setProperty('z-index','2147483000','important');
+  (function(){
+   const active=new Map();let gesture=null;
+   const point=e=>({x:e.clientX,y:e.clientY});
+   const dist=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+   function startGesture(){
+    const p=[...active.values()];
+    if(!p.length){gesture=null;return}
+    if(p.length===1)gesture={mode:'move',start:p[0],x,y};
+    else gesture={mode:'pinch',distance:Math.max(1,dist(p)),font:Number(size.value)||32};
+   }
+   window.addEventListener('pointerdown',e=>{
+    if(!root.classList.contains('open')||!textNode.textContent.trim())return;
+    if(!(e.target===textNode||textNode.contains(e.target)))return;
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    active.set(e.pointerId,point(e));startGesture();
+   },true);
+   window.addEventListener('pointermove',e=>{
+    if(!active.has(e.pointerId)||!gesture)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    active.set(e.pointerId,point(e));
+    const p=[...active.values()];
+    if(p.length>=2&&gesture.mode==='pinch'){
+     const next=Math.max(14,Math.min(110,gesture.font*dist(p)/gesture.distance));
+     size.value=String(Math.round(next));sync();
+    }else if(p.length===1&&gesture.mode==='move'){
+     const rect=stage.getBoundingClientRect();
+     x=Math.max(2,Math.min(98,gesture.x+(p[0].x-gesture.start.x)/rect.width*100));
+     y=Math.max(2,Math.min(98,gesture.y+(p[0].y-gesture.start.y)/rect.height*100));
+     sync();
+    }
+   },true);
+   const finish=e=>{if(!active.has(e.pointerId))return;active.delete(e.pointerId);e.stopPropagation();startGesture()};
+   window.addEventListener('pointerup',finish,true);
+   window.addEventListener('pointercancel',finish,true);
+  })();
   const pts=new Map();let mediaGesture=null;
   [image,video].forEach(el=>{el.style.pointerEvents='auto';el.style.touchAction='none';el.addEventListener('pointerdown',e=>{if(el.style.display==='none'||!el.getAttribute('src'))return;if(e.target===sound)return;if(!pts.size)saveUndo();e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)mediaGesture={kind:'move',x:e.clientX,y:e.clientY,px:mediaState.x,py:mediaState.y};else if(pts.size===2){const a=[...pts.values()];mediaGesture={kind:'scale',distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),zoom:mediaState.zoom}}});el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!mediaGesture)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...pts.values()];if(a.length===2&&mediaGesture.kind==='scale'){const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);mediaState.zoom=Math.max(1,Math.min(4,mediaGesture.zoom*d/mediaGesture.distance))}else if(a.length===1&&mediaGesture.kind==='move'){mediaState.x=mediaGesture.px+e.clientX-mediaGesture.x;mediaState.y=mediaGesture.py+e.clientY-mediaGesture.y}applyMedia()});const end=e=>{pts.delete(e.pointerId);if(!pts.size){mediaGesture=null;return}const a=[...pts.values()][0];mediaGesture={kind:'move',x:a.x,y:a.y,px:mediaState.x,py:mediaState.y}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)});
   window.goviGetStoryEditorMeta=()=>({text:{x,y,fontFamily:font.value,color:color.value,textShadow:edge.value,fontSize:size.value+'px'},link:{x:50,y:80,fontFamily:'Arial,sans-serif',color:'#ffe08a',textShadow:'0 2px 8px #000',fontSize:'17px'},stickers:stickers.map(s=>({emoji:s.emoji,x:s.x,y:s.y,fontSize:s.size+'px'})),media:{zoom:mediaState.zoom,x:mediaState.x,y:mediaState.y}});
