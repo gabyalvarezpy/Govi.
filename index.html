@@ -5893,7 +5893,52 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   const linkField=$('goviR8Link'),legacyLink=$('goviStoryLink');
   if(linkField&&legacyLink){linkField.value=legacyLink.value||'';linkField.addEventListener('input',()=>{legacyLink.value=linkField.value;legacyLink.dispatchEvent(new Event('input',{bubbles:true}))})}
   window.goviGetStoryEditorPayload=()=>({file:file.files?.[0]||null,gifFile:$('goviStoryGifFile')?.files?.[0]||null,text:txt.value||'',link:(linkField?.value||legacyLink?.value||'').trim()});
-  previewBar.addEventListener('click',e=>{const b=e.target.closest('[data-preview-action]');if(!b)return;if(b.dataset.previewAction==='edit')setPreview(false);else if(b.dataset.previewAction==='publish'){setPreview(false);launchPublish(b)}});stage.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});stage.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});sync();console.info('GOVI Story Editor táctil listo',EMOJI.length);
+  previewBar.addEventListener('click',e=>{const b=e.target.closest('[data-preview-action]');if(!b)return;if(b.dataset.previewAction==='edit')setPreview(false);else if(b.dataset.previewAction==='publish'){setPreview(false);launchPublish(b)}});stage.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});
+  // GOVI text pinch V3: stage-capture hit testing, independent of child pointer-event layers.
+  (function(){
+   let activeTextGesture=null;
+   const pts=e=>Array.from(e.touches).map(t=>({x:t.clientX,y:t.clientY}));
+   const dist=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+   function insideText(t){
+    const r=textNode.getBoundingClientRect();
+    return t.x>=r.left&&t.x<=r.right&&t.y>=r.top&&t.y<=r.bottom;
+   }
+   stage.addEventListener('touchstart',e=>{
+    const p=pts(e);
+    if(!activeTextGesture){
+     if(!p.length||!insideText(p[0]))return;
+     if(p.length===1)activeTextGesture={mode:'move',start:p[0],x,y};
+     else activeTextGesture={mode:'scale',distance:Math.max(1,dist(p)),font:Number(size.value)||30};
+    }else if(p.length>=2&&activeTextGesture.mode!=='scale'){
+     activeTextGesture={mode:'scale',distance:Math.max(1,dist(p)),font:Number(size.value)||30};
+    }
+    e.preventDefault();e.stopImmediatePropagation();
+   },{capture:true,passive:false});
+   stage.addEventListener('touchmove',e=>{
+    if(!activeTextGesture)return;
+    const p=pts(e);
+    if(p.length>=2&&activeTextGesture.mode==='scale'){
+     size.value=String(Math.round(Math.max(Number(size.min)||12,Math.min(Number(size.max)||90,activeTextGesture.font*dist(p)/activeTextGesture.distance))));
+     sync();
+    }else if(p.length===1&&activeTextGesture.mode==='move'){
+     const r=stage.getBoundingClientRect();
+     x=Math.max(2,Math.min(98,activeTextGesture.x+(p[0].x-activeTextGesture.start.x)/r.width*100));
+     y=Math.max(2,Math.min(98,activeTextGesture.y+(p[0].y-activeTextGesture.start.y)/r.height*100));
+     sync();
+    }
+    e.preventDefault();e.stopImmediatePropagation();
+   },{capture:true,passive:false});
+   const finish=e=>{
+    if(!activeTextGesture)return;
+    const p=pts(e);
+    if(!p.length){activeTextGesture=null;return}
+    if(p.length===1)activeTextGesture={mode:'move',start:p[0],x,y};
+    else activeTextGesture={mode:'scale',distance:Math.max(1,dist(p)),font:Number(size.value)||30};
+    e.preventDefault();e.stopImmediatePropagation();
+   };
+   stage.addEventListener('touchend',finish,{capture:true,passive:false});
+   stage.addEventListener('touchcancel',finish,{capture:true,passive:false});
+  })();stage.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault()},{passive:false,capture:true});sync();console.info('GOVI Story Editor táctil listo',EMOJI.length);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
