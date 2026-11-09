@@ -27,7 +27,7 @@
       if(el.matches('.post-author,b,[style*="cursor:pointer"]'))addBadge(el,type);
     });
     const profileName=document.getElementById('goviProfileName');
-    const profileId=window.goviProfileId||(me&&me.id);
+    const profileId=(typeof goviProfileId!=='undefined'?goviProfileId:null)||(window.goviProfileId)||(me&&me.id);
     const type=profileId===FOUNDER_ID?'founder':badgeMap.get(profileId);
     if(profileName&&type)addBadge(profileName,type);
   }
