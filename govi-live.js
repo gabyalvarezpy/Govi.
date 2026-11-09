@@ -3,7 +3,7 @@ if(window.GOVILive)return;
 var root,session=null,room=null,chatChannel=null,likes=0;
 function el(id){return document.getElementById(id)}
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function client(){return window.supabaseClient}
+function client(){if(window.supabaseClient)return window.supabaseClient;if(window.supabase&&window.supabase.createClient){window.supabaseClient=window.supabase.createClient('https://ennfigjdboxpkmfhttze.supabase.co','sb_publishable_Jhya35mcZXssCNI9u3uzNQ_CfcvaTyH');return window.supabaseClient}throw Error('No se pudo inicializar la conexión de GOVI. Recarga la aplicación.');}
 async function auth(){var r=await client().auth.getSession();if(!r.data.session)throw Error('Inicia sesión en GOVI.');return r.data.session}
 async function control(action,extra){var a=await auth();var r=await client().functions.invoke('govi-live-control',{body:Object.assign({action:action},extra||{}),headers:{Authorization:'Bearer '+a.access_token}});if(r.error)throw r.error;if(r.data.error)throw Error(r.data.error);return r.data}
 function setup(){
