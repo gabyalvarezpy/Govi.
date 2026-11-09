@@ -87,8 +87,10 @@ Deno.serve(async (req: Request) => {
       if (!isHost) return reply(403, { error: "Solo el anfitrión puede configurar OBS" });
       if (session.ingress_id) return reply(409, { error: "Esta transmisión ya tiene una clave OBS creada. No generes otra." });
 
+      // LiveKit server SDK management APIs use HTTP(S); client playback uses WS(S).
+      const livekitApiHost = livekitUrl.replace(/^wss:/i, "https:").replace(/^ws:/i, "http:");
       const api = new LiveKitAPI({
-        host: livekitUrl,
+        host: livekitApiHost,
         apiKey: livekitApiKey,
         secret: livekitApiSecret,
       });
