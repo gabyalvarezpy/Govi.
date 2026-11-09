@@ -5766,7 +5766,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   EMOJI.forEach(ch=>{const b=document.createElement('button');b.type='button';b.textContent=ch;b.setAttribute('aria-label','Añadir '+ch);b.dataset.stickerEmoji=ch;emojiBox.appendChild(b)});
   emojiBox.addEventListener('click',e=>{const b=e.target.closest('button[data-sticker-emoji]');if(!b)return;e.preventDefault();e.stopPropagation();addSticker(b.dataset.stickerEmoji)},true);
   function launchPublish(button){if(button?.dataset.busy==='1')return; if(!window.goviPublishStory){toast('El módulo de publicación no está listo. Recarga GOVI.');return} if(button){button.dataset.busy='1';button.disabled=true;button.textContent='PUBLICANDO…'} const status=document.getElementById('goviStoryStatus');if(status){status.hidden=false;status.style.display='block';status.textContent='Preparando tu historia…'} Promise.resolve().then(()=>window.goviPublishStory()).then(()=>{if(status&&status.textContent==='Preparando tu historia…'){status.textContent='La publicación no llegó a iniciarse. Comprueba que tu sesión siga activa y que el texto esté escrito en el campo de la historia.';status.style.display='block';}}).catch(err=>{console.error('GOVI: error al publicar',err);if(status)status.textContent='No se pudo publicar: '+(err?.message||'error inesperado');toast('Error al publicar: '+(err?.message||'error inesperado'))}).finally(()=>{if(button){button.dataset.busy='0';button.disabled=false;button.innerHTML='Compartir historia <b>➜</b>'}})}
-  const shareButton=ui.querySelector('[data-a="publish"]');shareButton?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();launchPublish(shareButton)},true);
+  const shareButton=ui.querySelector('[data-a="publish"]');if(shareButton){shareButton.onclick=async e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(shareButton.dataset.busy==='1')return;shareButton.dataset.busy='1';shareButton.disabled=true;shareButton.textContent='PUBLICANDO…';const status=document.getElementById('goviStoryStatus');try{if(typeof window.goviPublishStory!=='function')throw new Error('El módulo de publicación no está cargado. Recarga GOVI.');if(status){status.hidden=false;status.style.display='block';status.textContent='Preparando tu historia…'}await window.goviPublishStory()}catch(err){console.error('GOVI: error al publicar',err);if(status)status.textContent='No se pudo publicar: '+(err?.message||'error inesperado');toast('No se pudo publicar: '+(err?.message||'error inesperado'))}finally{shareButton.dataset.busy='0';shareButton.disabled=false;shareButton.innerHTML='Compartir historia <b>➜</b>'}}}
   ui.addEventListener('click',async e=>{const b=e.target.closest('button[data-a]');if(!b)return;e.preventDefault();e.stopPropagation();switch(b.dataset.a){
    case 'close':document.getElementById('goviStoryComposeClose')?.click();break;
    case 'media':file.value='';file.click();break;
@@ -5804,56 +5804,66 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     }else{sound.style.display='none';video.pause();if(limit)limit.textContent='Imagen seleccionada · También puedes añadir un enlace.'}
   });
   // El movimiento y el zoom del texto quedan gestionados únicamente por GOVI R9.
-  // GOVI R11: Android native touch handling for text drag and pinch.
+  // GOVI R12: a single touch controller routes each gesture to exactly one layer.
   (function(){
    let gesture=null;
-   const points=e=>Array.from(e.touches).map(t=>({x:t.clientX,y:t.clientY}));
-   const distance=p=>Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
-   function hit(p){
-    const r=textNode.getBoundingClientRect();
-    return !!txt.value.trim()&&textNode.style.display!=='none'&&r.width>0&&r.height>0&&p.x>=r.left-24&&p.x<=r.right+24&&p.y>=r.top-24&&p.y<=r.bottom+24;
+   const pts=e=>Array.from(e.touches).map(t=>({x:t.clientX,y:t.clientY}));
+   const dist=p=>Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
+   function ownerAt(p){
+    const el=document.elementFromPoint(p.x,p.y);
+    if(el===textNode||textNode.contains(el))return 'text';
+    if(el===image||image.contains(el))return 'image';
+    if(el===video||video.contains(el))return 'video';
+    return null;
    }
-   window.addEventListener('touchstart',e=>{
+   function begin(e){
     if(!root.classList.contains('open'))return;
-    const p=points(e);
+    const p=pts(e);if(!p.length)return;
     if(!gesture){
-     if(!p.length||!hit(p[0]))return;
-     gesture=p.length===1?{mode:'drag',start:p[0],baseX:x,baseY:y}:{mode:'pinch',baseDistance:Math.max(1,distance(p)),baseSize:Number(size.value)||32};
+     const owner=ownerAt(p[0]);if(!owner)return;
+     if((owner==='image'&&image.style.display==='none')||(owner==='video'&&video.style.display==='none'))return;
+     if(owner==='text'&&!txt.value.trim())return;
+     gesture={owner,mode:p.length>=2?'pinch':'drag',start:p[0],baseX:x,baseY:y,
+      baseDistance:p.length>=2?Math.max(1,dist(p)):0,
+      baseSize:Number(size.value)||32,baseZoom:mediaState.zoom};
     }else if(p.length>=2&&gesture.mode!=='pinch'){
-     gesture={mode:'pinch',baseDistance:Math.max(1,distance(p)),baseSize:Number(size.value)||32};
+     gesture.mode='pinch';gesture.baseDistance=Math.max(1,dist(p));
+     gesture.baseSize=Number(size.value)||32;gesture.baseZoom=mediaState.zoom;
     }
     e.preventDefault();e.stopImmediatePropagation();
-   },{capture:true,passive:false});
-   window.addEventListener('touchmove',e=>{
+   }
+   function move(e){
     if(!gesture)return;
-    const p=points(e);
+    const p=pts(e);if(!p.length)return;
     if(p.length>=2&&gesture.mode==='pinch'){
-     size.value=String(Math.round(Math.max(14,Math.min(110,gesture.baseSize*distance(p)/gesture.baseDistance))));
-     sync();
-    }else if(p.length===1&&gesture.mode==='drag'){
+     const ratio=dist(p)/gesture.baseDistance;
+     if(gesture.owner==='text'){size.value=String(Math.round(Math.max(14,Math.min(110,gesture.baseSize*ratio))));sync()}
+     else{mediaState.zoom=Math.max(1,Math.min(4,gesture.baseZoom*ratio));applyMedia()}
+    }else if(p.length===1&&gesture.owner==='text'&&gesture.mode==='drag'){
      const r=stage.getBoundingClientRect();
      x=Math.max(0,Math.min(100,gesture.baseX+(p[0].x-gesture.start.x)/Math.max(1,r.width)*100));
      y=Math.max(0,Math.min(100,gesture.baseY+(p[0].y-gesture.start.y)/Math.max(1,r.height)*100));
      sync();
     }
     e.preventDefault();e.stopImmediatePropagation();
-   },{capture:true,passive:false});
+   }
    function finish(e){
     if(!gesture)return;
-    const p=points(e);
+    const p=pts(e);
     if(!p.length)gesture=null;
-    else if(p.length===1)gesture={mode:'drag',start:p[0],baseX:x,baseY:y};
-    else gesture={mode:'pinch',baseDistance:Math.max(1,distance(p)),baseSize:Number(size.value)||32};
+    else if(p.length===1){gesture.mode='drag';gesture.start=p[0];gesture.baseX=x;gesture.baseY=y;gesture.baseZoom=mediaState.zoom}
+    else{gesture.mode='pinch';gesture.baseDistance=Math.max(1,dist(p));gesture.baseSize=Number(size.value)||32;gesture.baseZoom=mediaState.zoom}
     e.preventDefault();e.stopImmediatePropagation();
    }
+   window.addEventListener('touchstart',begin,{capture:true,passive:false});
+   window.addEventListener('touchmove',move,{capture:true,passive:false});
    window.addEventListener('touchend',finish,{capture:true,passive:false});
    window.addEventListener('touchcancel',finish,{capture:true,passive:false});
    textNode.style.setProperty('pointer-events','auto','important');
    textNode.style.setProperty('touch-action','none','important');
-   textNode.style.setProperty('user-select','none','important');
+   [image,video].forEach(el=>{el.style.setProperty('touch-action','none','important');el.style.setProperty('pointer-events','auto','important')});
   })();
-  const pts=new Map();let mediaGesture=null;
-  [image,video].forEach(el=>{el.style.pointerEvents='auto';el.style.touchAction='none';el.addEventListener('pointerdown',e=>{if(el.style.display==='none'||!el.getAttribute('src'))return;if(e.target===sound)return;if(!pts.size)saveUndo();e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)mediaGesture={kind:'move',x:e.clientX,y:e.clientY,px:mediaState.x,py:mediaState.y};else if(pts.size===2){const a=[...pts.values()];mediaGesture={kind:'scale',distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),zoom:mediaState.zoom}}});el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!mediaGesture)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...pts.values()];if(a.length===2&&mediaGesture.kind==='scale'){const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);mediaState.zoom=Math.max(1,Math.min(4,mediaGesture.zoom*d/mediaGesture.distance))}else if(a.length===1&&mediaGesture.kind==='move'){mediaState.x=mediaGesture.px+e.clientX-mediaGesture.x;mediaState.y=mediaGesture.py+e.clientY-mediaGesture.y}applyMedia()});const end=e=>{pts.delete(e.pointerId);if(!pts.size){mediaGesture=null;return}const a=[...pts.values()][0];mediaGesture={kind:'move',x:a.x,y:a.y,px:mediaState.x,py:mediaState.y}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)});
+  // Disable the old media pointer handlers: the shared controller above owns zoom routing.
   window.goviGetStoryEditorMeta=()=>({text:{x,y,fontFamily:font.value,color:color.value,textShadow:edge.value,fontSize:size.value+'px'},link:{x:50,y:80,fontFamily:'Arial,sans-serif',color:'#ffe08a',textShadow:'0 2px 8px #000',fontSize:'17px'},stickers:stickers.map(s=>({emoji:s.emoji,x:s.x,y:s.y,fontSize:s.size+'px'})),media:{zoom:mediaState.zoom,x:mediaState.x,y:mediaState.y}});
   // Puente explícito entre el editor visual y el publicador Supabase.
   const linkField=$('goviR8Link'),legacyLink=$('goviStoryLink');
