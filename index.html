@@ -4899,6 +4899,55 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 })();
 </script>
 
+
+<!-- GOVI: actualizar Me gusta sin reconstruir el feed ni mover el scroll -->
+<script id="govi-like-no-jump-v1">
+(function(){
+  if(window.__goviLikeNoJumpV1)return;
+  window.__goviLikeNoJumpV1=true;
+  toggleLike=async function(postId){
+    if(!currentUser){
+      toast('Inicia sesión para dar Me gusta');
+      openModal('authModal');
+      return;
+    }
+    const card=document.getElementById('post-'+postId);
+    const button=card?.querySelector('[data-action="like"]');
+    if(!card||!button||button.disabled)return;
+    const countNode=card.querySelector('.post-stats span:first-child');
+    const previousLabel=button.textContent;
+    button.disabled=true;
+    button.setAttribute('aria-busy','true');
+    try{
+      const {data:existing,error:findError}=await supabaseClient
+        .from('post_likes').select('post_id')
+        .eq('post_id',postId).eq('user_id',currentUser.id).maybeSingle();
+      if(findError)throw findError;
+      let error;
+      if(existing){
+        ({error}=await supabaseClient.from('post_likes').delete()
+          .eq('post_id',postId).eq('user_id',currentUser.id));
+      }else{
+        ({error}=await supabaseClient.from('post_likes').insert({post_id:postId,user_id:currentUser.id}));
+      }
+      if(error)throw error;
+      const match=(countNode?.textContent||'').match(/(\d+)/);
+      const count=Math.max(0,(match?Number(match[1]):0)+(existing?-1:1));
+      if(countNode)countNode.textContent='💛 '+count+' Me gusta';
+      button.classList.toggle('liked',!existing);
+      button.textContent=existing?'♡ Me gusta':'♥ Te gusta';
+    }catch(error){
+      console.error('GOVI Me gusta:',error);
+      toast('No se pudo actualizar Me gusta: '+(error.message||'Error'));
+      button.textContent=previousLabel;
+    }finally{
+      button.disabled=false;
+      button.removeAttribute('aria-busy');
+    }
+  };
+})();
+</script>
+
 </body>
 </html>
 
