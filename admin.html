@@ -6,7 +6,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{color-scheme:dark;--bg:#090b12;--panel:#121622;--line:#252c3b;--muted:#9aa5b8;--text:#f4f6fb;--accent:#8b5cf6;--green:#32d296;--red:#ff647c}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#20153d 0,transparent 38%),var(--bg);color:var(--text);font:15px Inter,system-ui,Arial,sans-serif}button,select{font:inherit}button{border:1px solid var(--line);background:#1b2231;color:var(--text);padding:10px 14px;border-radius:11px;cursor:pointer}button.primary{background:var(--accent);border-color:var(--accent)}button:disabled{opacity:.5;cursor:wait}.wrap{max-width:1180px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}.brand{font-weight:900;letter-spacing:2px;font-size:22px}.brand span{color:#a78bfa}.sub,.muted{color:var(--muted)}.panel{background:rgba(18,22,34,.94);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 14px 40px #0003}.hidden{display:none!important}.login{max-width:520px;margin:10vh auto}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.metric{font-size:30px;font-weight:800;margin-top:8px}.label{font-size:13px;color:var(--muted)}h1{font-size:clamp(25px,4vw,36px);margin:4px 0 8px}h2{font-size:19px;margin:0 0 14px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tabs button.active{border-color:#a78bfa;background:#30224e}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.07em}.status{display:inline-block;border:1px solid var(--line);padding:4px 8px;border-radius:20px;font-size:12px}.rowactions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.notice{padding:12px 14px;border-radius:12px;background:#211d35;border:1px solid #4c3974;color:#d8ccff;margin:12px 0}.error{color:#ff9aaa}.ok{color:var(--green)}.empty{padding:28px;text-align:center;color:var(--muted)}select{background:#101522;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:8px}.foot{font-size:12px;color:var(--muted);line-height:1.5}@media(max-width:760px){.wrap{padding:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:15px}.top{align-items:flex-start}.metric{font-size:25px}}@media(max-width:390px){.grid{grid-template-columns:1fr 1fr}.brand{font-size:18px}}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#20153d 0,transparent 38%),var(--bg);color:var(--text);font:15px Inter,system-ui,Arial,sans-serif}button,select{font:inherit}button{border:1px solid var(--line);background:#1b2231;color:var(--text);padding:10px 14px;border-radius:11px;cursor:pointer}button.primary{background:var(--accent);border-color:var(--accent)}button:disabled{opacity:.5;cursor:wait}.wrap{max-width:1180px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}.brand{font-weight:900;letter-spacing:2px;font-size:22px}.brand span{color:#a78bfa}.sub,.muted{color:var(--muted)}.panel{background:rgba(18,22,34,.94);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:18px;box-shadow:0 14px 40px #0003}.hidden{display:none!important}.login{max-width:520px;margin:10vh auto}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.metric{font-size:30px;font-weight:800;margin-top:8px}.label{font-size:13px;color:var(--muted)}h1{font-size:clamp(25px,4vw,36px);margin:4px 0 8px}h2{font-size:19px;margin:0 0 14px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tabs button.active{border-color:#a78bfa;background:#30224e}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.07em}.status{display:inline-block;border:1px solid var(--line);padding:4px 8px;border-radius:20px;font-size:12px}.rowactions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.notice{padding:12px 14px;border-radius:12px;background:#211d35;border:1px solid #4c3974;color:#d8ccff;margin:12px 0}.error{color:#ff9aaa}.ok{color:var(--green)}.empty{padding:28px;text-align:center;color:var(--muted)}select{background:#101522;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:8px}.foot{font-size:12px;color:var(--muted);line-height:1.5}.growth-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.growth-card{background:#0d111b;border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}.growth-bars{height:116px;display:flex;align-items:flex-end;gap:3px;overflow-x:auto;padding:8px 0}.growth-bar{flex:1 0 5px;min-width:5px;background:linear-gradient(180deg,#a78bfa,#6d45c5);border-radius:4px 4px 1px 1px;position:relative}.growth-bar:hover{background:#32d296}.growth-caption{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:11px}.growth-total{font-size:22px;font-weight:800;margin:5px 0}.growth-empty{color:var(--muted);font-size:12px}@media(max-width:760px){.growth-grid{grid-template-columns:1fr}}@media(max-width:760px){.wrap{padding:14px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:15px}.top{align-items:flex-start}.metric{font-size:25px}}@media(max-width:390px){.grid{grid-template-columns:1fr 1fr}.brand{font-size:18px}}
 </style>
 </head>
 <body><main class="wrap">
@@ -21,6 +21,11 @@
 <div class="panel"><div class="label">Pico de espectadores</div><div class="metric" id="peakCount">—</div></div>
 <div class="panel"><div class="label">Reclamaciones recibidas</div><div class="metric" id="reportsCount">—</div></div>
 </div>
+<section class="panel"><h2>Crecimiento de GOVI · últimos 30 días</h2><p class="sub">Nuevos registros y contenido publicado por día.</p><div class="growth-grid">
+<div class="growth-card"><div class="label">Usuarios nuevos</div><div class="growth-total" id="growthUsersTotal">—</div><div class="growth-bars" id="growthUsers"></div><div class="growth-caption"><span>Hace 30 días</span><span>Hoy</span></div></div>
+<div class="growth-card"><div class="label">Publicaciones nuevas</div><div class="growth-total" id="growthPostsTotal">—</div><div class="growth-bars" id="growthPosts"></div><div class="growth-caption"><span>Hace 30 días</span><span>Hoy</span></div></div>
+<div class="growth-card"><div class="label">Historias nuevas</div><div class="growth-total" id="growthStoriesTotal">—</div><div class="growth-bars" id="growthStories"></div><div class="growth-caption"><span>Hace 30 días</span><span>Hoy</span></div></div>
+</div></section>
 <div class="tabs"><button class="active" data-tab="lives">Transmisiones</button><button data-tab="reports">Copyright</button></div>
 <section id="lives" class="panel"><h2>Actividad de directos</h2><div class="tablewrap"><table><thead><tr><th>Título</th><th>Creador</th><th>Tipo</th><th>Estado</th><th>Inicio</th><th>Pico</th></tr></thead><tbody id="livesBody"></tbody></table></div><div id="livesEmpty" class="empty hidden">Todavía no hay transmisiones registradas.</div></section>
 <section id="reports" class="panel hidden"><h2>Reclamaciones de derechos de autor</h2><div class="tablewrap"><table><thead><tr><th>Obra</th><th>Titular</th><th>Enlace</th><th>Estado</th><th>Gestión</th></tr></thead><tbody id="reportsBody"></tbody></table></div><div id="reportsEmpty" class="empty hidden">No hay reclamaciones registradas.</div></section>
@@ -54,15 +59,28 @@ async function boot(){
 }
 async function refresh(){
  msg('Actualizando datos…');
- const [overview,sessions,reports]=await Promise.all([
+ const [overview,growth,sessions,reports]=await Promise.all([
   client.rpc('govi_admin_overview'),
+  client.rpc('govi_admin_growth_stats'),
   client.from('govi_live_sessions').select('id,title,streamer_id,stream_type,status,started_at,peak_viewers').order('started_at',{ascending:false}).limit(100),
   client.from('govi_copyright_reports').select('id,work_title,rights_holder,infringing_url,status,work_type,created_at').order('created_at',{ascending:false}).limit(100)
  ]);
  if(overview.error)throw overview.error;
+ if(growth.error)throw growth.error;
  if(sessions.error)throw sessions.error;
  if(reports.error)throw reports.error;
  const ov=overview.data||{};
+ const growthData=growth.data||{};
+ const daily=Array.isArray(growthData.daily)?growthData.daily:[];
+ const renderGrowth=(id,key)=>{
+  const values=daily.map(d=>Number(d[key])||0);
+  const max=Math.max(1,...values);
+  $(id).innerHTML=values.map((v,i)=>'<div class="growth-bar" title="'+esc(daily[i].day+': '+v)+'" style="height:'+Math.max(3,Math.round(v/max*100))+'%"></div>').join('');
+ };
+ $('growthUsersTotal').textContent=growthData.totals?.users??'—';
+ $('growthPostsTotal').textContent=growthData.totals?.posts??'—';
+ $('growthStoriesTotal').textContent=growthData.totals?.stories??'—';
+ renderGrowth('growthUsers','users');renderGrowth('growthPosts','posts');renderGrowth('growthStories','stories');
  $('usersCount').textContent=ov.users??'—';
  $('postsCount').textContent=ov.posts??'—';
  $('storiesCount').textContent=ov.stories??'—';
