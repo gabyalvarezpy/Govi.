@@ -1,6 +1,6 @@
 (function(){
 if(window.GOVILive)return;
-var root,session=null,room=null,chatChannel=null,likes=0;
+var root,session=null,room=null,chatChannel=null,likes=0,liveStartedAt=null,liveClock=null,localVideoTrack=null,cameraFacing='user';
 function el(id){return document.getElementById(id)}
 function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function client(){if(window.supabaseClient)return window.supabaseClient;if(window.supabase&&window.supabase.createClient){window.supabaseClient=window.supabase.createClient('https://ennfigjdboxpkmfhttze.supabase.co','sb_publishable_Jhya35mcZXssCNI9u3uzNQ_CfcvaTyH');return window.supabaseClient}throw Error('No se pudo inicializar la conexión de GOVI. Recarga la aplicación.');}
