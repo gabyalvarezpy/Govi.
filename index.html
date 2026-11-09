@@ -2062,7 +2062,7 @@ async function openGoviProfile(userId) {
     profileCoverElement.style.backgroundImage=coverUrl ? 'url("'+coverUrl.replace(/"/g,'%22')+'")' : '';
     profileCoverElement.innerHTML = (coverUrl
       ? `<img src="${escapeHTML(coverUrl)}" alt="Foto de portada" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0">`
-      : '') + (currentUser && currentUser.id === userId ? '<button type="button" class="govi-cover-edit" aria-label="Cambiar portada" onclick="document.getElementById(\\'goviCoverInput\\').click()">📷 <span>Cambiar portada</span></button>' : '');
+      : '') + (currentUser && currentUser.id === userId ? '<button type="button" class="govi-cover-edit" aria-label="Cambiar portada" onclick="document.getElementById(\'goviCoverInput\').click()">📷 <span>Cambiar portada</span></button>' : '');
     const coverImage=profileCoverElement.querySelector('img');
     if(coverImage)coverImage.addEventListener('error',()=>{profileCoverElement.style.backgroundImage='';console.error('GOVI: no se pudo cargar la portada pública',coverUrl);},{once:true});
     $('goviAvatar').innerHTML = (goviCurrentProfile.avatar_url
