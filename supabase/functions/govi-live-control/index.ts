@@ -132,7 +132,7 @@ Deno.serve(async (req: Request) => {
           forcePathStyle: true,
         }) },
       });
-      const egress = await api.egress.startRoomCompositeEgress(session.room_name, output, { layout: "speaker" });
+      const egress = await api.egress.startRoomCompositeEgress(session.room_name, { file: output });
       const { error: saveRecordingError } = await admin.from("govi_live_recordings").insert({
         session_id: session.id, host_id: authData.user.id, egress_id: egress.egressId,
         bucket: recordingsBucket, object_path: objectPath, status: "recording",
