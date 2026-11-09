@@ -5804,136 +5804,51 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     }else{sound.style.display='none';video.pause();if(limit)limit.textContent='Imagen seleccionada · También puedes añadir un enlace.'}
   });
   bindMoveResize(textNode,()=>({x,y}),p=>{x=p.x;y=p.y;sync()},()=>Number(size.value),v=>{size.value=String(Math.max(14,Math.min(110,v)));sync()},14,110);
-  // GOVI R8: own the whole text gesture at stage level so Android can deliver both fingers.
+  // GOVI R9: direct one-finger text drag + two-finger resize, with pointer capture.
   (function(){
-   const active=new Map();let g=null;
-   const pos=e=>({x:e.clientX,y:e.clientY});
-   const distance=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
-   function textHit(p){
-    const r=textNode.getBoundingClientRect();
-    return textNode.style.display!=='none'&&r.width>0&&r.height>0&&p.x>=r.left-24&&p.x<=r.right+24&&p.y>=r.top-24&&p.y<=r.bottom+24;
-   }
-   function begin(e){
-    if(!root.classList.contains('open')||!txt.value.trim())return;
-    const p=pos(e);
-    if(!active.size&&!textHit(p))return;
-    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-    active.set(e.pointerId,p);
-    try{stage.setPointerCapture(e.pointerId)}catch(_){}
-    const a=[...active.values()];
-    if(a.length===1)g={kind:'move',start:a[0],x,y};
-    else g={kind:'scale',distance:Math.max(1,distance(a)),font:Number(size.value)||32};
-   }
-   function move(e){
-    if(!active.has(e.pointerId)||!g)return;
-    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-    active.set(e.pointerId,pos(e));
-    const a=[...active.values()];
-    if(a.length>=2&&g.kind==='scale'){
-     const next=Math.max(14,Math.min(110,g.font*distance(a)/g.distance));
-     size.value=String(Math.round(next));sync();
-    }else if(a.length===1&&g.kind==='move'){
-     const r=stage.getBoundingClientRect();
-     x=Math.max(2,Math.min(98,g.x+(a[0].x-g.start.x)/r.width*100));
-     y=Math.max(2,Math.min(98,g.y+(a[0].y-g.start.y)/r.height*100));sync();
-    }
-   }
-   function end(e){
-    if(!active.has(e.pointerId))return;
-    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();active.delete(e.pointerId);
-    const a=[...active.values()];
-    if(!a.length){g=null;return}
-    if(a.length===1)g={kind:'move',start:a[0],x,y};
-    else g={kind:'scale',distance:Math.max(1,distance(a)),font:Number(size.value)||32};
-   }
-   stage.addEventListener('pointerdown',begin,true);
-   stage.addEventListener('pointermove',move,true);
-   stage.addEventListener('pointerup',end,true);
-   stage.addEventListener('pointercancel',end,true);
-   stage.style.setProperty('touch-action','none','important');
-   textNode.style.setProperty('touch-action','none','important');
-  })();
-  // GOVI R8 text gesture override: stable one-finger drag + two-finger pinch on Android/PWA.
-  textNode.style.setProperty('pointer-events','auto','important');
-  textNode.style.setProperty('touch-action','none','important');
-  textNode.style.setProperty('user-select','none','important');
-  textNode.style.setProperty('-webkit-user-select','none','important');
-  textNode.style.setProperty('z-index','2147483000','important');
-  (function(){
-   const active=new Map();let gesture=null;
-   const point=e=>({x:e.clientX,y:e.clientY});
+   let drag=null;const fingers=new Map();let pinch=null;
+   const xy=e=>({x:e.clientX,y:e.clientY});
    const dist=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
-   function startGesture(){
-    const p=[...active.values()];
-    if(!p.length){gesture=null;return}
-    if(p.length===1)gesture={mode:'move',start:p[0],x,y};
-    else gesture={mode:'pinch',distance:Math.max(1,dist(p)),font:Number(size.value)||32};
+   function hitText(e){
+    const r=textNode.getBoundingClientRect(),p=xy(e);
+    return txt.value.trim()&&textNode.style.display!=='none'&&r.width>0&&r.height>0&&p.x>=r.left-16&&p.x<=r.right+16&&p.y>=r.top-16&&p.y<=r.bottom+16;
    }
-   window.addEventListener('pointerdown',e=>{
-    if(!root.classList.contains('open')||!textNode.textContent.trim())return;
-    if(!(e.target===textNode||textNode.contains(e.target)))return;
+   stage.addEventListener('pointerdown',e=>{
+    if(!root.classList.contains('open')||!hitText(e))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
-    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-    active.set(e.pointerId,point(e));startGesture();
-   },true);
-   window.addEventListener('pointermove',e=>{
-    if(!active.has(e.pointerId)||!gesture)return;
-    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-    active.set(e.pointerId,point(e));
-    const p=[...active.values()];
-    if(p.length>=2&&gesture.mode==='pinch'){
-     const next=Math.max(14,Math.min(110,gesture.font*dist(p)/gesture.distance));
-     size.value=String(Math.round(next));sync();
-    }else if(p.length===1&&gesture.mode==='move'){
-     const rect=stage.getBoundingClientRect();
-     x=Math.max(2,Math.min(98,gesture.x+(p[0].x-gesture.start.x)/rect.width*100));
-     y=Math.max(2,Math.min(98,gesture.y+(p[0].y-gesture.start.y)/rect.height*100));
+    e.preventDefault();e.stopPropagation();
+    fingers.set(e.pointerId,xy(e));
+    try{stage.setPointerCapture(e.pointerId)}catch(_){}
+    if(fingers.size===1)drag={start:xy(e),baseX:x,baseY:y};
+    if(fingers.size>=2){const a=[...fingers.values()];pinch={distance:Math.max(1,dist(a)),font:Number(size.value)||32};drag=null}
+   },{capture:true,passive:false});
+   stage.addEventListener('pointermove',e=>{
+    if(!fingers.has(e.pointerId))return;
+    e.preventDefault();e.stopPropagation();fingers.set(e.pointerId,xy(e));
+    const a=[...fingers.values()];
+    if(a.length>=2&&pinch){
+     size.value=String(Math.round(Math.max(14,Math.min(110,pinch.font*dist(a)/pinch.distance))));
+     sync();
+    }else if(a.length===1&&drag){
+     const r=stage.getBoundingClientRect();
+     x=Math.max(0,Math.min(100,drag.baseX+(a[0].x-drag.start.x)/r.width*100));
+     y=Math.max(0,Math.min(100,drag.baseY+(a[0].y-drag.start.y)/r.height*100));
      sync();
     }
-   },true);
-   const finish=e=>{if(!active.has(e.pointerId))return;active.delete(e.pointerId);e.stopPropagation();startGesture()};
-   window.addEventListener('pointerup',finish,true);
-   window.addEventListener('pointercancel',finish,true);
-  })();
-  // GOVI text touch fix V2: bind gestures directly to the text element (not the preview overlay).
-  (function(){
-   let textGesture=null;
-   const xy=t=>({x:t.clientX,y:t.clientY});
-   const distance=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+   },{capture:true,passive:false});
+   function finish(e){
+    if(!fingers.has(e.pointerId))return;
+    e.preventDefault();e.stopPropagation();fingers.delete(e.pointerId);
+    const a=[...fingers.values()];
+    if(a.length===0){drag=null;pinch=null}
+    else if(a.length===1){const p=a[0];drag={start:p,baseX:x,baseY:y};pinch=null}
+    else {pinch={distance:Math.max(1,dist(a)),font:Number(size.value)||32};drag=null}
+   }
+   stage.addEventListener('pointerup',finish,{capture:true,passive:false});
+   stage.addEventListener('pointercancel',finish,{capture:true,passive:false});
    textNode.style.setProperty('pointer-events','auto','important');
    textNode.style.setProperty('touch-action','none','important');
-   textNode.style.setProperty('z-index','2147483000','important');
-   textNode.addEventListener('touchstart',e=>{
-    if(!root.classList.contains('open')||!textNode.textContent.trim())return;
-    const p=[...e.touches].map(xy);
-    if(p.length===1)textGesture={mode:'move',start:p[0],x,y};
-    else if(p.length>=2)textGesture={mode:'scale',distance:Math.max(1,distance(p)),size:Number(size.value)||30};
-    e.preventDefault();e.stopPropagation();
-   },{passive:false});
-   textNode.addEventListener('touchmove',e=>{
-    if(!textGesture)return;
-    const p=[...e.touches].map(xy);
-    if(p.length>=2&&textGesture.mode==='scale'){
-     size.value=String(Math.round(Math.max(12,Math.min(90,textGesture.size*distance(p)/textGesture.distance))));
-     sync();
-    }else if(p.length===1&&textGesture.mode==='move'){
-     const r=stage.getBoundingClientRect();
-     x=Math.max(2,Math.min(98,textGesture.x+(p[0].x-textGesture.start.x)/r.width*100));
-     y=Math.max(2,Math.min(98,textGesture.y+(p[0].y-textGesture.start.y)/r.height*100));
-     sync();
-    }
-    e.preventDefault();e.stopPropagation();
-   },{passive:false});
-   const finish=e=>{
-    if(!textGesture)return;
-    if(!e.touches.length){textGesture=null;return}
-    const p=[...e.touches].map(xy);
-    if(p.length===1)textGesture={mode:'move',start:p[0],x,y};
-    else textGesture={mode:'scale',distance:Math.max(1,distance(p)),size:Number(size.value)||30};
-    e.preventDefault();e.stopPropagation();
-   };
-   textNode.addEventListener('touchend',finish,{passive:false});
-   textNode.addEventListener('touchcancel',finish,{passive:false});
+   textNode.style.setProperty('cursor','grab','important');
   })();
   const pts=new Map();let mediaGesture=null;
   [image,video].forEach(el=>{el.style.pointerEvents='auto';el.style.touchAction='none';el.addEventListener('pointerdown',e=>{if(el.style.display==='none'||!el.getAttribute('src'))return;if(e.target===sound)return;if(!pts.size)saveUndo();e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===1)mediaGesture={kind:'move',x:e.clientX,y:e.clientY,px:mediaState.x,py:mediaState.y};else if(pts.size===2){const a=[...pts.values()];mediaGesture={kind:'scale',distance:Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),zoom:mediaState.zoom}}});el.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId)||!mediaGesture)return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const a=[...pts.values()];if(a.length===2&&mediaGesture.kind==='scale'){const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);mediaState.zoom=Math.max(1,Math.min(4,mediaGesture.zoom*d/mediaGesture.distance))}else if(a.length===1&&mediaGesture.kind==='move'){mediaState.x=mediaGesture.px+e.clientX-mediaGesture.x;mediaState.y=mediaGesture.py+e.clientY-mediaGesture.y}applyMedia()});const end=e=>{pts.delete(e.pointerId);if(!pts.size){mediaGesture=null;return}const a=[...pts.values()][0];mediaGesture={kind:'move',x:a.x,y:a.y,px:mediaState.x,py:mediaState.y}};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end)});
