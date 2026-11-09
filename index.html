@@ -6371,6 +6371,46 @@ window.goviOpenCropEditor = goviOpenCropEditor;
 <script src="/messages.js" defer></script>
 
 
+<!-- GOVI STORY ADD BUTTON HARD FIX: intercept tap before page handlers -->
+<script id="govi-story-add-button-hard-fix">
+(function(){
+ if(window.__goviStoryAddHardFix)return;window.__goviStoryAddHardFix=true;
+ function openFromTap(ev){
+  const target=ev.target;
+  const button=target&&target.closest?target.closest('#goviAddStory,.story-add,[data-action="add-story"]'):null;
+  if(!button)return;
+  ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
+  const composer=document.getElementById('goviStoryComposer');
+  if(!composer){console.error('GOVI: no se encuentra goviStoryComposer');return}
+  if(!window.currentUser&&!window.supabaseClient){console.warn('GOVI: sesión todavía no disponible para historias')}
+  if(typeof window.goviOpenStoryComposer==='function'){
+   window.goviOpenStoryComposer();
+  }else{
+   composer.classList.add('open');composer.style.setProperty('display','flex','important');composer.style.setProperty('visibility','visible','important');
+   composer.setAttribute('aria-hidden','false');
+  }
+  requestAnimationFrame(()=>{
+   composer.classList.add('open');
+   composer.style.setProperty('display','flex','important');
+   composer.style.setProperty('visibility','visible','important');
+   composer.style.setProperty('pointer-events','auto','important');
+  });
+ }
+ window.addEventListener('click',openFromTap,true);
+ window.addEventListener('pointerup',function(ev){
+  const b=ev.target&&ev.target.closest?ev.target.closest('#goviAddStory,.story-add,[data-action="add-story"]'):null;
+  if(!b)return;
+  // Android WebView/PWA sometimes dispatches pointerup but loses the synthetic click.
+  if(ev.pointerType==='touch'){
+   ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
+   const c=document.getElementById('goviStoryComposer');
+   if(c&&!c.classList.contains('open'))openFromTap({target:b,preventDefault(){},stopPropagation(){},stopImmediatePropagation(){}});
+  }
+ },true);
+ console.info('GOVI: acceso directo al editor de historias preparado');
+})();
+</script>
+
 <!-- GOVI STORY GALLERY PICKER FIX V2: Android PWA picker + explicit media preview -->
 <script id="govi-story-gallery-picker-fix-v2">
 (function(){
