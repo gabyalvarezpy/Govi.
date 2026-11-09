@@ -75,6 +75,36 @@ Deno.serve(async (req: Request) => {
       return reply(200, { session: created });
     }
 
+    if (action === "list-recordings") {
+      const { data: rows, error: rowsError } = await admin.from("govi_live_recordings")
+        .select("id,session_id,object_path,status,started_at,ended_at,created_at")
+        .eq("host_id", authData.user.id).order("created_at", { ascending: false }).limit(50);
+      if (rowsError) throw rowsError;
+      const recordings = [];
+      for (const row of rows ?? []) {
+        let downloadUrl = null;
+        const signed = await admin.storage.from("govi-live-recordings").createSignedUrl(row.object_path, 3600);
+        if (!signed.error && signed.data?.signedUrl) {
+          downloadUrl = signed.data.signedUrl;
+          if (row.status !== "ready") await admin.from("govi_live_recordings").update({ status: "ready" }).eq("id", row.id);
+        }
+        recordings.push({ ...row, status: downloadUrl ? "ready" : row.status === "recording" ? "recording" : "processing", download_url: downloadUrl });
+      }
+      return reply(200, { recordings });
+    }
+    if (action === "delete-recording") {
+      const recordingId = typeof body?.recording_id === "string" ? body.recording_id : "";
+      if (!recordingId) return reply(400, { error: "Falta recording_id" });
+      const { data: row, error: rowError } = await admin.from("govi_live_recordings").select("id,host_id,bucket,object_path").eq("id", recordingId).maybeSingle();
+      if (rowError) throw rowError;
+      if (!row || row.host_id !== authData.user.id) return reply(404, { error: "Grabación no encontrada" });
+      const { error: removeError } = await admin.storage.from(row.bucket).remove([row.object_path]);
+      if (removeError) throw removeError;
+      const { error: deleteError } = await admin.from("govi_live_recordings").delete().eq("id", row.id).eq("host_id", authData.user.id);
+      if (deleteError) throw deleteError;
+      return reply(200, { ok: true });
+    }
+
     if (!sessionId) return reply(400, { error: "Falta session_id" });
     const { data: session, error: sessionError } = await admin.from("govi_live_sessions")
       .select("id, host_id, room_name, title, status, ingress_id").eq("id", sessionId).maybeSingle();
@@ -114,42 +144,11 @@ Deno.serve(async (req: Request) => {
       return reply(200, { ok: true, egress_id: egress.egressId, object_path: objectPath, status: "recording" });
     }
 
-    if (action === "list-recordings") {
-      const { data: rows, error: rowsError } = await admin.from("govi_live_recordings")
-        .select("id,session_id,object_path,status,started_at,ended_at,created_at")
-        .eq("host_id", authData.user.id).order("created_at", { ascending: false }).limit(50);
-      if (rowsError) throw rowsError;
-      const recordings = [];
-      for (const row of rows ?? []) {
-        let downloadUrl = null;
-        const signed = await admin.storage.from(recordingsBucket).createSignedUrl(row.object_path, 3600);
-        if (!signed.error && signed.data?.signedUrl) {
-          downloadUrl = signed.data.signedUrl;
-          if (row.status !== "ready") await admin.from("govi_live_recordings").update({ status: "ready" }).eq("id", row.id);
-        }
-        recordings.push({ ...row, status: downloadUrl ? "ready" : row.status === "recording" ? "recording" : "processing", download_url: downloadUrl });
-      }
-      return reply(200, { recordings });
-    }
-
-    if (action === "delete-recording") {
-      const recordingId = typeof body?.recording_id === "string" ? body.recording_id : "";
-      if (!recordingId) return reply(400, { error: "Falta recording_id" });
-      const { data: row, error: rowError } = await admin.from("govi_live_recordings").select("id,host_id,bucket,object_path").eq("id", recordingId).maybeSingle();
-      if (rowError) throw rowError;
-      if (!row || row.host_id !== authData.user.id) return reply(404, { error: "Grabación no encontrada" });
-      const { error: removeError } = await admin.storage.from(row.bucket).remove([row.object_path]);
-      if (removeError) throw removeError;
-      const { error: deleteError } = await admin.from("govi_live_recordings").delete().eq("id", row.id).eq("host_id", authData.user.id);
-      if (deleteError) throw deleteError;
-      return reply(200, { ok: true });
-    }
-
     if (action === "end-session") {
       if (!isHost) return reply(403, { error: "Solo el anfitrión puede finalizar este directo" });
+      const apiHost = livekitUrl.replace(/^wss:/i, "https:").replace(/^ws:/i, "http:");
+      const api = new LiveKitAPI({ host: apiHost, apiKey: livekitApiKey, secret: livekitApiSecret });
       if (session.ingress_id) {
-        const apiHost = livekitUrl.replace(/^wss:/i, "https:").replace(/^ws:/i, "http:");
-        const api = new LiveKitAPI({ host: apiHost, apiKey: livekitApiKey, secret: livekitApiSecret });
         try { await api.ingress.deleteIngress(session.ingress_id); } catch (cleanupError) { console.warn("No se pudo eliminar ingress OBS:", cleanupError); }
       }
       const { data: recording } = await admin.from("govi_live_recordings").select("id,egress_id").eq("session_id", session.id).maybeSingle();
