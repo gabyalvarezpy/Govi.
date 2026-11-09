@@ -48,24 +48,46 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const action = body?.action;
     const sessionId = typeof body?.session_id === "string" ? body.session_id : "";
-    if (!sessionId) return reply(400, { error: "Falta session_id" });
-
-    const { data: session, error: sessionError } = await admin
-      .from("govi_live_sessions")
-      .select("id, host_id, room_name, title, status, ingress_id")
-      .eq("id", sessionId)
-      .maybeSingle();
-
-    if (sessionError) throw sessionError;
-    if (!session || session.status !== "live") return reply(404, { error: "Este directo ya no está disponible" });
-
-    const isHost = session.host_id === authData.user.id;
     const participantIdentity = authData.user.id;
 
+    if (action === "create-session") {
+      const title = String(body?.title || "Directo GOVI").trim().slice(0, 100);
+      const description = String(body?.description || "").trim().slice(0, 500);
+      const category = String(body?.category || "General").trim().slice(0, 40);
+      const roomName = "govi-" + authData.user.id + "-" + crypto.randomUUID();
+      const { data: created, error: createError } = await admin.from("govi_live_sessions").insert({
+        streamer_id: authData.user.id, host_id: authData.user.id, provider_room_id: roomName, room_name: roomName,
+        title, description, category, stream_type: "livekit", status: "live", chat_enabled: true, started_at: new Date().toISOString(),
+      }).select("id,host_id,room_name,title,description,category,status,started_at").single();
+      if (createError) throw createError;
+      return reply(200, { session: created });
+    }
+
+    if (!sessionId) return reply(400, { error: "Falta session_id" });
+    const { data: session, error: sessionError } = await admin.from("govi_live_sessions")
+      .select("id, host_id, room_name, title, status, ingress_id").eq("id", sessionId).maybeSingle();
+    if (sessionError) throw sessionError;
+    if (!session || session.status !== "live") return reply(404, { error: "Este directo ya no está disponible" });
+    const isHost = session.host_id === authData.user.id;
+
+    if (action === "end-session") {
+      if (!isHost) return reply(403, { error: "Solo el anfitrión puede finalizar este directo" });
+      if (session.ingress_id) {
+        const apiHost = livekitUrl.replace(/^wss:/i, "https:").replace(/^ws:/i, "http:");
+        const api = new LiveKitAPI({ host: apiHost, apiKey: livekitApiKey, secret: livekitApiSecret });
+        try { await api.ingress.deleteIngress(session.ingress_id); } catch (cleanupError) { console.warn("No se pudo eliminar ingress OBS:", cleanupError); }
+      }
+      const { error: endError } = await admin.from("govi_live_sessions").update({ status: "ended", ended_at: new Date().toISOString() })
+        .eq("id", session.id).eq("host_id", authData.user.id).eq("status", "live");
+      if (endError) throw endError;
+      return reply(200, { ok: true });
+    }
+
+    const profileName = String(authData.user.user_metadata?.full_name || authData.user.user_metadata?.name || "Usuario GOVI").slice(0, 80);
     if (action === "token") {
       const token = new AccessToken(livekitApiKey, livekitApiSecret, {
         identity: participantIdentity,
-        name: "Usuario GOVI",
+        name: profileName,
         ttl: 600,
       });
       token.addGrant({
