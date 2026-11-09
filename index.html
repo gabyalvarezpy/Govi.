@@ -5804,6 +5804,55 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     }else{sound.style.display='none';video.pause();if(limit)limit.textContent='Imagen seleccionada · También puedes añadir un enlace.'}
   });
   bindMoveResize(textNode,()=>({x,y}),p=>{x=p.x;y=p.y;sync()},()=>Number(size.value),v=>{size.value=String(Math.max(14,Math.min(110,v)));sync()},14,110);
+  // GOVI R8: own the whole text gesture at stage level so Android can deliver both fingers.
+  (function(){
+   const active=new Map();let g=null;
+   const pos=e=>({x:e.clientX,y:e.clientY});
+   const distance=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+   function textHit(p){
+    const r=textNode.getBoundingClientRect();
+    return textNode.style.display!=='none'&&r.width>0&&r.height>0&&p.x>=r.left-24&&p.x<=r.right+24&&p.y>=r.top-24&&p.y<=r.bottom+24;
+   }
+   function begin(e){
+    if(!root.classList.contains('open')||!txt.value.trim())return;
+    const p=pos(e);
+    if(!active.size&&!textHit(p))return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    active.set(e.pointerId,p);
+    try{stage.setPointerCapture(e.pointerId)}catch(_){}
+    const a=[...active.values()];
+    if(a.length===1)g={kind:'move',start:a[0],x,y};
+    else g={kind:'scale',distance:Math.max(1,distance(a)),font:Number(size.value)||32};
+   }
+   function move(e){
+    if(!active.has(e.pointerId)||!g)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    active.set(e.pointerId,pos(e));
+    const a=[...active.values()];
+    if(a.length>=2&&g.kind==='scale'){
+     const next=Math.max(14,Math.min(110,g.font*distance(a)/g.distance));
+     size.value=String(Math.round(next));sync();
+    }else if(a.length===1&&g.kind==='move'){
+     const r=stage.getBoundingClientRect();
+     x=Math.max(2,Math.min(98,g.x+(a[0].x-g.start.x)/r.width*100));
+     y=Math.max(2,Math.min(98,g.y+(a[0].y-g.start.y)/r.height*100));sync();
+    }
+   }
+   function end(e){
+    if(!active.has(e.pointerId))return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();active.delete(e.pointerId);
+    const a=[...active.values()];
+    if(!a.length){g=null;return}
+    if(a.length===1)g={kind:'move',start:a[0],x,y};
+    else g={kind:'scale',distance:Math.max(1,distance(a)),font:Number(size.value)||32};
+   }
+   stage.addEventListener('pointerdown',begin,true);
+   stage.addEventListener('pointermove',move,true);
+   stage.addEventListener('pointerup',end,true);
+   stage.addEventListener('pointercancel',end,true);
+   stage.style.setProperty('touch-action','none','important');
+   textNode.style.setProperty('touch-action','none','important');
+  })();
   // GOVI R8 text gesture override: stable one-finger drag + two-finger pinch on Android/PWA.
   textNode.style.setProperty('pointer-events','auto','important');
   textNode.style.setProperty('touch-action','none','important');
