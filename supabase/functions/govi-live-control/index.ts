@@ -103,7 +103,6 @@ Deno.serve(async (req: Request) => {
         canSubscribe: true,
         canPublish: isHost,
         canPublishData: true,
-        ...(isHost ? { canPublishSources: ["camera", "microphone"] } : {}),
       });
       return reply(200, {
         server_url: livekitUrl,
