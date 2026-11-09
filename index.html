@@ -5804,48 +5804,46 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     }else{sound.style.display='none';video.pause();if(limit)limit.textContent='Imagen seleccionada · También puedes añadir un enlace.'}
   });
   // El movimiento y el zoom del texto quedan gestionados únicamente por GOVI R9.
-  // GOVI R9: direct one-finger text drag + two-finger resize, with pointer capture.
+  // GOVI R10: listen at window capture so the drag works even if preview layers intercept touches.
   (function(){
    let drag=null;const fingers=new Map();let pinch=null;
    const xy=e=>({x:e.clientX,y:e.clientY});
    const dist=a=>Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
    function hitText(e){
     const r=textNode.getBoundingClientRect(),p=xy(e);
-    return txt.value.trim()&&textNode.style.display!=='none'&&r.width>0&&r.height>0&&p.x>=r.left-16&&p.x<=r.right+16&&p.y>=r.top-16&&p.y<=r.bottom+16;
+    return !!txt.value.trim()&&textNode.style.display!=='none'&&r.width>0&&r.height>0&&p.x>=r.left-22&&p.x<=r.right+22&&p.y>=r.top-22&&p.y<=r.bottom+22;
    }
-   stage.addEventListener('pointerdown',e=>{
+   window.addEventListener('pointerdown',e=>{
     if(!root.classList.contains('open')||!hitText(e))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     e.preventDefault();e.stopPropagation();
     fingers.set(e.pointerId,xy(e));
-    try{stage.setPointerCapture(e.pointerId)}catch(_){}
+    try{if(e.target&&e.target.setPointerCapture)e.target.setPointerCapture(e.pointerId)}catch(_){}
     if(fingers.size===1)drag={start:xy(e),baseX:x,baseY:y};
-    if(fingers.size>=2){const a=[...fingers.values()];pinch={distance:Math.max(1,dist(a)),font:Number(size.value)||32};drag=null}
+    if(fingers.size>=2){const p=[...fingers.values()];pinch={distance:Math.max(1,dist(p)),font:Number(size.value)||32};drag=null}
    },{capture:true,passive:false});
-   stage.addEventListener('pointermove',e=>{
+   window.addEventListener('pointermove',e=>{
     if(!fingers.has(e.pointerId))return;
     e.preventDefault();e.stopPropagation();fingers.set(e.pointerId,xy(e));
-    const a=[...fingers.values()];
-    if(a.length>=2&&pinch){
-     size.value=String(Math.round(Math.max(14,Math.min(110,pinch.font*dist(a)/pinch.distance))));
-     sync();
-    }else if(a.length===1&&drag){
+    const p=[...fingers.values()];
+    if(p.length>=2&&pinch){size.value=String(Math.round(Math.max(14,Math.min(110,pinch.font*dist(p)/pinch.distance))));sync()}
+    else if(p.length===1&&drag){
      const r=stage.getBoundingClientRect();
-     x=Math.max(0,Math.min(100,drag.baseX+(a[0].x-drag.start.x)/r.width*100));
-     y=Math.max(0,Math.min(100,drag.baseY+(a[0].y-drag.start.y)/r.height*100));
+     x=Math.max(0,Math.min(100,drag.baseX+(p[0].x-drag.start.x)/Math.max(1,r.width)*100));
+     y=Math.max(0,Math.min(100,drag.baseY+(p[0].y-drag.start.y)/Math.max(1,r.height)*100));
      sync();
     }
    },{capture:true,passive:false});
    function finish(e){
     if(!fingers.has(e.pointerId))return;
     e.preventDefault();e.stopPropagation();fingers.delete(e.pointerId);
-    const a=[...fingers.values()];
-    if(a.length===0){drag=null;pinch=null}
-    else if(a.length===1){const p=a[0];drag={start:p,baseX:x,baseY:y};pinch=null}
-    else {pinch={distance:Math.max(1,dist(a)),font:Number(size.value)||32};drag=null}
+    const p=[...fingers.values()];
+    if(!p.length){drag=null;pinch=null}
+    else if(p.length===1){drag={start:p[0],baseX:x,baseY:y};pinch=null}
+    else{pinch={distance:Math.max(1,dist(p)),font:Number(size.value)||32};drag=null}
    }
-   stage.addEventListener('pointerup',finish,{capture:true,passive:false});
-   stage.addEventListener('pointercancel',finish,{capture:true,passive:false});
+   window.addEventListener('pointerup',finish,{capture:true,passive:false});
+   window.addEventListener('pointercancel',finish,{capture:true,passive:false});
    textNode.style.setProperty('pointer-events','auto','important');
    textNode.style.setProperty('touch-action','none','important');
    textNode.style.setProperty('cursor','grab','important');
