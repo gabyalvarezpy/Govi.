@@ -854,6 +854,7 @@ html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important
     <div class="nav-item" onclick="filterSection('Fotos',this)"><span>▧</span> Fotografías</div>
     <div class="nav-item" onclick="filterSection('Vídeos',this)"><span>▷</span> Vídeos</div>
     <div class="nav-item" onclick="goviGoToMyProfile(this)"><span>♙</span> Mi perfil</div>
+    <div class="nav-item" onclick="if(window.GOVILive)GOVILive.open()"><span>👽</span> GOVI LIVE</div>
     <div class="govi-sidebar-divider"></div>
     <div class="govi-side-label">TU ESPACIO</div>
     <button class="govi-side-create" onclick="openModal('postModal')"><span>＋</span><span><b>Crear algo nuevo</b><small>Comparte con tu gente</small></span></button>
@@ -892,6 +893,7 @@ html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important
   <button onclick="filterSection('Fotos',this)"><span>▧</span>Fotos</button>
   <button class="govi-mobile-plus" onclick="openModal('postModal')" aria-label="Crear publicación">＋</button>
   <button onclick="filterSection('Vídeos',this)"><span>▷</span>Vídeos</button>
+  <button onclick="if(window.GOVILive)GOVILive.open()"><span>👽</span>LIVE</button>
   <button onclick="goviGoToMyProfile(this)"><span>♙</span>Perfil</button>
 </nav>
 <div class="overlay" id="postModal"><div class="modal">    
@@ -4948,6 +4950,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 })();
 </script>
 
+<script src="/govi-live.js?v=1" defer></script>
 <script src="/govi-badges.js?v=1" defer></script>
 </body>
 </html>
