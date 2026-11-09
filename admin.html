@@ -14,7 +14,7 @@
 <section id="login" class="panel login hidden"><h1>Acceso del fundador</h1><p class="sub">Inicia sesión con la misma cuenta que utilizas en GOVI.</p><div id="loginInfo" class="notice">Comprobando tu sesión de GOVI…</div><button id="loginBtn" class="primary hidden">Volver a GOVI para iniciar sesión</button></section>
 <section id="denied" class="panel login hidden"><h1>Acceso no autorizado</h1><p>Esta cuenta no tiene permisos de fundador para entrar al Centro de Control.</p><a href="/" style="color:#c4b5fd">Volver a GOVI</a></section>
 <section id="app" class="hidden">
-<div class="panel"><div class="sub">BIENVENIDO, FUNDADOR</div><h1>Panel de control</h1><p class="sub" id="identity">Verificando permisos…</p><div class="notice">Panel inicial conectado a los datos disponibles en Supabase. Las métricas se mostrarán cuando el backend de directos empiece a registrarlas.</div></div>
+<div class="panel"><div class="sub">BIENVENIDO, FUNDADOR</div><h1>Panel de control</h1><p class="sub" id="identity">Verificando permisos…</p><div class="notice">Resumen de usuarios, publicaciones e historias conectado a GOVI. Las métricas de directos y reclamaciones se actualizarán a medida que se registren.</div></div>
 <div class="grid">
 <div class="panel"><div class="label">Usuarios registrados</div><div class="metric" id="usersCount">—</div></div><div class="panel"><div class="label">Publicaciones</div><div class="metric" id="postsCount">—</div></div><div class="panel"><div class="label">Historias</div><div class="metric" id="storiesCount">—</div></div><div class="panel"><div class="label">Directos registrados</div><div class="metric" id="sessionsCount">—</div></div>
 <div class="panel"><div class="label">En directo ahora</div><div class="metric" id="liveCount">—</div></div>
@@ -54,11 +54,18 @@ async function boot(){
 }
 async function refresh(){
  msg('Actualizando datos…');
- const [sessions,reports]=await Promise.all([
+ const [overview,sessions,reports]=await Promise.all([
+  client.rpc('govi_admin_overview'),
   client.from('govi_live_sessions').select('id,title,streamer_id,stream_type,status,started_at,peak_viewers').order('started_at',{ascending:false}).limit(100),
   client.from('govi_copyright_reports').select('id,work_title,rights_holder,infringing_url,status,work_type,created_at').order('created_at',{ascending:false}).limit(100)
  ]);
- if(sessions.error)throw sessions.error;if(reports.error)throw reports.error;
+ if(overview.error)throw overview.error;
+ if(sessions.error)throw sessions.error;
+ if(reports.error)throw reports.error;
+ const ov=overview.data||{};
+ $('usersCount').textContent=ov.users??'—';
+ $('postsCount').textContent=ov.posts??'—';
+ $('storiesCount').textContent=ov.stories??'—';
  const ss=sessions.data||[],rr=reports.data||[];
  $('sessionsCount').textContent=ss.length;$('liveCount').textContent=ss.filter(x=>x.status==='live').length;
  $('peakCount').textContent=ss.reduce((n,x)=>Math.max(n,Number(x.peak_viewers)||0),0);$('reportsCount').textContent=rr.length;
