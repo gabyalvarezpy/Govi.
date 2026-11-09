@@ -1290,7 +1290,7 @@ async function handleAuth(){
       if(data.user&&!data.session)toast('Registro enviado. Revisa tu correo para confirmar la cuenta.');else toast('¡Cuenta creada en GOVI!');    
     }else{const {error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;toast('¡Bienvenido a GOVI!')}    
     closeModal('authModal');await refreshSession();
-window.goviLoadStories();
+window.goviLoadStories?.();
 supabaseClient.auth.onAuthStateChange(()=>{setTimeout(()=>window.goviLoadStories?.(),0)});    
   }catch(error){toast(error.message||'No se pudo completar la operación')}    
   finally{button.disabled=false;button.textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión'}    
@@ -1412,6 +1412,8 @@ document.head.appendChild(goviProfileStyles);
 
 /* Historias GOVI: foto, vídeo, texto y enlaces con 24 horas de duración */
 let goviStoryGroups=[],goviStoryGroupIndex=0,goviStoryItemIndex=0;
+// Registrar el cargador inmediatamente: otros bloques pueden fallar sin impedir que la función quede disponible.
+window.goviLoadStories = goviLoadStories;
 function goviOpenStoryComposer(){
   const composer=$('goviStoryComposer');
   if(!composer){toast('No se pudo abrir el editor. Recarga GOVI e inténtalo otra vez.');return}
@@ -4885,7 +4887,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   running=true;lastRun=Date.now();
   try{
    if(typeof loadFeed==='function')await loadFeed();
-   if(typeof window.goviLoadStories==='function')await window.window.goviLoadStories();
+   if(typeof window.goviLoadStories==='function')await window.goviLoadStories();
   }catch(error){console.warn('GOVI actualización automática:',error)}
   finally{running=false}
  }
