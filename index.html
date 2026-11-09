@@ -1538,6 +1538,9 @@ async function goviLoadStories(){
   bar.querySelectorAll('[data-story-user]').forEach(btn=>btn.addEventListener('click',()=>{const i=goviStoryGroups.findIndex(x=>x.userId===btn.dataset.storyUser);if(i>=0)goviOpenStoryGroup(i,0)}));
 }
 
+// Puente global: otros módulos y la navegación de perfiles pueden cargar las historias.
+window.goviLoadStories = goviLoadStories;
+
 /* Herramientas de acabado del Story Studio */
 (function(){
  const canvas=$('goviStoryPreview'); if(!canvas||$('goviStoryBackground'))return;
