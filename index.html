@@ -6494,6 +6494,9 @@ window.goviOpenCropEditor = goviOpenCropEditor;
     #goviImageViewer button{position:absolute;top:14px;right:16px;width:44px;height:44px;border:1px solid #ffffff55;border-radius:50%;background:#171717;color:#fff;font-size:30px;line-height:1;cursor:pointer}
     #goviHomeCover,#goviHomeAvatar,#goviCover,#goviAvatar{cursor:zoom-in}
     #goviHomeCover .govi-home-cover-shade,#goviHomeCover .govi-home-cover-brand{pointer-events:none}
+    .govi-feed-block .post-media{display:block!important;width:100%!important;max-width:820px!important;max-height:520px!important;height:auto!important;object-fit:contain!important;object-position:center!important;margin:12px auto!important;cursor:zoom-in!important;background:#080808!important}
+    .govi-feed-block .post-media.video{cursor:default!important;max-height:520px!important}
+
   `;
   document.head.appendChild(style);
   const viewer=document.createElement('div');
@@ -6534,6 +6537,12 @@ window.goviOpenCropEditor = goviOpenCropEditor;
     if(!target)return;
     // Los controles de cámara siguen abriendo el selector para editar.
     if(target.closest('#goviProfileCoverEdit,#goviProfileAvatarEdit,#goviHomeEditProfile,#goviHomeEditAvatar'))return;
+    const postImage=target.closest('.govi-feed-block img.post-media');
+    if(postImage){
+      e.preventDefault();e.stopPropagation();
+      open(postImage.currentSrc||postImage.src,postImage.alt||'Fotografía compartida en GOVI');
+      return;
+    }
     const avatar=target.closest('#goviHomeAvatar,#goviAvatar');
     const cover=target.closest('#goviHomeCover,#goviCover');
     if(avatar){
