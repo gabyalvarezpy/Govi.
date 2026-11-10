@@ -907,7 +907,7 @@ html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important
   <p class="demo-note">Para publicar necesitas iniciar sesión. Tus publicaciones se guardarán en la base de datos GOVI.</p>    
 </div></div>  <div class="overlay" id="authModal"><div class="modal">    
   <div class="modal-head"><h2 id="authTitle">Únete a GOVI</h2><button class="close" onclick="closeModal('authModal')">×</button></div>    
-  <div class="auth-fields"><input id="authName" placeholder="Tu nombre" autocomplete="name"><input id="authEmail" type="email" placeholder="Correo electrónico" autocomplete="email"><input id="authPassword" type="password" placeholder="Contraseña (mínimo 8 caracteres)" autocomplete="new-password"></div>    
+  <div class="auth-fields"><input id="authName" placeholder="Nombre y apellido" autocomplete="name"><input id="authEmail" type="email" placeholder="Correo electrónico" autocomplete="email"><input id="authPassword" type="password" placeholder="Contraseña (mínimo 8 caracteres)" autocomplete="new-password"></div>    
   <div class="modal-actions"><button class="primary-btn" id="authSubmit" onclick="handleAuth()">Crear cuenta</button></div>    
   <button class="auth-switch" id="authSwitch" onclick="toggleAuthMode()">Ya tengo una cuenta · Iniciar sesión</button>    
   <p class="demo-note">En el registro, Supabase puede pedirte confirmar tu correo electrónico.</p>    
@@ -1082,7 +1082,7 @@ async function accountAction(){
       authMode='login';
       $('authTitle').textContent='Acceder a GOVI';
       $('authName').style.display='block';
-      $('authName').placeholder='Nombre (opcional)';
+      $('authName').placeholder='Nombre y apellido (opcional)';
       $('authPassword').autocomplete='current-password';
       $('authPassword').value='';
       $('authSubmit').textContent='Iniciar sesión';
@@ -1298,10 +1298,10 @@ async function managePost(id){
     }
   });
 }    
-function toggleAuthMode(){authMode=authMode==='register'?'login':'register';$('authTitle').textContent=authMode==='register'?'Únete a GOVI':'Acceder a GOVI';$('authName').style.display='block';$('authName').placeholder=authMode==='register'?'Tu nombre':'Nombre (opcional)';$('authPassword').autocomplete=authMode==='register'?'new-password':'current-password';$('authSubmit').textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión';$('authSwitch').textContent=authMode==='register'?'Ya tengo una cuenta · Iniciar sesión':'¿No tienes cuenta? · Registrarme'}    
+function toggleAuthMode(){authMode=authMode==='register'?'login':'register';$('authTitle').textContent=authMode==='register'?'Únete a GOVI':'Acceder a GOVI';$('authName').style.display='block';$('authName').placeholder=authMode==='register'?'Nombre y apellido':'Nombre y apellido (opcional)';$('authPassword').autocomplete=authMode==='register'?'new-password':'current-password';$('authSubmit').textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión';$('authSwitch').textContent=authMode==='register'?'Ya tengo una cuenta · Iniciar sesión':'¿No tienes cuenta? · Registrarme'}    
 async function handleAuth(){    
   const name=$('authName').value.trim(),email=$('authEmail').value.trim(),password=$('authPassword').value,button=$('authSubmit');    
-  if(authMode==='register'&&!name){toast('Escribe tu nombre');return}    
+  if(authMode==='register'&&!name){toast('Escribe tu nombre y apellido');return}    
   if(!email||!email.includes('@')){toast('Introduce un correo válido');return}    
   if(password.length<8){toast('La contraseña debe tener 8 caracteres como mínimo');return}    
   button.disabled=true;button.textContent='Conectando…';    
