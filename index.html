@@ -6781,18 +6781,23 @@ window.goviOpenCropEditor = goviOpenCropEditor;
  }
  async function founderFollow(profileId){
   const user=me(),c=db();if(!user||!c||profileId!==FOUNDER||user.id===FOUNDER)return;
-  const name=document.getElementById('goviProfileName');if(!name)return;
+  const controls=document.getElementById('goviProfileControls');
+  if(!controls)return;
   let wrap=document.getElementById('goviFounderFollowControl');
-  if(!wrap){wrap=document.createElement('div');wrap.id='goviFounderFollowControl';wrap.style.cssText='display:flex;align-items:center;margin:9px 0 2px'}
-  if(wrap.parentElement!==name.parentElement)name.insertAdjacentElement('afterend',wrap);
-  wrap.replaceChildren();
-  const b=document.createElement('button');b.type='button';b.className='govi-follow-premium';
+  if(wrap&&wrap.dataset.ready==='1')return;
+  if(wrap&&wrap.dataset.loading==='1')return;
+  if(!wrap){wrap=document.createElement('div');wrap.id='goviFounderFollowControl';wrap.style.cssText='display:inline-flex;align-items:center;margin:0'}
+  wrap.dataset.loading='1';
   const {data,error}=await c.from('govi_follows').select('follower_id').eq('follower_id',user.id).eq('followed_id',FOUNDER).maybeSingle();
-  if(error){console.warn(error);return}
-  const following=!!data;
-  b.innerHTML=icons.follow+'<span>'+(following?'✓ SIGUIENDO':'＋ SEGUIR A GABY')+'</span>';
-  b.onclick=async()=>{b.disabled=true;try{const {error}=await c.rpc(following?'govi_unfollow_user':'govi_follow_user',{target_user_id:FOUNDER});if(error)throw error;await founderFollow(FOUNDER);await renderStats(FOUNDER);if(typeof window.toast==='function')toast(following?'Dejaste de seguir a Gaby':'¡Ahora sigues a Gaby!')}catch(e){b.disabled=false;if(typeof window.toast==='function')toast('No se pudo actualizar: '+e.message)}};
-  wrap.appendChild(b);
+  if(error){delete wrap.dataset.loading;console.warn('GOVI seguir fundador:',error);return}
+  const b=document.createElement('button');b.type='button';b.className='govi-follow-premium';
+  let following=!!data;
+  const paint=()=>{b.innerHTML=icons.follow+'<span>'+(following?'✓ SIGUIENDO':'＋ SEGUIR A GABY')+'</span>';b.setAttribute('aria-pressed',String(following))};
+  paint();
+  b.onclick=async()=>{if(b.disabled)return;b.disabled=true;try{const {error}=await c.rpc(following?'govi_unfollow_user':'govi_follow_user',{target_user_id:FOUNDER});if(error)throw error;following=!following;paint();await renderStats(FOUNDER);if(typeof window.toast==='function')toast(following?'¡Ahora sigues a Gaby!':'Dejaste de seguir a Gaby')}catch(e){if(typeof window.toast==='function')toast('No se pudo actualizar: '+e.message)}finally{b.disabled=false}};
+  wrap.replaceChildren(b);
+  controls.insertBefore(wrap,controls.firstChild);
+  wrap.dataset.ready='1';delete wrap.dataset.loading;
  }
  async function enhance(){
   const user=me();if(!user)return;
