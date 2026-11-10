@@ -6774,7 +6774,7 @@ window.goviOpenCropEditor = goviOpenCropEditor;
    let box=document.getElementById('goviProfileStats');
    if(!box){box=document.createElement('div');box.id='goviProfileStats';const desc=document.getElementById('goviProfileDescription');(desc||document.getElementById('goviProfileName'))?.after(box)}
    const items=[['followers',followers.count||0,'SEGUIDORES'],['posts',posts.count||0,'PUBLICACIONES'],['following',following.count||0,'SEGUIDOS']];
-   box.innerHTML=items.map(([key,num,label])=>'<div class="govi-stat-card"><span class="govi-stat-icon">'+icons[key]+'</span><span class="govi-stat-copy"><b class="govi-stat-number">'+fmt(num)+'</b><span class="govi-stat-label">'+label+'</span></span></div>').join('');
+   const markup=items.map(([key,num,label])=>'<div class="govi-stat-card"><span class="govi-stat-icon">'+icons[key]+'</span><span class="govi-stat-copy"><b class="govi-stat-number">'+fmt(num)+'</b><span class="govi-stat-label">'+label+'</span></span></div>').join('');if(box.innerHTML!==markup)box.innerHTML=markup;
   }catch(e){console.warn('GOVI estadísticas:',e.message)}
  }
  async function founderFollow(profileId){
