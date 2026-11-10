@@ -4930,7 +4930,8 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
   finally{running=false}
  }
  // Comprobación periódica sin recargar el documento ni alterar la posición.
- const timer=setInterval(refreshHome,30000);
+ // Desactivado: reconstruir feed e historias cada 30 s provocaba parpadeo visual en escritorio.
+ const timer=null;
  async function refreshCurrentView(){
   const profile=document.getElementById('goviProfileView');
   if(profile&&getComputedStyle(profile).display!=='none'){
