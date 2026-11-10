@@ -6756,7 +6756,7 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   try{
    const {data,error}=await c.from('profiles').select('gender').eq('id',profileId).maybeSingle();if(error)throw error;
    let gender=data?.gender||'';
-   const user=me();if(user?.id===profileId)gender=gender||user.user_metadata?.gender||'';
+   const user=me();if(user?.id===profileId){gender=gender||user.user_metadata?.gender||'';if(gender&&!data?.gender){const saved=await c.from('profiles').update({gender}).eq('id',profileId);if(saved.error)console.warn('GOVI género: no se pudo guardar en profiles.',saved.error.message)}}
    const cls=genderClass(gender);
    ['goviAvatar','accountButton'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('govi-gender-woman','govi-gender-man');if(cls)el.classList.add(cls)}});
    document.querySelectorAll('.post-head .avatar[data-user-id="'+CSS.escape(profileId)+'"]').forEach(el=>{el.classList.remove('govi-gender-woman','govi-gender-man');if(cls)el.classList.add(cls)});
