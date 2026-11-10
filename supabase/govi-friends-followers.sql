@@ -1,4 +1,4 @@
--- GOVI: amistades (maximo 500 aceptadas) y seguidores.
+-- GOVI: amistades (maximo 1000 aceptadas por perfil) y seguidores.
 -- Ejecutar una sola vez en Supabase > SQL Editor > New query.
 
 create table if not exists public.govi_friendships (
@@ -50,7 +50,7 @@ begin
   if not exists(select 1 from public.profiles where id=target_user_id) then raise exception 'No se encontró ese perfil'; end if;
   select count(*) into mine_count from public.govi_friendships where status='accepted' and (requester_id=me or addressee_id=me);
   select count(*) into theirs_count from public.govi_friendships where status='accepted' and (requester_id=target_user_id or addressee_id=target_user_id);
-  if mine_count>=500 or theirs_count>=500 then return 'follow_required'; end if;
+  if theirs_count>=1000 then return 'follow_required'; end if;
   if exists(select 1 from public.govi_friendships where status='accepted' and ((requester_id=me and addressee_id=target_user_id) or (requester_id=target_user_id and addressee_id=me))) then return 'already_friends'; end if;
   if exists(select 1 from public.govi_friendships where status='pending' and requester_id=target_user_id and addressee_id=me) then return 'incoming_request'; end if;
   insert into public.govi_friendships(requester_id,addressee_id,status)
@@ -73,7 +73,7 @@ begin
   end if;
   select count(*) into mine_count from public.govi_friendships where status='accepted' and (requester_id=me or addressee_id=me);
   select count(*) into theirs_count from public.govi_friendships where status='accepted' and (requester_id=req.requester_id or addressee_id=req.requester_id);
-  if mine_count>=500 or theirs_count>=500 then return 'follow_required'; end if;
+  if mine_count>=1000 or theirs_count>=1000 then return 'follow_required'; end if;
   update public.govi_friendships set status='accepted',updated_at=now() where id=request_id;
   return 'accepted';
 end; $$;
