@@ -844,7 +844,41 @@ body{display:block!important;margin:0!important;padding:0!important;overflow-x:h
 html.govi-auth-pending body{background:#080808!important}
 html.govi-auth-pending body>:not(#authModal){display:none!important}
 html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important}
-</style></head>    
+</style><style id="govi-desktop-responsive-v1">
+@media (min-width: 900px) {
+  html, body { width:100%!important; min-width:0!important; }
+  .govi-topbar {
+    width:100%!important; max-width:1180px!important;
+    padding-left:30px!important; padding-right:30px!important;
+  }
+  .govi-shell {
+    width:100%!important; max-width:1180px!important;
+    min-height:calc(100vh - 66px)!important;
+    padding:24px 34px 110px!important;
+    margin:0 auto!important;
+  }
+  .govi-content {
+    width:100%!important; max-width:100%!important;
+    margin:0 auto!important; gap:22px!important;
+  }
+  .govi-home-cover { height:260px!important; }
+  .govi-home-profile-info { padding:0 28px 24px!important; gap:16px!important; }
+  .govi-home-avatar { width:112px!important; height:112px!important; flex-basis:112px!important; margin-top:-54px!important; }
+  .govi-home-identity h1 { font-size:26px!important; }
+  .govi-home-identity p { font-size:14px!important; }
+  .govi-mobile-nav {
+    left:50%!important; right:auto!important; transform:translateX(-50%)!important;
+    width:min(100%,1180px)!important; max-width:1180px!important;
+    padding:10px 28px!important;
+  }
+  .govi-mobile-nav button { min-width:76px!important; font-size:12px!important; }
+}
+@media (min-width: 1400px) {
+  .govi-shell { max-width:1320px!important; }
+  .govi-topbar,.govi-mobile-nav { max-width:1320px!important; }
+}
+</style>
+</head>    
 <body>    
 <header class="topbar govi-topbar">
   <a class="brand govi-brand" href="#" onclick="filterSection('Inicio',document.querySelector('.nav-item'));return false" aria-label="GOVI inicio">
@@ -7158,37 +7192,4 @@ window.goviOpenCropEditor = goviOpenCropEditor;
 })();
 </script>
 
-<style id="govi-desktop-responsive-v1">
-@media (min-width: 900px) {
-  html, body { width:100%!important; min-width:0!important; }
-  .govi-topbar {
-    width:100%!important; max-width:1180px!important;
-    padding-left:30px!important; padding-right:30px!important;
-  }
-  .govi-shell {
-    width:100%!important; max-width:1180px!important;
-    min-height:calc(100vh - 66px)!important;
-    padding:24px 34px 110px!important;
-    margin:0 auto!important;
-  }
-  .govi-content {
-    width:100%!important; max-width:100%!important;
-    margin:0 auto!important; gap:22px!important;
-  }
-  .govi-home-cover { height:260px!important; }
-  .govi-home-profile-info { padding:0 28px 24px!important; gap:16px!important; }
-  .govi-home-avatar { width:112px!important; height:112px!important; flex-basis:112px!important; margin-top:-54px!important; }
-  .govi-home-identity h1 { font-size:26px!important; }
-  .govi-home-identity p { font-size:14px!important; }
-  .govi-mobile-nav {
-    left:50%!important; right:auto!important; transform:translateX(-50%)!important;
-    width:min(100%,1180px)!important; max-width:1180px!important;
-    padding:10px 28px!important;
-  }
-  .govi-mobile-nav button { min-width:76px!important; font-size:12px!important; }
-}
-@media (min-width: 1400px) {
-  .govi-shell { max-width:1320px!important; }
-  .govi-topbar,.govi-mobile-nav { max-width:1320px!important; }
-}
-</style>
+
