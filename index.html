@@ -2105,6 +2105,14 @@ async function openGoviProfile(userId) {
       $('goviProfileControls').innerHTML =
         '<button onclick="goviShareProfile()">↗ Compartir perfil</button>';
     }
+    // Reservar desde el primer render el espacio del botón del fundador.
+    // Así la consulta de seguimiento no desplaza ni reconstruye los controles.
+    if(userId===FOUNDER){
+      const followSlot=document.createElement('div');
+      followSlot.id='goviFounderFollowControl';
+      followSlot.style.cssText='display:inline-flex;align-items:center;min-height:44px;min-width:190px;margin:0;vertical-align:middle';
+      $('goviProfileControls').appendChild(followSlot);
+    }
 
     history.replaceState(null,'','#profile-' + userId);
     await goviLoadProfilePosts(userId);
@@ -6786,7 +6794,12 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   let wrap=document.getElementById('goviFounderFollowControl');
   if(wrap&&wrap.dataset.ready==='1')return;
   if(wrap&&wrap.dataset.loading==='1')return;
-  if(!wrap){wrap=document.createElement('div');wrap.id='goviFounderFollowControl';wrap.style.cssText='display:inline-flex;align-items:center;margin:0'}
+  if(!wrap){
+   wrap=document.createElement('div');
+   wrap.id='goviFounderFollowControl';
+   wrap.style.cssText='display:inline-flex;align-items:center;min-height:44px;min-width:190px;margin:0;vertical-align:middle';
+   controls.appendChild(wrap);
+  }
   wrap.dataset.loading='1';
   const {data,error}=await c.from('govi_follows').select('follower_id').eq('follower_id',user.id).eq('followed_id',FOUNDER).maybeSingle();
   if(error){delete wrap.dataset.loading;console.warn('GOVI seguir fundador:',error);return}
@@ -6796,7 +6809,7 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   paint();
   b.onclick=async()=>{if(b.disabled)return;b.disabled=true;try{const {error}=await c.rpc(following?'govi_unfollow_user':'govi_follow_user',{target_user_id:FOUNDER});if(error)throw error;following=!following;paint();await renderStats(FOUNDER);if(typeof window.toast==='function')toast(following?'¡Ahora sigues a Gaby!':'Dejaste de seguir a Gaby')}catch(e){if(typeof window.toast==='function')toast('No se pudo actualizar: '+e.message)}finally{b.disabled=false}};
   wrap.replaceChildren(b);
-  controls.insertBefore(wrap,controls.firstChild);
+  if(wrap.parentElement!==controls)controls.appendChild(wrap);
   wrap.dataset.ready='1';delete wrap.dataset.loading;
  }
  async function enhance(){
