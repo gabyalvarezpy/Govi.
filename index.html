@@ -6675,3 +6675,45 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   }
 })();
 </script>
+
+
+<!-- GOVI: sincronizar nombre público del fundador -->
+<script id="govi-founder-display-name-sync">
+(function(){
+  const FOUNDER_ID='5e631491-4c29-4e8d-9aff-0e40bcd3b7f9';
+  const PUBLIC_NAME='Gaby Alvarez';
+  async function syncFounderName(){
+    const client=window.supabaseClient||(typeof supabaseClient!=='undefined'?supabaseClient:null);
+    if(!client||!client.auth)return;
+    try{
+      const {data,error}=await client.auth.getSession();
+      if(error)throw error;
+      const user=data&&data.session&&data.session.user;
+      if(!user||user.id!==FOUNDER_ID)return;
+      const profileResult=await client.from('profiles')
+        .update({display_name:PUBLIC_NAME,full_name:PUBLIC_NAME})
+        .eq('id',FOUNDER_ID)
+        .select('id,display_name,full_name')
+        .maybeSingle();
+      if(profileResult.error)throw profileResult.error;
+      if(!profileResult.data)throw new Error('No se encontró tu registro de perfil para actualizar el nombre.');
+      const metadata=user.user_metadata||{};
+      if(metadata.display_name!==PUBLIC_NAME||metadata.full_name!==PUBLIC_NAME){
+        const authResult=await client.auth.updateUser({data:{...metadata,display_name:PUBLIC_NAME,full_name:PUBLIC_NAME}});
+        if(authResult.error)throw authResult.error;
+      }
+      if(window.currentUser)window.currentUser={...window.currentUser,user_metadata:{...(window.currentUser.user_metadata||{}),display_name:PUBLIC_NAME,full_name:PUBLIC_NAME}};
+      ['goviProfileName','goviHomeProfileName','goviHomeUserName'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.textContent=PUBLIC_NAME;
+      });
+      document.querySelectorAll('[data-govi-founder-name]').forEach(el=>el.textContent=PUBLIC_NAME);
+      console.info('GOVI: nombre público del fundador actualizado.');
+    }catch(error){
+      console.error('GOVI: no se pudo actualizar el nombre público del fundador:',error);
+      if(typeof window.toast==='function')window.toast('No se pudo guardar Gaby Alvarez: '+(error.message||'revisa los permisos de tu perfil'));
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncFounderName,{once:true});
+  else syncFounderName();
+})();
+</script>
