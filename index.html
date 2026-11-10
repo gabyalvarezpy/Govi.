@@ -6494,7 +6494,10 @@ window.goviOpenCropEditor = goviOpenCropEditor;
     #goviImageViewer button{position:absolute;top:14px;right:16px;width:44px;height:44px;border:1px solid #ffffff55;border-radius:50%;background:#171717;color:#fff;font-size:30px;line-height:1;cursor:pointer}
     #goviHomeCover,#goviHomeAvatar,#goviCover,#goviAvatar{cursor:zoom-in}
     #goviHomeCover .govi-home-cover-shade,#goviHomeCover .govi-home-cover-brand{pointer-events:none}
-    .govi-feed-block .post-media{display:block!important;width:100%!important;max-width:820px!important;max-height:520px!important;height:auto!important;object-fit:contain!important;object-position:center!important;margin:12px auto!important;cursor:zoom-in!important;background:#080808!important}
+    .govi-feed-block .post{width:100%!important;max-width:760px!important;margin:14px auto!important}
+    .govi-feed-block .post-media{display:block!important;width:auto!important;max-width:min(100%,680px)!important;max-height:420px!important;height:auto!important;object-fit:contain!important;object-position:center!important;margin:12px auto!important;cursor:zoom-in!important;background:#080808!important}
+    @media(min-width:900px){.govi-feed-block .post{max-width:720px!important}.govi-feed-block .post-media{max-width:640px!important;max-height:400px!important}}
+
     .govi-feed-block .post-media.video{cursor:default!important;max-height:520px!important}
 
   `;
@@ -6518,15 +6521,28 @@ window.goviOpenCropEditor = goviOpenCropEditor;
     }
     return '';
   }
-  function open(url,alt){
-    if(!url)return;
-    image.src=url;image.alt=alt||'Imagen ampliada';
-    viewer.classList.add('show');
-    document.body.style.overflow='hidden';
+  const stage=viewer.querySelector('img').parentElement;
+  function openMedia(mediaNode,article,postId){
+    stage.querySelectorAll('img,video,.govi-viewer-actions').forEach(n=>{if(n!==viewer.querySelector('img'))n.remove()});
+    const oldImg=viewer.querySelector('img');oldImg.style.display='none';
+    mediaNode.style.cssText=mediaNode.tagName==='VIDEO'?'max-width:min(92vw,1000px);max-height:72vh;width:auto;height:auto;background:#000;border-radius:12px':'display:block;max-width:min(92vw,1000px);max-height:72vh;width:auto;height:auto;object-fit:contain;border-radius:12px';
+    stage.insertBefore(mediaNode,viewer.querySelector('button'));
+    const actions=document.createElement('div');actions.className='govi-viewer-actions';
+    actions.style.cssText='position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:10px;align-items:center;background:#171717ee;border:1px solid #ffffff33;border-radius:14px;padding:10px 14px;color:white;z-index:2';
+    const like=article?.querySelector('[data-action="like"]'),comment=article?.querySelector('[data-action="comments"]');
+    actions.innerHTML='<button type="button" data-viewer-action="like">♡ Me gusta</button><button type="button" data-viewer-action="comment">◯ Comentar</button>';
+    actions.querySelectorAll('button').forEach(b=>b.style.cssText='border:0;background:transparent;color:#f5d77e;padding:8px 12px;font-weight:800;cursor:pointer');
+    actions.querySelector('[data-viewer-action="like"]').onclick=()=>{if(like){like.click();const b=actions.querySelector('[data-viewer-action="like"]');b.textContent=like.textContent}};
+    actions.querySelector('[data-viewer-action="comment"]').onclick=()=>{close();if(comment){comment.click();article.querySelector('.comment-form input')?.focus();article.scrollIntoView({behavior:'smooth',block:'center'})}};
+    stage.appendChild(actions);
+    if(like)actions.querySelector('[data-viewer-action="like"]').textContent=like.textContent;
+    viewer.classList.add('show');document.body.style.overflow='hidden';
   }
   function close(){
     viewer.classList.remove('show');
-    image.removeAttribute('src');
+    const v=viewer.querySelector('video');if(v){v.pause();v.removeAttribute('src');v.load();v.remove()}
+    viewer.querySelector('.govi-viewer-actions')?.remove();
+    const img=viewer.querySelector('img');img.removeAttribute('src');img.style.display='block';
     document.body.style.overflow='';
   }
   viewer.querySelector('button').addEventListener('click',close);
@@ -6537,10 +6553,21 @@ window.goviOpenCropEditor = goviOpenCropEditor;
     if(!target)return;
     // Los controles de cámara siguen abriendo el selector para editar.
     if(target.closest('#goviProfileCoverEdit,#goviProfileAvatarEdit,#goviHomeEditProfile,#goviHomeEditAvatar'))return;
-    const postImage=target.closest('.govi-feed-block img.post-media');
-    if(postImage){
+    const postMedia=target.closest('.govi-feed-block .post-media');
+    if(postMedia){
       e.preventDefault();e.stopPropagation();
-      open(postImage.currentSrc||postImage.src,postImage.alt||'Fotografía compartida en GOVI');
+      const article=postMedia.closest('.post');
+      const postId=article?.id?.replace(/^post-/,'');
+      if(postMedia.tagName==='VIDEO'){
+        const video=document.createElement('video');
+        video.src=postMedia.currentSrc||postMedia.src;video.controls=true;video.autoplay=true;video.playsInline=true;
+        video.style.cssText='max-width:min(92vw,1000px);max-height:72vh;width:auto;height:auto;background:#000;border-radius:12px';
+        openMedia(video,article,postId);
+      }else{
+        const enlarged=document.createElement('img');
+        enlarged.src=postMedia.currentSrc||postMedia.src;enlarged.alt=postMedia.alt||'Fotografía compartida en GOVI';
+        openMedia(enlarged,article,postId);
+      }
       return;
     }
     const avatar=target.closest('#goviHomeAvatar,#goviAvatar');
