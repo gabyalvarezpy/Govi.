@@ -7101,3 +7101,54 @@ window.goviOpenCropEditor = goviOpenCropEditor;
  document.addEventListener('DOMContentLoaded',()=>{const user=me();if(user&&document.getElementById('goviProfileView')?.style.display!=='none')loadFor(user.id,true)});
 })();
 </script>
+
+<!-- GOVI PROFILE ACTIONS LAYOUT V2 -->
+<style id="govi-profile-actions-layout-v2">
+#goviProfileView .profile-info{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);column-gap:14px;row-gap:10px;align-items:center}
+#goviProfileView #goviAvatar{grid-column:1;grid-row:1;justify-self:start}
+#goviProfileView #goviProfileControls{grid-column:2;grid-row:1;display:flex!important;flex-wrap:wrap;align-items:center;gap:9px;margin:0!important;min-width:0}
+#goviProfileView #goviProfileName{grid-column:1/-1;grid-row:2;margin:8px 0 0}
+#goviProfileView #goviProfileDescription{grid-column:1/-1;grid-row:3;margin:0!important;padding:0!important;background:transparent!important;color:#d5d0c4!important;white-space:pre-wrap}
+#goviProfileView #goviProfileStats{grid-column:1/-1;grid-row:4}
+#goviProfileView #goviProfileSocialLinks{grid-column:1/-1}
+#goviProfileView #goviFriendControls{display:flex;flex-wrap:wrap;gap:8px;margin:0!important}
+#goviProfileView #goviFriendControls button{border:1px solid #d8b45a!important;border-radius:13px!important;padding:12px 15px!important;background:linear-gradient(135deg,#2b2416,#111)!important;color:#f2d98f!important;font-weight:900!important;box-shadow:0 5px 20px #c99a3222}
+#goviProfileView #goviFriendControls button.primary{background:linear-gradient(135deg,#f5d98b,#bd8d32)!important;color:#17120a!important}
+#goviProfileView #goviFriendCounts{display:none!important}
+#goviProfileView #goviProfileMessageButton{grid-column:1/-1;justify-self:start;display:inline-flex;align-items:center;gap:8px;margin:2px 0 4px;padding:12px 18px;border:1px solid #d8b45a;border-radius:13px;background:linear-gradient(135deg,#f5d98b,#bd8d32);color:#17120a;font-weight:900;box-shadow:0 5px 20px #c99a3233}
+@media(max-width:430px){#goviProfileView .profile-info{column-gap:9px}#goviProfileView #goviAvatar{max-width:112px;max-height:112px}#goviProfileView #goviProfileControls{gap:6px}#goviProfileView #goviFriendControls button{padding:10px 11px!important;font-size:12px}}
+</style>
+<script id="govi-profile-actions-layout-v2-script">
+(function(){
+ if(window.__goviProfileActionsLayoutV2)return;window.__goviProfileActionsLayoutV2=true;
+ function placeMessageButton(profileId){
+  const user=window.currentUser||(typeof currentUser!=='undefined'?currentUser:null);
+  if(!user||!profileId||user.id===profileId){document.getElementById('goviProfileMessageButton')?.remove();return}
+  const desc=document.getElementById('goviProfileDescription');if(!desc)return;
+  let b=document.getElementById('goviProfileMessageButton');
+  if(!b){b=document.createElement('button');b.id='goviProfileMessageButton';b.type='button';b.textContent='✉ Enviar mensaje';desc.insertAdjacentElement('afterend',b)}
+  b.onclick=()=>{
+   const inbox=document.querySelector('[aria-label*="mensaje" i],[aria-label*="message" i],[title*="mensaje" i],[title*="message" i]');
+   if(inbox){inbox.click();return}
+   const msgApp=document.getElementById('goviMessagesApp');
+   if(msgApp){msgApp.classList.add('open');msgApp.style.display='flex';return}
+   if(typeof window.toast==='function')window.toast('La mensajería todavía no está disponible para este perfil.');
+  };
+ }
+ const oldFriend=window.goviRenderFriendControls;
+ if(typeof oldFriend==='function'&&!window.__goviFriendLayoutHookV2){
+  window.__goviFriendLayoutHookV2=true;
+  window.goviRenderFriendControls=async function(id){const result=await oldFriend(id);placeMessageButton(id);return result};
+ }
+ const oldOpen=window.openGoviProfile;
+ if(typeof oldOpen==='function'&&!window.__goviProfileActionOpenHookV2){
+  window.__goviProfileActionOpenHookV2=true;
+  window.openGoviProfile=async function(id,...args){const result=await oldOpen.call(this,id,...args);placeMessageButton(id);return result};
+ }
+ const oldMine=window.goviGoToMyProfile;
+ if(typeof oldMine==='function'&&!window.__goviProfileActionMineHookV2){
+  window.__goviProfileActionMineHookV2=true;
+  window.goviGoToMyProfile=async function(...args){const result=await oldMine.apply(this,args);placeMessageButton(window.currentUser?.id);return result};
+ }
+})();
+</script>
