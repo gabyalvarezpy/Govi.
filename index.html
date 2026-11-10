@@ -2486,7 +2486,7 @@ async function goviUpdateAccountAvatars() {
   if(!currentUser) return;
   try {
     const profile = await goviGetProfile(currentUser.id);
-    const name = profile.full_name || currentUser.user_metadata?.full_name || currentUser.email || 'G';
+    const name = currentUser.user_metadata?.display_name || currentUser.user_metadata?.full_name || profile.display_name || profile.full_name || currentUser.email || 'G';
     const avatarMarkup = profile.avatar_url
       ? `<img src="${escapeHTML(profile.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Mi perfil">`
       : escapeHTML(initials(name));
@@ -3754,7 +3754,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
    if(typeof currentUser!=='undefined')currentUser=user;
    const {data,error}=await client.from('profiles').select('full_name,avatar_url,cover_url').eq('id',user.id).maybeSingle();
    if(error)throw error;
-   const display=data?.full_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'Usuario GOVI';
+   const display=user.user_metadata?.display_name||user.user_metadata?.full_name||data?.full_name||user.email?.split('@')[0]||'Usuario GOVI';
    name.textContent=display;bio.textContent='Tu perfil en GOVI · Tu mundo. Tu gente.';
    avatar.innerHTML=data?.avatar_url?'<img src="'+String(data.avatar_url).replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'" alt="Foto de perfil">':String(display.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'G');
    if(data?.cover_url)cover.style.setProperty('background-image','url("'+String(data.cover_url).replace(/"/g,'%22')+'")','important');else cover.style.removeProperty('background-image');
@@ -6211,7 +6211,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     const {data:profile,error:profileError}=await client.from('profiles').select('id,full_name,display_name,avatar_url,cover_url,bio').eq('id',user.id).maybeSingle();
     if(profileError)throw profileError;
     const p=profile||{};
-    const name=p.display_name||p.full_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'Gabriel';
+    const name=user.user_metadata?.display_name||user.user_metadata?.full_name||p.display_name||p.full_name||user.email?.split('@')[0]||'Usuario GOVI';
     const view=$id('goviProfileView'),feed=$id('feed');
     const cover=$id('goviCover'),avatar=$id('goviAvatar');
     if(!view||!feed||!cover||!avatar)throw new Error('Faltan elementos del perfil');
@@ -6312,7 +6312,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     const {data:p,error:pe}=await client.from('profiles').select('id,full_name,display_name,avatar_url,cover_url,bio').eq('id',user.id).maybeSingle();
     if(pe)throw pe;
     const profile=p||{};
-    const name=profile.display_name||profile.full_name||user.user_metadata?.full_name||user.email?.split('@')[0]||'Gabriel';
+    const name=user.user_metadata?.display_name||user.user_metadata?.full_name||profile.display_name||profile.full_name||user.email?.split('@')[0]||'Usuario GOVI';
     const cover=document.getElementById('goviCover'),avatar=document.getElementById('goviAvatar');
     document.getElementById('goviProfileName').textContent=name;
     document.getElementById('goviProfileDescription').textContent=profile.bio||'Tu perfil en GOVI · Tu mundo. Tu gente.';
