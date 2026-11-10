@@ -2066,8 +2066,9 @@ async function openGoviProfile(userId) {
     // La galería se carga de forma diferida cuando el usuario la abre.
     goviCurrentProfile._gallery=[];
 
+    const ownDisplayName=currentUser&&userId===currentUser.id?String(currentUser.user_metadata?.display_name||currentUser.user_metadata?.full_name||'').trim():'';
     $('goviProfileName').textContent =
-      goviCurrentProfile.display_name || goviCurrentProfile.full_name || 'Usuario GOVI';
+      ownDisplayName || goviCurrentProfile.display_name || goviCurrentProfile.full_name || 'Usuario GOVI';
 
     $('goviAvatar').innerHTML = goviCurrentProfile.avatar_url
       ? `<img src="${escapeHTML(goviCurrentProfile.avatar_url)}" alt="Foto de perfil">`
