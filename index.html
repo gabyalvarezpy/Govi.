@@ -6859,6 +6859,18 @@ window.goviOpenCropEditor = goviOpenCropEditor;
    return result;
   };
  }
+ // También actualizar estadísticas al abrir el perfil propio desde la navegación móvil/escritorio.
+ if(typeof window.goviGoToMyProfile==='function'&&!window.__goviOwnProfileEnhanceHookV1){
+  window.__goviOwnProfileEnhanceHookV1=true;
+  const originalGoToMyProfile=window.goviGoToMyProfile;
+  window.goviGoToMyProfile=async function(...args){
+   const result=await originalGoToMyProfile.apply(this,args);
+   const user=me();
+   if(user?.id){window.goviProfileViewingUserId=user.id;window.goviProfileId=user.id;}
+   scheduleEnhance(650);
+   return result;
+  };
+ }
  window.addEventListener('hashchange',()=>scheduleEnhance(400));
  window.goviRefreshSocialProfile=()=>scheduleEnhance(0);
  scheduleEnhance(1000);
