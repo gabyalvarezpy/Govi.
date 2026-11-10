@@ -6816,8 +6816,8 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   document.getElementById('authSwitch')?.addEventListener('click',()=>setTimeout(update,0));update();
  }
  document.addEventListener('DOMContentLoaded',setupGender);setupGender();
- const observer=new MutationObserver(()=>{if(document.getElementById('goviProfileView')?.style.display!=='none')enhance()});
- observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
+ const profileView=document.getElementById('goviProfileView');
+ if(profileView){const observer=new MutationObserver(()=>{if(profileView.style.display!=='none')setTimeout(enhance,120)});observer.observe(profileView,{attributes:true,attributeFilter:['style']})}
  document.addEventListener('click',e=>{if(e.target.closest('#goviProfileView,[data-user-id]'))setTimeout(enhance,250)},true);
  window.addEventListener('hashchange',()=>setTimeout(enhance,350));
  setTimeout(enhance,900);setTimeout(enhance,2200);
