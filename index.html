@@ -6980,3 +6980,124 @@ window.goviOpenCropEditor = goviOpenCropEditor;
  scheduleEnhance(1000);
 })();
 </script>
+
+
+<!-- GOVI PREMIUM PROFILE CUSTOMIZATION V1 -->
+<script id="govi-premium-profile-customization-v1">
+(function(){
+ if(window.__goviPremiumProfileCustomizationV1)return;
+ window.__goviPremiumProfileCustomizationV1=true;
+ const PREFIX='GOVI_PROFILE_V1:';
+ const SOCIALS=[
+  ['instagram','Instagram','instagram.com','◎'],
+  ['facebook','Facebook','facebook.com','f'],
+  ['tiktok','TikTok','tiktok.com','♪'],
+  ['youtube','YouTube','youtube.com','▶'],
+  ['kick','Kick','kick.com','K']
+ ];
+ const db=()=>window.supabaseClient||(typeof supabaseClient!=='undefined'?supabaseClient:null);
+ const me=()=>window.currentUser||(typeof currentUser!=='undefined'?currentUser:null);
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function decodeBio(raw){
+  const value=String(raw||'');
+  if(!value.startsWith(PREFIX))return {description:value,links:{}};
+  try{const data=JSON.parse(value.slice(PREFIX.length));return {description:String(data.description||''),links:data.links&&typeof data.links==='object'?data.links:{}}}
+  catch(_){return {description:value,links:{}}}
+ }
+ function encodeBio(data){return PREFIX+JSON.stringify({description:String(data.description||'').slice(0,300),links:data.links||{}})}
+ function normalizeUrl(value,domain){
+  let v=String(value||'').trim();if(!v)return '';
+  if(!/^https?:\/\//i.test(v))v='https://'+v.replace(/^\/+/, '');
+  try{const u=new URL(v);if(!['https:','http:'].includes(u.protocol)||!(u.hostname===domain||u.hostname.endsWith('.'+domain)))return '';u.protocol='https:';return u.href}catch(_){return ''}
+ }
+ function style(){
+  if(document.getElementById('goviPremiumProfileStyleV1'))return;
+  const st=document.createElement('style');st.id='goviPremiumProfileStyleV1';
+  st.textContent=`
+   #goviProfileView .profile-info,#goviProfileView .profile-description{background:transparent!important;color:#e9e4d7!important}
+   #goviProfileView .profile-description{white-space:pre-wrap;line-height:1.55;padding:8px 0!important;border:0!important;box-shadow:none!important}
+   #goviProfileView .govi-profile-social{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0 4px}
+   #goviProfileView .govi-social-link{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid #8d7138;border-radius:12px;background:linear-gradient(145deg,#211b10,#111);color:#f3d98d;text-decoration:none;font-weight:800;font-size:13px;box-shadow:0 4px 16px #0006}
+   #goviProfileView .govi-social-link:active{transform:scale(.97)}
+   #goviProfileView .govi-social-edit{display:inline-flex;align-items:center;gap:7px;margin:8px 0;padding:10px 14px;border:1px solid #d4b45d;border-radius:12px;background:linear-gradient(135deg,#f5d98b,#b88729);color:#17120a;font-weight:900}
+   #goviProfileSocialModal{position:fixed;inset:0;z-index:25000;display:none;align-items:center;justify-content:center;padding:16px;background:#000d}
+   #goviProfileSocialModal.open{display:flex}
+   #goviProfileSocialPanel{width:min(100%,460px);max-height:88dvh;overflow:auto;padding:20px;border:1px solid #a7833e;border-radius:20px;background:linear-gradient(155deg,#211d16,#090909);color:#f6e5b2;box-shadow:0 20px 70px #000}
+   #goviProfileSocialPanel h3{margin:0 0 6px;font-size:21px}
+   #goviProfileSocialPanel p{margin:0 0 15px;color:#b9b2a1;font-size:13px}
+   #goviProfileSocialPanel label{display:block;margin:12px 0 6px;color:#e8cf8b;font-size:13px;font-weight:800}
+   #goviProfileSocialPanel input,#goviProfileSocialPanel textarea{display:block;width:100%;box-sizing:border-box;padding:12px;border:1px solid #51452d;border-radius:11px;background:#111;color:#fff;font:inherit;outline:none}
+   #goviProfileSocialPanel textarea{min-height:92px;resize:vertical}
+   #goviProfileSocialPanel .govi-modal-actions{display:flex;gap:9px;margin-top:17px}
+   #goviProfileSocialPanel button{flex:1;padding:12px;border:1px solid #a7833e;border-radius:11px;background:#211a0d;color:#f3d98d;font-weight:900}
+   #goviProfileSocialPanel button.primary{background:linear-gradient(135deg,#f5d98b,#b88729);color:#17120a}
+  `;
+  document.head.appendChild(st);
+ }
+ function ensureModal(){
+  let modal=document.getElementById('goviProfileSocialModal');if(modal)return modal;
+  modal=document.createElement('div');modal.id='goviProfileSocialModal';
+  modal.innerHTML='<section id="goviProfileSocialPanel" role="dialog" aria-modal="true" aria-label="Personalizar perfil"><h3>Personaliza tu perfil</h3><p>Tu descripción y tus redes, con el estilo GOVI.</p><label for="goviSocialBioInput">Descripción</label><textarea id="goviSocialBioInput" maxlength="300" placeholder="Cuéntale al mundo quién eres…"></textarea><div id="goviSocialInputs"></div><div class="govi-modal-actions"><button type="button" data-close>Cancelar</button><button type="button" class="primary" data-save>Guardar cambios</button></div></section>';
+  modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('[data-close]'))modal.classList.remove('open')});
+  document.body.appendChild(modal);return modal;
+ }
+ function renderSocial(data,owner){
+  const desc=document.getElementById('goviProfileDescription');if(!desc)return;
+  desc.textContent=data.description||'Tu mundo. Tu gente.';
+  let box=document.getElementById('goviProfileSocialLinks');
+  if(!box){box=document.createElement('div');box.id='goviProfileSocialLinks';box.className='govi-profile-social';desc.insertAdjacentElement('afterend',box)}
+  box.replaceChildren();
+  SOCIALS.forEach(([key,label,,symbol])=>{
+   const url=normalizeUrl(data.links?.[key],SOCIALS.find(x=>x[0]===key)[2]);if(!url)return;
+   const a=document.createElement('a');a.className='govi-social-link';a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=symbol+' '+label;box.appendChild(a);
+  });
+  if(owner){
+   let edit=document.getElementById('goviEditProfileSocial');if(!edit){edit=document.createElement('button');edit.id='goviEditProfileSocial';edit.type='button';edit.className='govi-social-edit';edit.textContent='✎ Personalizar perfil';const controls=document.getElementById('goviProfileControls');(controls||desc).appendChild(edit)}
+   edit.onclick=()=>openEditor(data);
+  }else document.getElementById('goviEditProfileSocial')?.remove();
+ }
+ function openEditor(data){
+  const modal=ensureModal(),fields=modal.querySelector('#goviSocialInputs');
+  modal.querySelector('#goviSocialBioInput').value=data.description||'';fields.replaceChildren();
+  SOCIALS.forEach(([key,label,domain])=>{
+   const lab=document.createElement('label');lab.textContent=label+' · enlace';lab.htmlFor='goviSocial_'+key;
+   const input=document.createElement('input');input.id='goviSocial_'+key;input.type='url';input.placeholder='https://'+domain+'/tuusuario';input.value=data.links?.[key]||'';
+   fields.append(lab,input);
+  });
+  modal.querySelector('[data-save]').onclick=async()=>{
+   const save=modal.querySelector('[data-save]');if(save.disabled)return;save.disabled=true;
+   try{
+    const links={};
+    for(const [key,label,domain] of SOCIALS){const value=modal.querySelector('#goviSocial_'+key).value.trim();if(value){const url=normalizeUrl(value,domain);if(!url)throw new Error('El enlace de '+label+' no parece válido. Usa '+domain);links[key]=url}}
+    const description=modal.querySelector('#goviSocialBioInput').value.trim();
+    const user=me(),client=db();if(!user||!client)throw new Error('Inicia sesión para editar tu perfil.');
+    const {error}=await client.from('profiles').update({bio:encodeBio({description,links})}).eq('id',user.id);if(error)throw error;
+    renderSocial({description,links},true);modal.classList.remove('open');
+    if(typeof window.toast==='function')window.toast('¡Perfil actualizado!');else alert('¡Perfil actualizado!');
+   }catch(e){if(typeof window.toast==='function')window.toast(e.message);else alert(e.message)}
+   finally{save.disabled=false}
+  };
+  modal.classList.add('open');
+ }
+ async function loadFor(id,owner){
+  const client=db();if(!client||!id)return;
+  try{
+   const {data,error}=await client.from('profiles').select('bio').eq('id',id).maybeSingle();if(error)throw error;
+   renderSocial(decodeBio(data?.bio),owner);
+  }catch(e){console.warn('GOVI perfil social:',e.message)}
+ }
+ function hook(name,ownerResolver){
+  const original=window[name];if(typeof original!=='function')return;
+  window[name]=async function(...args){
+   const result=await original.apply(this,args);
+   const user=me(),id=ownerResolver(args,user);
+   if(id)setTimeout(()=>loadFor(id,!!user&&user.id===id),0);
+   return result;
+  };
+ }
+ style();
+ hook('openGoviProfile',(args)=>args[0]);
+ hook('goviGoToMyProfile',(_args,user)=>user?.id||'');
+ document.addEventListener('DOMContentLoaded',()=>{const user=me();if(user&&document.getElementById('goviProfileView')?.style.display!=='none')loadFor(user.id,true)});
+})();
+</script>
