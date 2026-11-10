@@ -4926,9 +4926,18 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
  }
  // Comprobación periódica sin recargar el documento ni alterar la posición.
  const timer=setInterval(refreshHome,30000);
- window.addEventListener('focus',()=>{if(Date.now()-lastRun>12000)refreshHome()});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-lastRun>12000)refreshHome()});
- window.goviRefreshNow=refreshHome;
+ async function refreshCurrentView(){
+  const profile=document.getElementById('goviProfileView');
+  if(profile&&getComputedStyle(profile).display!=='none'){
+   // Al volver a GOVI, refrescar contadores sin reconstruir el feed ni mover el scroll.
+   if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
+   return;
+  }
+  if(Date.now()-lastRun>12000)await refreshHome();
+ }
+ window.addEventListener('focus',refreshCurrentView);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshCurrentView()});
+ window.goviRefreshNow=refreshCurrentView;
 })();
 </script>
 
@@ -6312,6 +6321,9 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     if(typeof currentUser!=='undefined')currentUser=user;
     const {view,feed}=ensureView();
     if(typeof goviProfileId!=='undefined')goviProfileId=user.id;
+    // Publicar el ID del perfil propio desde el inicio y cargar estadísticas en paralelo,
+    // sin esperar a que terminen las consultas de publicaciones, likes y comentarios.
+    window.goviProfileViewingUserId=user.id;window.goviProfileId=user.id;
     const home=document.getElementById('goviHomeProfile');
     const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
     const heading=document.querySelector('.govi-feed-block .govi-section-heading');
@@ -6341,6 +6353,8 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     controls.innerHTML='<button type="button" data-own-avatar>📷 Foto de perfil</button><button type="button" data-own-cover>🖼️ Editar portada</button>';
     controls.querySelector('[data-own-avatar]').onclick=()=>document.getElementById('goviAvatarInput')?.click();
     controls.querySelector('[data-own-cover]').onclick=()=>document.getElementById('goviCoverInput')?.click();
+    // Mostrar iconos y contadores mientras se cargan las publicaciones del perfil.
+    if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
     const {data:posts,error:postError}=await client.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
     if(postError)throw postError;
     const ids=(posts||[]).map(post=>post.id);
