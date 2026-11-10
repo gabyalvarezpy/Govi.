@@ -6522,6 +6522,14 @@ window.goviOpenCropEditor = goviOpenCropEditor;
     return '';
   }
   const stage=viewer.querySelector('img').parentElement;
+  function open(url,alt){
+    if(!url)return;
+    const img=viewer.querySelector('img');
+    viewer.querySelector('video')?.remove();
+    viewer.querySelector('.govi-viewer-actions')?.remove();
+    img.style.display='block';img.src=url;img.alt=alt||'Imagen ampliada';
+    viewer.classList.add('show');document.body.style.overflow='hidden';
+  }
   function openMedia(mediaNode,article,postId){
     stage.querySelectorAll('img,video,.govi-viewer-actions').forEach(n=>{if(n!==viewer.querySelector('img'))n.remove()});
     const oldImg=viewer.querySelector('img');oldImg.style.display='none';
