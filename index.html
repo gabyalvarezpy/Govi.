@@ -2117,6 +2117,10 @@ async function openGoviProfile(userId) {
     history.replaceState(null,'','#profile-' + userId);
     await goviLoadProfilePosts(userId);
     await goviRenderProfileStories(userId);
+    // Ejecutar las estadísticas y controles premium después de que el perfil
+    // terminó de cargar. openGoviProfile se define después del script premium,
+    // por eso el hook inicial no podía interceptar su primera definición.
+    if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
 
     document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   } catch(error) {
