@@ -6409,6 +6409,9 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   if(!userId)return;
   const {view,feed}=prepare();
   view.hidden=false;view.style.setProperty('display','block','important');feed.style.display='block';
+  // Iniciar estadísticas en paralelo con la carga del perfil para evitar el salto tardío.
+  window.goviProfileViewingUserId=userId;window.goviProfileId=userId;
+  if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
   return await prior(userId);
  };
 })();
