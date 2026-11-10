@@ -844,39 +844,6 @@ body{display:block!important;margin:0!important;padding:0!important;overflow-x:h
 html.govi-auth-pending body{background:#080808!important}
 html.govi-auth-pending body>:not(#authModal){display:none!important}
 html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important}
-</style><style id="govi-desktop-responsive-v1">
-@media (min-width: 900px) {
-  html, body { width:100%!important; min-width:0!important; }
-  .govi-topbar {
-    width:100%!important; max-width:1180px!important;
-    padding-left:30px!important; padding-right:30px!important;
-  }
-  .govi-shell {
-    width:100%!important; max-width:1180px!important;
-    min-height:calc(100vh - 66px)!important;
-    padding:24px 34px 110px!important;
-    margin:0 auto!important;
-  }
-  .govi-content {
-    width:100%!important; max-width:100%!important;
-    margin:0 auto!important; gap:22px!important;
-  }
-  .govi-home-cover { height:260px!important; }
-  .govi-home-profile-info { padding:0 28px 24px!important; gap:16px!important; }
-  .govi-home-avatar { width:112px!important; height:112px!important; flex-basis:112px!important; margin-top:-54px!important; }
-  .govi-home-identity h1 { font-size:26px!important; }
-  .govi-home-identity p { font-size:14px!important; }
-  .govi-mobile-nav {
-    left:50%!important; right:auto!important; transform:translateX(-50%)!important;
-    width:min(100%,1180px)!important; max-width:1180px!important;
-    padding:10px 28px!important;
-  }
-  .govi-mobile-nav button { min-width:76px!important; font-size:12px!important; }
-}
-@media (min-width: 1400px) {
-  .govi-shell { max-width:1320px!important; }
-  .govi-topbar,.govi-mobile-nav { max-width:1320px!important; }
-}
 </style>
 </head>    
 <body>    
@@ -5043,6 +5010,24 @@ window.openGoviLive=function(){
 };
 </script>
 <script src="/govi-badges.js?v=1" defer></script>
+<style id="govi-desktop-responsive-v2">
+@media screen and (min-width: 900px) {
+ html body .govi-topbar { width:100%!important; max-width:1200px!important; margin-left:auto!important; margin-right:auto!important; padding-left:32px!important; padding-right:32px!important; }
+ html body .govi-shell { display:block!important; width:calc(100% - 48px)!important; max-width:1200px!important; min-height:calc(100vh - 66px)!important; margin:0 auto!important; padding:28px 36px 110px!important; }
+ html body .govi-content { width:100%!important; max-width:none!important; min-width:0!important; margin:0!important; }
+ html body .govi-home-profile { width:100%!important; }
+ html body .govi-home-cover { height:280px!important; }
+ html body .govi-home-profile-info { padding:0 30px 26px!important; gap:18px!important; }
+ html body .govi-home-avatar { width:116px!important; height:116px!important; flex-basis:116px!important; margin-top:-56px!important; }
+ html body .govi-home-identity h1 { font-size:28px!important; }
+ html body .govi-home-identity p { font-size:15px!important; }
+ html body .govi-mobile-nav { left:50%!important; right:auto!important; transform:translateX(-50%)!important; width:calc(100% - 48px)!important; max-width:1200px!important; padding:10px 28px!important; }
+ html body .govi-mobile-nav button { min-width:78px!important; font-size:12px!important; }
+}
+@media screen and (min-width: 1400px) {
+ html body .govi-shell, html body .govi-topbar, html body .govi-mobile-nav { max-width:1360px!important; }
+}
+</style>
 </body>
 </html>
 
