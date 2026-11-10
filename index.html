@@ -2041,6 +2041,9 @@ async function openGoviProfile(userId) {
   if(!userId) return;
 
   goviProfileId = userId;
+  // Mantener sincronizado el ID del perfil visitado para las estadísticas y controles sociales.
+  window.goviProfileViewingUserId = userId;
+  window.goviProfileId = userId;
   activeFilter = 'Perfil';
   // Marcar navegación y mostrar el perfil inmediatamente, sin esperar consultas.
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.textContent.includes('Mi perfil')));
