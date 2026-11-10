@@ -1050,9 +1050,27 @@ const $=id=>document.getElementById(id);
 function toast(message){const el=$('toast');el.textContent=message;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),3000)}    
 function openModal(id){$(id).classList.add('show')}    
 function closeModal(id){if(id==='authModal'&&document.documentElement.classList.contains('govi-auth-pending')&&!currentUser)return;$(id).classList.remove('show')}    
+function confirmGoviLogout(){
+  return new Promise(resolve=>{
+    const old=document.getElementById('goviLogoutDialog');if(old)old.remove();
+    const overlay=document.createElement('div');overlay.id='goviLogoutDialog';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','goviLogoutTitle');
+    overlay.innerHTML='<div class="govi-logout-card"><div class="govi-logout-mark">G</div><div class="govi-logout-kicker">GOVI · TU MUNDO. TU GENTE.</div><h2 id="goviLogoutTitle">¿Cerrar sesión?</h2><p>¿Quieres salir de tu cuenta de GOVI en este dispositivo?</p><div class="govi-logout-actions"><button type="button" class="govi-logout-cancel">No, quedarme</button><button type="button" class="govi-logout-confirm">Sí, cerrar sesión</button></div></div>';
+    const style=document.createElement('style');style.id='goviLogoutDialogStyle';style.textContent='#goviLogoutDialog{position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;padding:22px;background:rgba(3,4,7,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}#goviLogoutDialog .govi-logout-card{box-sizing:border-box;width:min(100%,390px);padding:28px 23px 22px;border:1px solid rgba(218,184,99,.32);border-radius:25px;background:linear-gradient(155deg,#202027 0%,#111216 68%,#19170f 100%);box-shadow:0 24px 80px #000b,inset 0 1px rgba(255,255,255,.07);text-align:center;color:#f7f3e9;font-family:inherit}#goviLogoutDialog .govi-logout-mark{width:54px;height:54px;margin:0 auto 13px;display:grid;place-items:center;border-radius:17px;background:linear-gradient(145deg,#f0d78d,#a98232);color:#17130a;font-size:27px;font-weight:900;box-shadow:0 5px 22px #d2ad5544}#goviLogoutDialog .govi-logout-kicker{font-size:9px;letter-spacing:2.2px;font-weight:800;color:#cbb16e}#goviLogoutDialog h2{font-size:23px;margin:13px 0 8px;color:#fff}#goviLogoutDialog p{font-size:14px;line-height:1.55;color:#b9b8bd;margin:0 auto 23px;max-width:280px}#goviLogoutDialog .govi-logout-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}#goviLogoutDialog button{min-height:46px;border-radius:13px;padding:10px 8px;font:700 13px inherit;cursor:pointer}#goviLogoutDialog .govi-logout-cancel{background:#292a30;color:#eee;border:1px solid #ffffff20}#goviLogoutDialog .govi-logout-confirm{background:linear-gradient(135deg,#e8cc80,#b88d3c);color:#1b160b;border:1px solid #f5dfa0;box-shadow:0 5px 16px #c49b4540}';
+    if(!document.getElementById('goviLogoutDialogStyle'))document.head.appendChild(style);
+    const finish=value=>{overlay.remove();resolve(value)};
+    overlay.querySelector('.govi-logout-cancel').addEventListener('click',()=>finish(false));
+    overlay.querySelector('.govi-logout-confirm').addEventListener('click',()=>finish(true));
+    overlay.addEventListener('click',e=>{if(e.target===overlay)finish(false)});
+    const key=e=>{if(e.key==='Escape'){document.removeEventListener('keydown',key);finish(false)}};
+    document.addEventListener('keydown',key);
+    document.body.appendChild(overlay);
+    overlay.querySelector('.govi-logout-cancel').focus();
+  });
+}
+
 async function accountAction(){
   if(currentUser){
-    if(!confirm('¿Quieres cerrar tu sesión de GOVI?'))return;
+    if(!(await confirmGoviLogout()))return;
     try{
       const {error}=await supabaseClient.auth.signOut();
       if(error)throw error;
