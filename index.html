@@ -5584,6 +5584,93 @@ html body .govi-post-collage{width:100%!important}
  setInterval(()=>{if(newsLoaded)window.goviLoadNews(true)},15*60*1000);
 })();
 </script>
+
+<style id="govi-universal-search-style">
+.govi-search{position:relative;z-index:10020}
+#goviUniversalSearchLayer{position:fixed;inset:0;z-index:10019;background:rgba(5,7,12,.68);backdrop-filter:blur(5px);display:none;padding:82px 14px 24px;overflow:auto}
+#goviUniversalSearchLayer.open{display:block}
+#goviUniversalSearchPanel{width:min(720px,100%);margin:0 auto;background:#15171d;border:1px solid #ffffff20;border-radius:20px;box-shadow:0 24px 80px #0009;color:#f7f7f8;overflow:hidden}
+#goviUniversalSearchHead{padding:18px 20px;border-bottom:1px solid #ffffff16;display:flex;align-items:center;justify-content:space-between;gap:12px}
+#goviUniversalSearchHead h2{font-size:19px;margin:0}
+#goviUniversalSearchClose{border:0;border-radius:10px;background:#ffffff14;color:#fff;font-size:24px;width:40px;height:40px}
+#goviUniversalSearchResults{padding:12px;display:grid;gap:8px}
+.govi-search-section-title{padding:8px 8px 3px;color:#c8b47d;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+.govi-search-result{display:flex;align-items:center;gap:12px;padding:11px;border-radius:13px;background:#ffffff08;min-width:0}
+.govi-search-result-avatar{width:48px;height:48px;flex:0 0 48px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#343846,#171923);color:#f1d58f;font-weight:900;overflow:hidden}
+.govi-search-result-avatar img{width:100%;height:100%;object-fit:cover}
+.govi-search-result-copy{flex:1;min-width:0}
+.govi-search-result-copy strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.govi-search-result-copy small{display:block;color:#a8abb5;font-size:12px;margin-top:3px}
+.govi-search-result button{border:1px solid #d6b86d;background:#d6b86d;color:#161616;border-radius:10px;padding:9px 12px;font-weight:800;white-space:nowrap}
+.govi-search-result button.following{background:#252832;color:#eee;border-color:#555}
+.govi-search-empty{padding:24px 12px;text-align:center;color:#b8bbc4}
+@media(max-width:700px){#goviUniversalSearchLayer{padding:70px 8px 20px}.govi-search-result{gap:9px;padding:9px}.govi-search-result-avatar{width:42px;height:42px;flex-basis:42px}.govi-search-result button{padding:8px 9px;font-size:12px}}
+</style>
+<div id="goviUniversalSearchLayer" aria-hidden="true">
+ <section id="goviUniversalSearchPanel" role="dialog" aria-modal="true" aria-label="Buscar en GOVI">
+  <header id="goviUniversalSearchHead"><div><span class="govi-kicker">PERSONAS Y PÁGINAS</span><h2>Buscar en GOVI</h2></div><button id="goviUniversalSearchClose" type="button" aria-label="Cerrar">×</button></header>
+  <div id="goviUniversalSearchResults"><div class="govi-search-empty">Escribe para encontrar personas y canales.</div></div>
+ </section>
+</div>
+<script id="govi-universal-search-v1">
+(function(){
+ const input=document.getElementById('searchInput'),layer=document.getElementById('goviUniversalSearchLayer'),results=document.getElementById('goviUniversalSearchResults'),close=document.getElementById('goviUniversalSearchClose');
+ if(!input||!layer||!results||!close)return;
+ const channels=[
+  {id:'bloopers',name:'Canal de Bloopers',category:'Entretenimiento',description:'Humor y momentos divertidos',keywords:'bloopers blooper humor comedia videos graciosos'},
+  {id:'discovery',name:'Discovery Channel',category:'Documentales',description:'Ciencia, exploración y descubrimientos',keywords:'discovery documental ciencia exploracion'},
+  {id:'discovery-kids',name:'Discovery Kids',category:'Infantil',description:'Contenido educativo y familiar',keywords:'kids infantil niños educativo'},
+  {id:'animal-planet',name:'Animal Planet',category:'Naturaleza',description:'Animales y vida salvaje',keywords:'animal planet animales naturaleza fauna'},
+  {id:'discovery-turbo',name:'Discovery Turbo',category:'Motor',description:'Automóviles, motores y tecnología',keywords:'turbo coches autos motores automotive'},
+  {id:'cnn',name:'CNN',category:'Noticias',description:'Actualidad y noticias internacionales',keywords:'cnn noticias internacional actualidad'},
+  {id:'bbc-mundo',name:'BBC Mundo',category:'Noticias',description:'Información internacional en español',keywords:'bbc mundo noticias español'},
+  {id:'national-geographic',name:'National Geographic',category:'Ciencia y naturaleza',description:'Ciencia, fotografía y exploración',keywords:'national geographic natgeo ciencia animales'},
+  {id:'espn',name:'ESPN',category:'Deportes',description:'Deportes y actualidad deportiva',keywords:'espn futbol deportes'},
+  {id:'cartoon-network',name:'Cartoon Network',category:'Animación',description:'Series y entretenimiento animado',keywords:'cartoon network dibujos animados'}
+ ];
+ let timer=null,request=0;
+ const savedKey='govi_followed_channels_v1';
+ function followed(){try{return JSON.parse(localStorage.getItem(savedKey)||'[]')}catch(_){return []}}
+ function saveFollow(id,on){const list=followed().filter(x=>x!==id);if(on)list.push(id);try{localStorage.setItem(savedKey,JSON.stringify(list))}catch(_){}}
+ function open(){layer.classList.add('open');layer.setAttribute('aria-hidden','false')}
+ function hide(){layer.classList.remove('open');layer.setAttribute('aria-hidden','true')}
+ function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function channelRow(c){const isOn=followed().includes(c.id);return '<div class="govi-search-result"><div class="govi-search-result-avatar">G</div><div class="govi-search-result-copy"><strong>'+safe(c.name)+'</strong><small>Página temática de GOVI · '+safe(c.category)+' · '+safe(c.description)+'</small></div><button type="button" class="'+(isOn?'following':'')+'" data-channel-follow="'+safe(c.id)+'">'+(isOn?'Siguiendo':'Seguir')+'</button></div>'}
+ function userRow(p){const name=p.display_name||p.full_name||'Usuario GOVI';const avatar=p.avatar_url?'<img src="'+safe(p.avatar_url)+'" alt="">':safe((name.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('')||'G').toUpperCase());return '<button type="button" class="govi-search-result" data-open-user="'+safe(p.id)+'" style="width:100%;text-align:left;color:inherit;border:0;cursor:pointer"><div class="govi-search-result-avatar">'+avatar+'</div><div class="govi-search-result-copy"><strong>'+safe(name)+'</strong><small>Persona · Usuario de GOVI</small></div><span aria-hidden="true">›</span></button>'}
+ async function search(){
+  const q=input.value.trim(),seq=++request;
+  if(!q){results.innerHTML='<div class="govi-search-empty">Escribe un nombre, una persona o un canal.</div>';return}
+  results.innerHTML='<div class="govi-search-empty">Buscando en GOVI…</div>';
+  const terms=q.toLocaleLowerCase('es');
+  const matches=channels.filter(c=>(c.name+' '+c.category+' '+c.description+' '+c.keywords).toLocaleLowerCase('es').includes(terms)).slice(0,8);
+  let people=[],error=null;
+  try{
+   const pattern='%'+q.replace(/[,%()]/g,' ').trim()+'%';
+   const result=await supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').or('display_name.ilike.'+pattern+',full_name.ilike.'+pattern).limit(8);
+   people=result.data||[];error=result.error;
+  }catch(e){error=e}
+  if(seq!==request)return;
+  let html='';
+  if(people.length)html+='<div class="govi-search-section-title">Personas</div>'+people.map(userRow).join('');
+  if(matches.length)html+='<div class="govi-search-section-title">Páginas y canales</div>'+matches.map(channelRow).join('');
+  if(!html)html='<div class="govi-search-empty">'+(error?'No se pudo completar la búsqueda de personas. Revisa tu conexión e inténtalo de nuevo.':'No encontramos resultados para «'+safe(q)+'».')+'</div>';
+  results.innerHTML=html;
+ }
+ input.addEventListener('focus',()=>{open();search()});
+ input.addEventListener('input',()=>{open();clearTimeout(timer);timer=setTimeout(search,260)});
+ close.addEventListener('click',hide);
+ layer.addEventListener('click',e=>{if(e.target===layer)hide()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&layer.classList.contains('open'))hide()});
+ results.addEventListener('click',e=>{
+  const follow=e.target.closest('[data-channel-follow]');
+  if(follow){const id=follow.dataset.channelFollow,on=!followed().includes(id);saveFollow(id,on);const c=channels.find(x=>x.id===id);if(c)follow.outerHTML=channelRow(c).replace(/^<div class="govi-search-result">/,'<div class="govi-search-result">');return}
+  const user=e.target.closest('[data-open-user]');
+  if(user){hide();input.blur();if(typeof window.openGoviProfile==='function')window.openGoviProfile(user.dataset.openUser)}
+ });
+ window.goviOpenUniversalSearch=()=>{open();input.focus();search()};
+})();
+</script>
+
 </body>
 </html>
 
