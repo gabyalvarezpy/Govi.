@@ -1025,6 +1025,7 @@ html body #goviProfileView #goviProfileDescription{
     <div class="nav-item" onclick="filterSection('Vídeos',this)"><span><svg class="govi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z"/></svg></span> Vídeos</div>
     <div class="nav-item" onclick="goviGoToMyProfile(this)"><span><svg class="govi-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span> Mi perfil</div>
     <div class="nav-item" onclick="window.openGoviLive()"><span><svg class="govi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c-4.5 0-7.5 3.6-7.5 8.2 0 4.5 3.2 8.3 7.5 8.3s7.5-3.8 7.5-8.3C19.5 6.6 16.5 3 12 3Z"/><path d="M8.5 10.5h.01M15.5 10.5h.01M9 15c1.8 1.2 4.2 1.2 6 0M8 4 6.5 2M16 4l1.5-2"/></svg></span> GOVI LIVE</div>
+    <div class="nav-item" onclick="goviShowNewsView(this)"><span>📰</span> GOVI Noticias</div>
     <div class="govi-sidebar-divider"></div>
     <div class="govi-side-label">TU ESPACIO</div>
     <button class="govi-side-create" onclick="openModal('postModal')"><span>＋</span><span><b>Crear algo nuevo</b><small>Comparte con tu gente</small></span></button>
@@ -1051,6 +1052,19 @@ html body #goviProfileView #goviProfileDescription{
       </section>
       <div id="feed"><p class="demo-note">Cargando publicaciones de GOVI…</p></div>
     </section>
+    <section id="goviNewsView" class="govi-news-view" style="display:none" aria-label="GOVI Noticias">
+      <div class="govi-news-head">
+        <div><span class="govi-kicker">EL MUNDO EN UN SOLO LUGAR</span><h1>📰 GOVI Noticias</h1><p>Información de medios internacionales, actualizada automáticamente.</p></div>
+        <button type="button" id="goviNewsRefresh" class="govi-news-refresh" onclick="goviLoadNews(true)">↻ Actualizar</button>
+      </div>
+      <div class="govi-news-sourcebar"><span>Fuentes:</span> BBC Mundo · CNN en Español · DW · El País · Europa Press · Reuters · AP</div>
+      <div class="govi-news-tools"><div class="govi-news-tabs" id="goviNewsTabs">
+        <button class="active" data-news-category="Todo">Todo</button><button data-news-category="Mundo">Mundo</button><button data-news-category="España">España</button><button data-news-category="América Latina">América Latina</button><button data-news-category="Tecnología">Tecnología</button><button data-news-category="Economía">Economía</button>
+      </div><input id="goviNewsSearch" type="search" placeholder="Buscar noticias…" aria-label="Buscar noticias"></div>
+      <div class="govi-news-status" id="goviNewsStatus">Preparando las últimas noticias…</div>
+      <div class="govi-news-grid" id="goviNewsGrid"><div class="govi-news-loading">Cargando titulares internacionales…</div></div>
+      <p class="govi-news-foot">Los titulares y extractos pertenecen a sus respectivos medios. Al abrir una noticia visitarás la publicación original.</p>
+    </section>
   </main>
   <aside class="rightcol govi-rightcol">
     <section class="panel right-card govi-welcome-card"><span class="govi-kicker">BIENVENIDO A GOVI</span><div class="govi-orbit">G</div><h3>Un lugar para<br>ser vos mismo.</h3><p>Publica tus momentos, conversa y construye tu propia comunidad.</p></section>
@@ -1064,6 +1078,7 @@ html body #goviProfileView #goviProfileDescription{
   <button class="govi-mobile-plus" onclick="openModal('postModal')" aria-label="Crear publicación"><svg class="govi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
   <button onclick="filterSection('Vídeos',this)"><span><svg class="govi-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z"/></svg></span>Vídeos</button>
   <button onclick="window.openGoviLive()"><span><svg class="govi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c-4.5 0-7.5 3.6-7.5 8.2 0 4.5 3.2 8.3 7.5 8.3s7.5-3.8 7.5-8.3C19.5 6.6 16.5 3 12 3Z"/><path d="M8.5 10.5h.01M15.5 10.5h.01M9 15c1.8 1.2 4.2 1.2 6 0M8 4 6.5 2M16 4l1.5-2"/></svg></span>LIVE</button>
+  <button onclick="goviShowNewsView(this)"><span>📰</span>Noticias</button>
   <button onclick="goviGoToMyProfile(this)"><span><svg class="govi-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>Perfil</button>
 </nav>
 <div class="overlay" id="postModal"><div class="modal">    
@@ -5396,6 +5411,106 @@ html body .govi-post-collage{width:100%!important}
  body.govi-commenting .post:has(.comment-form.govi-comment-docked){scroll-margin-top:8px!important}
 }
 </style>
+
+<style id="govi-news-responsive-v1">
+.govi-news-view{width:100%;max-width:100%;color:#f5f1e8}
+.govi-news-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:25px 26px;border:1px solid #44371f;border-radius:22px;background:radial-gradient(circle at 85% 10%,#57401c55,transparent 40%),linear-gradient(135deg,#191a1e,#101115);margin-bottom:16px}
+.govi-news-head h1{font-size:clamp(25px,3vw,34px);margin:8px 0;color:#f2d58e}
+.govi-news-head p{margin:0;color:#aaa397;font-size:14px}
+.govi-news-refresh{border:1px solid #b99345;border-radius:13px;padding:12px 18px;background:#2b2417;color:#f3d98f;font-weight:800;white-space:nowrap;cursor:pointer}
+.govi-news-sourcebar{font-size:12px;color:#a9a397;padding:12px 16px;border:1px solid #292a2f;border-radius:13px;margin-bottom:16px}
+.govi-news-sourcebar span{color:#f0d58f;font-weight:800}
+.govi-news-tools{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.govi-news-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:thin}
+.govi-news-tabs button{flex:0 0 auto;border:1px solid #38332a;background:#17181c;color:#c9c2b5;border-radius:22px;padding:10px 16px;font-weight:750;cursor:pointer}
+.govi-news-tabs button.active{background:linear-gradient(120deg,#f0d58e,#c99b48);color:#18130a;border-color:transparent}
+#goviNewsSearch{width:100%;min-height:45px;border:1px solid #38332a;border-radius:13px;background:#15161a;color:#fff;padding:0 15px;font-size:15px;box-sizing:border-box}
+.govi-news-status{color:#a9a397;font-size:12px;margin:8px 2px 14px}
+.govi-news-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.govi-news-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;border:1px solid #303037;border-radius:18px;background:linear-gradient(155deg,#191a1f,#111216);text-decoration:none;color:inherit;transition:transform .18s,border-color .18s}
+.govi-news-card:hover{transform:translateY(-2px);border-color:#9d7a3e}
+.govi-news-card img{width:100%;height:190px;object-fit:cover;background:#25252a}
+.govi-news-card .govi-news-noimage{height:110px;display:grid;place-items:center;background:radial-gradient(circle at 50% 20%,#60471f66,transparent 60%),#17181d;color:#d9b86d;font-size:32px}
+.govi-news-card-body{padding:16px;display:flex;flex-direction:column;gap:9px;flex:1}
+.govi-news-meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#d5b66f;font-size:11px;font-weight:800}
+.govi-news-card h2{font-size:17px;line-height:1.35;margin:0;color:#f4eee2}
+.govi-news-card p{font-size:13px;line-height:1.5;color:#aaa397;margin:0}
+.govi-news-open{font-size:12px;color:#e9cc84;font-weight:800;margin-top:auto;padding-top:8px}
+.govi-news-loading,.govi-news-empty{grid-column:1/-1;padding:35px 18px;text-align:center;border:1px dashed #51452d;border-radius:16px;color:#c6b995}
+.govi-news-foot{font-size:11px;line-height:1.5;color:#80796d;margin:18px 2px}
+@media(max-width:760px){
+ .govi-news-head{padding:18px 16px;align-items:flex-start;flex-direction:column;border-radius:17px}
+ .govi-news-refresh{width:100%}
+ .govi-news-grid{grid-template-columns:1fr;gap:12px}
+ .govi-news-card{display:grid;grid-template-columns:112px minmax(0,1fr);min-height:132px}
+ .govi-news-card img,.govi-news-card .govi-news-noimage{height:100%;min-height:132px;max-height:160px}
+ .govi-news-card-body{padding:11px;gap:6px}
+ .govi-news-card h2{font-size:14px}
+ .govi-news-card p{font-size:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+ .govi-news-meta{font-size:10px}
+ .govi-news-open{font-size:11px}
+ .govi-news-sourcebar{line-height:1.7}
+}
+@media(min-width:761px){.govi-news-head{min-height:125px}.govi-news-card:first-child{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}.govi-news-card:first-child img,.govi-news-card:first-child .govi-news-noimage{height:100%;min-height:250px}.govi-news-card:first-child h2{font-size:22px}}
+</style>
+<script id="govi-news-responsive-v1">
+(function(){
+ let newsItems=[],newsCategory='Todo',newsLoaded=false,newsLoading=false,lastUpdated=null;
+ const $=id=>document.getElementById(id);
+ const esc=value=>String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function dateLabel(value){if(!value)return 'Actualidad';const d=new Date(value);return Number.isNaN(d.getTime())?'Actualidad':d.toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
+ function categoryMatch(item){
+  const t=(item.title+' '+item.description+' '+item.source).toLowerCase();
+  if(newsCategory==='Todo'||newsCategory==='Mundo')return newsCategory==='Todo'||!/(españa|español|madrid|barcelona|cataluña|andalucía)/i.test(t);
+  if(newsCategory==='España')return /(españa|español|madrid|barcelona|cataluña|andalucía|europa press|el país)/i.test(t)||item.category==='España';
+  if(newsCategory==='América Latina')return /(américa latina|latinoamérica|paraguay|argentina|brasil|méxico|chile|colombia|venezuela|uruguay|perú|bolivia|ecuador)/i.test(t);
+  if(newsCategory==='Tecnología')return /(tecnolog|inteligencia artificial|software|internet|ciberseguridad|móvil|apple|google|microsoft)/i.test(t);
+  if(newsCategory==='Economía')return /(econom|mercado|inflación|empleo|banco|finanzas|precio|empresas|comercio)/i.test(t);
+  return true;
+ }
+ function render(){
+  const grid=$('goviNewsGrid');if(!grid)return;
+  const q=($('goviNewsSearch')?.value||'').trim().toLowerCase();
+  const items=newsItems.filter(x=>categoryMatch(x)&&(!q||(x.title+' '+x.description+' '+x.source).toLowerCase().includes(q)));
+  if(!items.length){grid.innerHTML='<div class="govi-news-empty">No encontramos noticias para este filtro. Probá otra categoría o actualizá.</div>';return}
+  grid.innerHTML=items.map((x,i)=>'<a class="govi-news-card" href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer">'+(x.image?'<img loading="lazy" src="'+esc(x.image)+'" alt="" onerror="this.style.display=\'none\'">':'<div class="govi-news-noimage">G</div>')+'<div class="govi-news-card-body"><div class="govi-news-meta"><span>'+esc(x.source)+'</span><span>'+esc(dateLabel(x.publishedAt))+'</span></div><h2>'+esc(x.title)+'</h2><p>'+esc(x.description)+'</p><span class="govi-news-open">Leer en el medio original ↗</span></div></a>').join('');
+ }
+ window.goviLoadNews=async function(force){
+  if(newsLoading)return;newsLoading=true;
+  const button=$('goviNewsRefresh'),status=$('goviNewsStatus');if(button){button.disabled=true;button.textContent='Actualizando…'}
+  if(status)status.textContent='Buscando las últimas publicaciones de los medios…';
+  try{
+   const response=await fetch('/api/news'+(force?'?refresh='+Date.now():''),{headers:{Accept:'application/json'}});
+   if(!response.ok)throw new Error('No se pudo conectar con el servicio de noticias ('+response.status+').');
+   const data=await response.json();newsItems=Array.isArray(data.articles)?data.articles:[];lastUpdated=data.updatedAt;newsLoaded=true;render();
+   if(status)status.textContent=newsItems.length+' noticias disponibles · Actualizado '+new Date(lastUpdated||Date.now()).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})+' · Se renueva automáticamente cada 15 minutos.';
+   if(!newsItems.length&&status)status.textContent='Las fuentes no respondieron en este momento. Podés volver a intentar.';
+  }catch(error){if(status)status.textContent=error.message+' Probá nuevamente en unos minutos.';if(!newsLoaded)$('goviNewsGrid').innerHTML='<div class="govi-news-empty">No se pudieron cargar las noticias. Tocá Actualizar para volver a intentar.</div>'}
+  finally{newsLoading=false;if(button){button.disabled=false;button.textContent='↻ Actualizar'}}
+ };
+ window.goviShowNewsView=function(el){
+  const main=document.querySelector('.govi-content');if(!main)return;
+  main.querySelectorAll(':scope > section').forEach(section=>{section.style.display=section.id==='goviNewsView'?'block':'none'});
+  document.querySelectorAll('.govi-sidebar .nav-item').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.govi-mobile-nav button').forEach(x=>x.classList.remove('active'));
+  const nav=el?.closest('.nav-item,.govi-mobile-nav button');if(nav)nav.classList.add('active');
+  if(!newsLoaded)window.goviLoadNews(false);
+  window.scrollTo({top:0,behavior:'smooth'});
+ };
+ window.goviShowHomeView=function(el){
+  const main=document.querySelector('.govi-content');if(!main)return;
+  main.querySelectorAll(':scope > section').forEach(section=>{section.style.display=section.id==='goviNewsView'?'none':''});
+  document.querySelectorAll('.govi-sidebar .nav-item').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.govi-mobile-nav button').forEach(x=>x.classList.remove('active'));
+  const nav=el?.closest('.nav-item,.govi-mobile-nav button');if(nav)nav.classList.add('active');
+  if(typeof applyFilter==='function'){activeFilter='Inicio';applyFilter()}
+  window.scrollTo({top:0,behavior:'smooth'});
+ };
+ document.addEventListener('click',e=>{const tab=e.target.closest('[data-news-category]');if(!tab)return;newsCategory=tab.dataset.newsCategory;document.querySelectorAll('[data-news-category]').forEach(b=>b.classList.toggle('active',b===tab));render()});
+ $('goviNewsSearch')?.addEventListener('input',render);
+ setInterval(()=>{if(newsLoaded)window.goviLoadNews(true)},15*60*1000);
+})();
+</script>
 </body>
 </html>
 
