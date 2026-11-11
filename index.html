@@ -916,6 +916,49 @@ html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important
 }
 
 </style>
+<!-- GOVI MOBILE FULL WIDTH V1 -->
+<style id="govi-mobile-fullwidth-v1">
+
+/* GOVI mobile full-width layout: use the whole phone viewport like Facebook */
+@media(max-width:700px){
+  html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+  #goviApp,.app,.layout,main,.content,#feed,#goviProfileView{
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  .layout{display:block!important;padding-left:0!important;padding-right:0!important}
+  .content{padding-left:10px!important;padding-right:10px!important}
+  #feed>.post,.post,.composer,#goviProfileView>.panel{
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    box-sizing:border-box!important;margin-left:0!important;margin-right:0!important;
+  }
+  #goviProfileView{padding:0!important;margin:0!important}
+  #goviProfileView>.panel{border-radius:0 0 16px 16px!important}
+  #goviProfileView .profile-info{
+    width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    padding-left:14px!important;padding-right:14px!important;
+  }
+  #goviProfileView #goviProfileDescription,
+  #goviProfileView .profile-description{
+    grid-column:1/-1!important;width:100%!important;max-width:100%!important;
+    min-width:0!important;box-sizing:border-box!important;
+    white-space:pre-wrap!important;overflow-wrap:anywhere!important;
+  }
+  #goviProfileView #goviProfileStats,
+  #goviProfileView #goviProfileSocialLinks{width:100%!important;max-width:100%!important;min-width:0!important}
+  #goviProfileView #goviProfileStats{grid-column:1/-1!important}
+  #goviProfileView #goviProfileControls{min-width:0!important;max-width:100%!important}
+  #goviProfileView #goviProfileControls button,
+  #goviProfileView #goviFriendControls button{max-width:100%!important;white-space:normal!important}
+  #goviProfileView .govi-profile-tabs{width:100%!important;max-width:100%!important}
+}
+@media(max-width:390px){
+  .content{padding-left:7px!important;padding-right:7px!important}
+  #goviProfileView .profile-info{column-gap:8px!important;padding-left:11px!important;padding-right:11px!important}
+}
+
+</style>
 </head>    
 <body>    
 <header class="topbar govi-topbar">
