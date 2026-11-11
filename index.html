@@ -985,6 +985,25 @@ html body #goviProfileView #goviProfileDescription{
   box-sizing:border-box!important;
 }
 </style>
+<style id="govi-multi-media-viewer-v1">
+.govi-post-collage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;overflow:hidden;border-radius:16px;background:#080808}
+.govi-collage-cell{position:relative;display:block;min-width:0;padding:0;border:0;background:#111;overflow:hidden;aspect-ratio:1/1}
+.govi-collage-cell:first-child:nth-last-child(1){grid-column:1/-1;aspect-ratio:16/10}
+.govi-collage-cell img,.govi-collage-cell video{width:100%;height:100%;object-fit:cover;display:block}
+.govi-post-collage:not(.govi-collage-count-2) .govi-collage-cell:first-child{grid-row:span 2}
+.govi-post-collage.govi-collage-count-2 .govi-collage-cell{aspect-ratio:1/1}
+.govi-collage-more{position:absolute;inset:0;display:grid;place-items:center;background:#0009;color:white;font-size:32px;font-weight:900}
+#goviMediaViewer{position:fixed;inset:0;z-index:2147483000;background:#050505f5;display:none;flex-direction:column;color:white}
+#goviMediaViewer.open{display:flex}
+#goviMediaViewer .govi-viewer-head{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+#goviMediaViewer .govi-viewer-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+#goviMediaViewer .govi-viewer-stage img,#goviMediaViewer .govi-viewer-stage video{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+#goviMediaViewer button{border:0;color:white;background:#ffffff18;border-radius:12px;padding:11px 15px;font-size:17px}
+#goviMediaViewer .govi-viewer-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px 14px calc(14px + env(safe-area-inset-bottom));background:#111;border-top:1px solid #ffffff20}
+#goviMediaViewer .govi-viewer-actions button{font-size:16px;font-weight:800;min-height:52px}
+.govi-media-preview-grid{margin-top:10px}
+@media(max-width:700px){.govi-post-collage{border-radius:12px}#goviMediaViewer .govi-viewer-actions button{font-size:14px;padding:10px 4px}}
+</style>
 </head>    
 <body>    
 <header class="topbar govi-topbar">
@@ -1050,7 +1069,7 @@ html body #goviProfileView #goviProfileDescription{
 <div class="overlay" id="postModal"><div class="modal">    
   <div class="modal-head"><h2 id="postModalTitle">Crear publicación</h2><button class="close" onclick="closeModal('postModal')">×</button></div>    
   <textarea id="postText" placeholder="¿Qué quieres compartir con tu comunidad?"></textarea>    
-  <label class="file-label">＋ Añadir fotografía o vídeo<input id="mediaFile" type="file" accept="image/*,video/*,.gif"></label>    
+  <label class="file-label">＋ Añadir fotografías o vídeo<input id="mediaFile" type="file" accept="image/*,video/*,.gif" multiple></label><div class="file-hint">Puedes seleccionar varias fotos para crear un collage. Máximo 10 archivos de hasta 50 MB cada uno.</div><div id="goviMediaPreviewGrid" class="govi-media-preview-grid"></div>    
   <div class="file-hint">Formatos habituales de imagen y vídeo. Límite recomendado: 50 MB por archivo. Los vídeos grandes pueden tardar en subir según tu conexión.</div>    
   <img id="imagePreview" class="preview" alt="Vista previa">    
   <video id="videoPreview" class="preview" controls playsinline></video>    
@@ -1255,17 +1274,23 @@ async function accountAction(){
 function escapeHTML(value=''){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}    
 function initials(name='G'){return name.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'G'}    
 function timeLabel(date){return new Date(date).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'})}    
-function resetComposer(){$('postText').value='';$('mediaFile').value='';selectedFile=null;$('imagePreview').style.display='none';$('videoPreview').style.display='none';$('imagePreview').src='';$('videoPreview').src='';$('postModalTitle').textContent='Crear publicación';$('publishButton').textContent='Publicar';$('publishButton').dataset.editId=''}    
-$('mediaFile').addEventListener('change',e=>{    
-  selectedFile=e.target.files[0]||null;    
-  $('imagePreview').style.display='none';$('videoPreview').style.display='none';    
-  if(!selectedFile)return;    
-  if(selectedFile.size>50*1024*1024){toast('El archivo supera los 50 MB. Elige uno más pequeño.');e.target.value='';selectedFile=null;return}    
-  const url=URL.createObjectURL(selectedFile);    
-  if(selectedFile.type.startsWith('image/')){$('imagePreview').src=url;$('imagePreview').style.display='block'}    
-  else if(selectedFile.type.startsWith('video/')){$('videoPreview').src=url;$('videoPreview').style.display='block'}    
-  else{toast('Formato de archivo no compatible');selectedFile=null}    
-});    
+let selectedFiles=[];function resetComposer(){$('postText').value='';$('mediaFile').value='';selectedFile=null;selectedFiles=[];$('imagePreview').style.display='none';$('videoPreview').style.display='none';$('imagePreview').src='';$('videoPreview').src='';const grid=$('goviMediaPreviewGrid');if(grid)grid.replaceChildren();$('postModalTitle').textContent='Crear publicación';$('publishButton').textContent='Publicar';$('publishButton').dataset.editId=''}    
+$('mediaFile').addEventListener('change',e=>{
+  selectedFiles=Array.from(e.target.files||[]).slice(0,10);selectedFile=selectedFiles[0]||null;
+  const grid=$('goviMediaPreviewGrid');if(grid)grid.replaceChildren();
+  $('imagePreview').style.display='none';$('videoPreview').style.display='none';
+  if(!selectedFiles.length)return;
+  if(selectedFiles.some(f=>f.size>50*1024*1024)){toast('Cada archivo debe pesar menos de 50 MB.');e.target.value='';selectedFiles=[];selectedFile=null;return}
+  if(selectedFiles.some(f=>!f.type.startsWith('image/')&&!f.type.startsWith('video/'))){toast('Formato no compatible.');e.target.value='';selectedFiles=[];selectedFile=null;return}
+  if(selectedFiles.length===1){
+   const f=selectedFiles[0],url=URL.createObjectURL(f);
+   if(f.type.startsWith('image/')){$('imagePreview').src=url;$('imagePreview').style.display='block'}
+   else{$('videoPreview').src=url;$('videoPreview').style.display='block'}
+  }else if(grid){
+   grid.style.display='grid';grid.style.gridTemplateColumns='repeat(3,minmax(0,1fr))';grid.style.gap='6px';
+   selectedFiles.forEach(f=>{const url=URL.createObjectURL(f);const el=f.type.startsWith('video/')?document.createElement('video'):document.createElement('img');el.src=url;if(el.tagName==='VIDEO'){el.muted=true;el.playsInline=true}else el.alt='Vista previa';el.style.cssText='width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#111';grid.appendChild(el)});
+  }
+});
 async function uploadMedia(file,userId){    
   const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');    
   const path=`${userId}/${Date.now()}-${crypto.randomUUID()}.${ext}`;    
@@ -1276,12 +1301,15 @@ async function uploadMedia(file,userId){
 }    
 async function publishPost(){    
   if(!currentUser){toast('Inicia sesión para publicar');openModal('authModal');return}    
-  const content=$('postText').value.trim(), editId=$('publishButton').dataset.editId;    
-  if(!content&&!selectedFile&&!editId){toast('Escribe algo o añade una foto/vídeo');return}    
-  const button=$('publishButton');button.disabled=true;button.textContent=editId?'Guardando…':'Publicando…';    
-  try{    
-    let media={url:null,type:null,path:null};    
-    if(selectedFile)media=await uploadMedia(selectedFile,currentUser.id);    
+  const content=$('postText').value.trim(), editId=$('publishButton').dataset.editId;
+  const files=selectedFiles.length?selectedFiles:(selectedFile?[selectedFile]:[]);
+  if(!content&&!files.length&&!editId){toast('Escribe algo o añade fotos/vídeo');return}
+  if(editId&&files.length>1){toast('Para editar una publicación, selecciona un solo archivo.');return}
+  const button=$('publishButton');button.disabled=true;button.textContent=editId?'Guardando…':'Publicando…';
+  try{
+    let media={url:null,type:null,path:null},gallery=[];
+    if(files.length){for(const file of files){const uploaded=await uploadMedia(file,currentUser.id);gallery.push(uploaded)}media=gallery[0];}
+    
     if(editId){    
       const update={content,updated_at:new Date().toISOString()};    
       if(selectedFile){update.media_url=media.url;update.media_type=media.type;update.media_path=media.path}    
@@ -1289,7 +1317,7 @@ async function publishPost(){
       if(error)throw error;    
       toast('Publicación actualizada');    
     }else{    
-      const {error}=await supabaseClient.from('posts').insert({user_id:currentUser.id,content,media_url:media.url,media_type:media.type,media_path:media.path});    
+      const galleryPath=gallery.length>1?'GOVI_MEDIA_V1:'+JSON.stringify(gallery):media.path;const {error}=await supabaseClient.from('posts').insert({user_id:currentUser.id,content,media_url:media.url,media_type:gallery.length>1?'gallery':media.type,media_path:galleryPath});    
       if(error)throw error;    
       toast('¡Publicación compartida en GOVI!');    
     }    
@@ -1347,11 +1375,15 @@ function renderPost(post,likes,comments,profiles){
   const liked=!!currentUser&&postLikes.some(x=>x.user_id===currentUser.id);    
   const authorProfile=profiles[post.user_id]||{}; const author=authorProfile.name|| (mine?(currentUser?.user_metadata?.display_name||currentUser?.user_metadata?.full_name||'Tú'):'Usuario GOVI'); const authorAvatar=authorProfile.avatar;    
   const isMilagros=/^milagros(?:\s|$)/i.test(String(author||'').trim()); const article=document.createElement('article');article.className='post panel';article.id='post-'+post.id;article.dataset.kind=post.media_type||'text';article.dataset.search=(author+' '+(post.content||'')).toLowerCase();    
-  let media='';    
-  if(post.media_url){    
-    media=post.media_type==='video'    
-      ? `<video class="post-media video" controls playsinline preload="metadata" src="${escapeHTML(post.media_url)}"></video>`    
-      : `<img class="post-media" loading="lazy" src="${escapeHTML(post.media_url)}" alt="Fotografía compartida en GOVI">`;    
+  let media='';
+  let gallery=[];
+  if(post.media_type==='gallery'&&String(post.media_path||'').startsWith('GOVI_MEDIA_V1:')){try{gallery=JSON.parse(post.media_path.slice(14))||[]}catch(_){gallery=[]}}
+  if(gallery.length){
+    media='<div class="govi-post-collage govi-collage-count-'+Math.min(gallery.length,5)+'">'+gallery.slice(0,5).map((item,index)=>'<button type="button" class="govi-collage-cell" data-open-media="'+index+'" data-post-id="'+post.id+'">'+(item.type==='video'?'<video muted playsinline preload="metadata" src="'+escapeHTML(item.url)+'"></video>':'<img loading="lazy" src="'+escapeHTML(item.url)+'" alt="Foto de publicación">')+(index===4&&gallery.length>5?'<span class="govi-collage-more">+'+(gallery.length-5)+'</span>':'')+'</button>').join('')+'</div>';
+  }else if(post.media_url){
+    media=post.media_type==='video'
+      ? `<video class="post-media video" controls playsinline preload="metadata" src="${escapeHTML(post.media_url)}"></video>`
+      : `<img class="post-media" loading="lazy" src="${escapeHTML(post.media_url)}" alt="Fotografía compartida en GOVI">`;
   }    
   const renderOneComment=(c,isReply=false)=>{const cp=profiles[c.user_id]||{};const cn=cp.name||(currentUser&&c.user_id===currentUser.id?(currentUser.user_metadata?.full_name||currentUser.email||'Tú'):'Usuario');const avatar=cp.avatar||(currentUser&&c.user_id===currentUser.id?(goviCurrentProfile?.avatar_url||currentUser.user_metadata?.avatar_url||currentUser.user_metadata?.picture||''):'');return `<div class="comment ${isReply?'comment-reply':''}"><div class="comment-user" style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span class="avatar comment-avatar" data-user-id="${escapeHTML(c.user_id)}" style="width:32px;height:32px;min-width:32px;min-height:32px;flex:0 0 32px;border-radius:50%;overflow:hidden;display:grid;place-items:center;cursor:pointer;background:#3b2b12;color:#f4d27b;font-weight:800">${avatar?`<img src="${escapeHTML(avatar)}" alt="" style="display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;border-radius:50%">`:escapeHTML(initials(cn))}</span><b data-user-id="${escapeHTML(c.user_id)}" style="cursor:pointer">${escapeHTML(cn)}</b></div>${escapeHTML(c.content)}<div class="post-meta">${timeLabel(c.created_at)}${c.updated_at?' · editado':''}</div><div class="comment-actions">${currentUser?`<button data-action="reply-comment" data-id="${post.id}" data-comment-id="${c.id}">Responder</button>`:''}${currentUser&&c.user_id===currentUser.id?`<button data-action="edit-comment" data-id="${c.id}" data-post-id="${post.id}">Editar</button><button data-action="delete-comment" data-id="${c.id}" data-post-id="${post.id}">Eliminar</button>`:''}</div><div class="reply-composer" id="reply-${c.id}"></div>${postComments.filter(r=>r.parent_comment_id===c.id).map(r=>renderOneComment(r,true)).join('')}</div>`};
   const commentHTML=postComments.filter(c=>!c.parent_comment_id).map(c=>renderOneComment(c)).join('');    
@@ -1444,7 +1476,7 @@ async function managePost(id){
       if(!confirm('¿Seguro que quieres eliminar esta publicación?'))return;
       const {error:deleteError}=await supabaseClient.from('posts').delete().eq('id',id).eq('user_id',currentUser.id);
       if(deleteError){toast('No se pudo eliminar: '+deleteError.message);return}
-      if(post.media_path)await supabaseClient.storage.from(BUCKET).remove([post.media_path]);
+      if(post.media_path){if(String(post.media_path).startsWith('GOVI_MEDIA_V1:')){try{const items=JSON.parse(post.media_path.slice(14));await supabaseClient.storage.from(BUCKET).remove(items.map(x=>x.path).filter(Boolean))}catch(_){}}else await supabaseClient.storage.from(BUCKET).remove([post.media_path]);}
       toast('Publicación eliminada');await loadFeed();
     }
   });
@@ -5169,6 +5201,17 @@ window.openGoviLive=function(){
  html body .govi-shell, html body .govi-topbar, html body .govi-mobile-nav { max-width:1360px!important; }
 }
 </style>
+<script id="govi-multi-media-viewer-v1-script">
+(function(){
+ const styleId='govi-multi-media-viewer-v1';
+ let current={postId:'',items:[],index:0};
+ function getViewer(){let v=document.getElementById('goviMediaViewer');if(v)return v;v=document.createElement('section');v.id='goviMediaViewer';v.innerHTML='<div class="govi-viewer-head"><b>GOVI · Publicación</b><button type="button" data-viewer-close aria-label="Cerrar">✕</button></div><div class="govi-viewer-stage" id="goviViewerStage"></div><div class="govi-viewer-actions"><button type="button" data-viewer-like>♡ Me gusta</button><button type="button" data-viewer-comment>◯ Comentar</button><button type="button" data-viewer-share>↗ Compartir</button></div>';document.body.appendChild(v);v.addEventListener('click',e=>{if(e.target===v||e.target.closest('[data-viewer-close]'))v.classList.remove('open');if(e.target.closest('[data-viewer-like]'))document.querySelector('#post-'+current.postId+' [data-action="like"]')?.click();if(e.target.closest('[data-viewer-comment]')){v.classList.remove('open');const b=document.querySelector('#post-'+current.postId+' [data-action="comments"]');b?.click();document.querySelector('#comments-'+current.postId+' input')?.focus()}if(e.target.closest('[data-viewer-share]'))document.querySelector('#post-'+current.postId+' [data-action="share"]')?.click()});return v}
+ window.goviOpenMediaViewer=function(postId,index){const card=document.getElementById('post-'+postId);if(!card)return;let postMedia=card.querySelector('.govi-post-collage');let items=[];if(postMedia){items=[...postMedia.querySelectorAll('.govi-collage-cell')].map((el)=>({url:el.querySelector('img,video')?.src,type:el.querySelector('video')?'video':'image'}));const raw=window.goviPostMediaData?.[postId];if(raw)items=raw;}else{const el=card.querySelector('.post-media');if(el)items=[{url:el.currentSrc||el.src,type:el.tagName==='VIDEO'?'video':'image'}]}if(!items.length)return;current={postId,items,index:Math.max(0,Math.min(index||0,items.length-1))};paint()};
+ function paint(){const v=getViewer(),stage=v.querySelector('#goviViewerStage'),item=current.items[current.index];stage.replaceChildren();const el=document.createElement(item.type==='video'?'video':'img');el.src=item.url;if(item.type==='video'){el.controls=true;el.playsInline=true;el.autoplay=true}else el.alt='Imagen de GOVI';stage.appendChild(el);v.querySelector('.govi-viewer-head b').textContent='GOVI · '+(current.index+1)+' / '+current.items.length;v.classList.add('open')}
+ document.addEventListener('click',e=>{const cell=e.target.closest('[data-open-media]');if(cell){window.goviOpenMediaViewer(cell.dataset.postId,Number(cell.dataset.openMedia));return}const media=e.target.closest('#feed .post-media');if(media){const card=media.closest('.post');window.goviOpenMediaViewer(card.id.replace('post-',''),0)}});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('goviMediaViewer')?.classList.remove('open')});
+})();
+</script>
 </body>
 </html>
 
