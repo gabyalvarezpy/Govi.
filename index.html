@@ -1012,7 +1012,7 @@ html body #goviProfileView #goviProfileDescription{
   </a>
   <div class="search govi-search"><span aria-hidden="true">⌕</span><input id="searchInput" placeholder="Buscar en GOVI…"></div>
   <div class="top-actions govi-top-actions">
-    <button class="govi-create-btn" onclick="openModal('postModal')"><span>＋</span> Crear publicación</button>
+    <button class="govi-create-btn govi-header-search-button" type="button" aria-label="Buscar en GOVI" title="Buscar en GOVI" onclick="window.goviOpenUniversalSearch?window.goviOpenUniversalSearch():document.getElementById('searchInput')?.focus()"><span aria-hidden="true">⌕</span></button>
     <button class="govi-notify-btn" id="goviNotifyButton" aria-label="Notificaciones" aria-expanded="false" onclick="goviToggleNotifications()"><svg class="govi-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="goviNotifyBadge" class="govi-notify-badge" hidden>0</span></button>
     <button class="avatar" id="accountButton" onclick="accountAction()">G</button>
   </div>
@@ -5671,6 +5671,19 @@ html body .govi-post-collage{width:100%!important}
 })();
 </script>
 
+<style id="govi-header-profile-layout-v1">
+@media(max-width:700px){
+ html body .govi-topbar{box-sizing:content-box!important;height:calc(65px + env(safe-area-inset-top, 0px))!important;padding-top:env(safe-area-inset-top, 0px)!important;padding-left:13px!important;padding-right:13px!important;align-items:center!important}
+ html body .govi-top-actions{gap:8px!important}
+ html body .govi-header-search-button{display:grid!important;place-items:center!important;width:42px!important;height:42px!important;min-width:42px!important;padding:0!important;border-radius:50%!important;font-size:0!important;line-height:1!important}
+ html body .govi-header-search-button span{font-size:31px!important;line-height:1!important;font-weight:500!important}
+ html body #goviProfileView .profile-info{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-areas:"avatar controls" "name controls" "description description"!important;align-items:start!important;column-gap:12px!important;row-gap:5px!important;padding:0 16px 18px!important}
+ html body #goviProfileView .profile-avatar{grid-area:avatar!important;justify-self:start!important;margin-top:-55px!important}
+ html body #goviProfileView .profile-name{grid-area:name!important;align-self:start!important;justify-self:start!important;margin:0!important;padding:0!important;font-size:21px!important;line-height:1.2!important}
+ html body #goviProfileView .profile-description{grid-area:description!important;margin-top:5px!important}
+ html body #goviProfileView .profile-controls{grid-area:controls!important;align-self:start!important;margin-top:0!important}
+}
+</style>
 </body>
 </html>
 
