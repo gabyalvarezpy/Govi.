@@ -845,6 +845,46 @@ html.govi-auth-pending body{background:#080808!important}
 html.govi-auth-pending body>:not(#authModal){display:none!important}
 html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important}
 </style>
+<!-- GOVI TYPOGRAPHY READABILITY V1 -->
+<style id="govi-typography-readability-v1">
+
+/* GOVI typography refinement: readable feed and clean profile bio */
+#goviApp .post-text,.post .post-text,.feed .post-text,.post-content,.post-caption{
+  font-size:16px!important;line-height:1.7!important;letter-spacing:.05px;
+}
+#goviApp .post-author,.post .post-author,.post-header .author-name{font-size:15px!important}
+#goviApp .post-meta,.post .post-meta{font-size:13px!important}
+#goviApp .post-stats,.post .post-stats{font-size:13px!important}
+#goviApp .post-buttons button,.post .post-buttons button{font-size:14px!important;padding:10px 9px!important}
+.comment,.comment-text,.comment-content,.comment-user,.comment-form input{
+  font-size:14px!important;line-height:1.55!important;
+}
+#goviProfileView #goviProfileDescription,
+#goviProfileView .profile-description{
+  font-size:17px!important;line-height:1.65!important;
+  white-space:pre-wrap!important;word-break:normal!important;overflow-wrap:normal!important;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif!important;
+  font-variant-emoji:emoji;
+}
+#goviProfileView #goviProfileDescription,
+#goviProfileView .profile-description,
+#goviApp .post-text,.post .post-text{
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif!important;
+}
+@media(max-width:700px){
+  #goviApp .post-text,.post .post-text,.feed .post-text,.post-content,.post-caption{font-size:17px!important;line-height:1.7!important}
+  #goviApp .post-author,.post .post-author{font-size:15px!important}
+  #goviApp .post-meta,.post .post-meta{font-size:13px!important}
+  #goviApp .post-buttons button,.post .post-buttons button{font-size:14px!important}
+  .comment,.comment-text,.comment-content,.comment-user,.comment-form input{font-size:15px!important}
+  #goviProfileView #goviProfileDescription,#goviProfileView .profile-description{font-size:17px!important;line-height:1.65!important}
+}
+@media(min-width:701px){
+  #goviApp .post-text,.post .post-text,.feed .post-text,.post-content,.post-caption{font-size:17px!important;line-height:1.7!important}
+  #goviProfileView #goviProfileDescription,#goviProfileView .profile-description{font-size:17px!important}
+}
+
+</style>
 </head>    
 <body>    
 <header class="topbar govi-topbar">
