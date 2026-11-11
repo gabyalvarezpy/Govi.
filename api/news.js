@@ -19,7 +19,7 @@ function decode(value) {
     .replace(/\s+/g, " ").trim();
 }
 function tag(xml, name) {
-  const re = new RegExp("<(?:[\\w.-]+:)?" + name + "(?:\s[^>]*)?>([\s\S]*?)<\/(?:[\\w.-]+:)?" + name + "\s*>", "i");
+  const re = new RegExp("<(?:[\\w.-]+:)?" + name + "(?:\\s[^>]*)?>([\\s\\S]*?)<\\/(?:[\\w.-]+:)?" + name + "\\s*>", "i");
   const m = xml.match(re); return m ? m[1] : "";
 }
 function itemImage(xml) {
