@@ -5286,6 +5286,54 @@ html body .govi-post-collage{width:100%!important}
  html body .govi-shell{width:calc(100% - 36px)!important;max-width:935px!important;padding:22px 24px 100px!important}
 }
 </style>
+
+<style id="govi-comment-keyboard-visible-v1">
+@media(max-width:700px){
+ body.govi-commenting .comment-form.govi-comment-docked{
+  position:fixed!important;left:12px!important;right:12px!important;
+  bottom:calc(var(--govi-keyboard-gap, 0px) + 10px)!important;
+  z-index:12000!important;display:flex!important;gap:8px!important;
+  padding:10px!important;background:#171717!important;
+  border:1px solid #b99345!important;border-radius:24px!important;
+  box-shadow:0 8px 30px #000b!important;
+  box-sizing:border-box!important;
+ }
+ body.govi-commenting .comment-form.govi-comment-docked input{
+  min-height:46px!important;font-size:16px!important;background:#242424!important;
+ }
+ body.govi-commenting .comment-form.govi-comment-docked button{
+  min-height:46px!important;padding:0 20px!important;white-space:nowrap!important;
+ }
+ body.govi-commenting .comments.open{padding-bottom:76px!important}
+}
+</style>
+<script id="govi-comment-keyboard-visible-v1-script">
+(function(){
+ if(window.__goviCommentKeyboardVisibleV1)return;window.__goviCommentKeyboardVisibleV1=true;
+ let activeForm=null,frame=0;
+ function updateGap(){
+  const vv=window.visualViewport;
+  const gap=vv?Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)):0;
+  document.documentElement.style.setProperty('--govi-keyboard-gap',gap+'px');
+ }
+ function start(input){
+  const form=input.closest('.comment-form');if(!form)return;
+  if(activeForm&&activeForm!==form)activeForm.classList.remove('govi-comment-docked');
+  activeForm=form;form.classList.add('govi-comment-docked');document.body.classList.add('govi-commenting');
+  updateGap();requestAnimationFrame(()=>{updateGap();input.scrollIntoView({behavior:'smooth',block:'nearest'})});
+ }
+ function stop(){
+  if(!activeForm)return;const form=activeForm;activeForm=null;
+  form.classList.remove('govi-comment-docked');document.body.classList.remove('govi-commenting');
+  document.documentElement.style.removeProperty('--govi-keyboard-gap');
+ }
+ document.addEventListener('focusin',e=>{if(e.target.matches('.comment-form input'))start(e.target)});
+ document.addEventListener('focusout',e=>{if(e.target.matches('.comment-form input'))setTimeout(()=>{if(!document.activeElement?.matches('.comment-form input'))stop()},180)});
+ document.addEventListener('click',e=>{if(e.target.closest('[data-action="send-comment"]'))stop()});
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',updateGap);window.visualViewport.addEventListener('scroll',updateGap)}
+ window.addEventListener('resize',updateGap);
+})();
+</script>
 </body>
 </html>
 
