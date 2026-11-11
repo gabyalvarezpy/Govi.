@@ -5236,6 +5236,49 @@ window.openGoviLive=function(){
  document.addEventListener('click',e=>{if(!e.target.closest('[data-viewer-comment]'))return;const viewer=document.getElementById('goviMediaViewer');viewer?.classList.remove('open');const card=document.getElementById('post-'+(window.__goviViewerCurrent?.postId||''));const button=card?.querySelector('[data-action="comments"]');button?.click();const input=card?.querySelector('.comment-form input');if(input){card.querySelector('.comments')?.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{input.focus({preventScroll:true});input.scrollIntoView({behavior:'smooth',block:'center'})},250)}},true);
 })();
 </script>
+
+<style id="govi-responsive-content-width-v3">
+/* Wider, centered GOVI content without changing feed behavior. */
+html body .govi-shell{
+  width:min(100% - 40px,935px)!important;
+  max-width:935px!important;
+  display:block!important;
+  margin:24px auto 100px!important;
+  padding:24px 28px 110px!important;
+  box-sizing:border-box!important;
+}
+html body .govi-content{
+  width:100%!important;max-width:none!important;min-width:0!important;
+  margin:0 auto!important;box-sizing:border-box!important;
+}
+html body .govi-feed-block,html body .govi-feed-block #feed{
+  width:100%!important;max-width:none!important;min-width:0!important;
+  box-sizing:border-box!important;
+}
+html body .govi-feed-block #feed>.post,
+html body .govi-composer,
+html body .govi-content .stories{
+  width:100%!important;max-width:none!important;min-width:0!important;
+  box-sizing:border-box!important;
+}
+html body .govi-post-collage{width:100%!important}
+@media(max-width:700px){
+ html body .govi-shell{
+  width:100%!important;max-width:100%!important;
+  margin:12px 0 100px!important;
+  padding:0 10px 100px!important;
+ }
+ html body .govi-content{padding:0!important}
+ html body .govi-feed-block #feed>.post,
+ html body .govi-composer,
+ html body .govi-content .stories{
+  width:100%!important;margin-left:0!important;margin-right:0!important;
+ }
+}
+@media(min-width:701px) and (max-width:1100px){
+ html body .govi-shell{width:calc(100% - 36px)!important;max-width:935px!important;padding:22px 24px 100px!important}
+}
+</style>
 </body>
 </html>
 
