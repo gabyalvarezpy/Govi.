@@ -5316,21 +5316,31 @@ html body .govi-post-collage{width:100%!important}
   const gap=vv?Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)):0;
   document.documentElement.style.setProperty('--govi-keyboard-gap',gap+'px');
  }
+ let activePost=null;
+ function keepMediaVisible(){
+  if(!activePost)return;
+  const media=activePost.querySelector('.govi-post-collage,.post-media');
+  if(!media)return;
+  const rect=media.getBoundingClientRect();
+  const topLimit=window.visualViewport?window.visualViewport.offsetTop+8:8;
+  if(rect.top<topLimit||rect.top>topLimit+80)window.scrollBy({top:rect.top-topLimit,behavior:'smooth'});
+ }
  function start(input){
   const form=input.closest('.comment-form');if(!form)return;
   if(activeForm&&activeForm!==form)activeForm.classList.remove('govi-comment-docked');
-  activeForm=form;form.classList.add('govi-comment-docked');document.body.classList.add('govi-commenting');
-  updateGap();requestAnimationFrame(()=>{updateGap();input.scrollIntoView({behavior:'smooth',block:'nearest'})});
+  activeForm=form;activePost=form.closest('.post');
+  form.classList.add('govi-comment-docked');document.body.classList.add('govi-commenting');
+  updateGap();setTimeout(()=>{updateGap();keepMediaVisible()},220);setTimeout(()=>{updateGap();keepMediaVisible()},500);
  }
  function stop(){
-  if(!activeForm)return;const form=activeForm;activeForm=null;
+  if(!activeForm)return;const form=activeForm;activeForm=null;activePost=null;
   form.classList.remove('govi-comment-docked');document.body.classList.remove('govi-commenting');
   document.documentElement.style.removeProperty('--govi-keyboard-gap');
  }
  document.addEventListener('focusin',e=>{if(e.target.matches('.comment-form input'))start(e.target)});
  document.addEventListener('focusout',e=>{if(e.target.matches('.comment-form input'))setTimeout(()=>{if(!document.activeElement?.matches('.comment-form input'))stop()},180)});
  document.addEventListener('click',e=>{if(e.target.closest('[data-action="send-comment"]'))stop()});
- if(window.visualViewport){window.visualViewport.addEventListener('resize',updateGap);window.visualViewport.addEventListener('scroll',updateGap)}
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',()=>{updateGap();keepMediaVisible()});window.visualViewport.addEventListener('scroll',updateGap)}
  window.addEventListener('resize',updateGap);
 })();
 </script>
