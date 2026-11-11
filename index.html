@@ -1473,7 +1473,14 @@ async function managePost(id){
     if(action==='edit'){
       resetComposer();$('postModalTitle').textContent='Editar publicación';$('postText').value=post.content||'';$('publishButton').textContent='Guardar cambios';$('publishButton').dataset.editId=id;openModal('postModal');
     }else if(action==='delete'){
-      if(!confirm('¿Seguro que quieres eliminar esta publicación?'))return;
+      const approved=await new Promise(resolve=>{
+        const ask=document.createElement('div');ask.id='goviDeleteConfirm';ask.style.cssText='position:fixed;inset:0;z-index:40000;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px';
+        ask.innerHTML='<div role="dialog" aria-modal="true" aria-labelledby="goviDeleteTitle" style="width:min(100%,380px);background:#171717;border:1px solid #b99345;border-radius:20px;padding:24px;color:#f4eee2;box-shadow:0 18px 60px #000b"><div style="width:48px;height:48px;border-radius:15px;background:#3a2020;color:#ffb4a8;display:grid;place-items:center;font-size:25px;margin-bottom:15px">⌫</div><h3 id="goviDeleteTitle" style="margin:0 0 9px;font-size:21px;color:#f2d58d">Eliminar publicación</h3><p style="margin:0 0 22px;color:#c7c0b4;line-height:1.5">¿Seguro que quieres eliminar esta publicación? Esta acción no se puede deshacer.</p><div style="display:flex;gap:10px"><button type="button" data-delete-cancel style="flex:1;min-height:48px;border:1px solid #555;border-radius:12px;background:#262626;color:#eee;font-weight:750">Cancelar</button><button type="button" data-delete-yes style="flex:1;min-height:48px;border:0;border-radius:12px;background:linear-gradient(135deg,#e7c77f,#b98939);color:#17130b;font-weight:850">Sí, eliminar</button></div></div>';
+        document.body.appendChild(ask);
+        const finish=value=>{ask.remove();resolve(value)};
+        ask.addEventListener('click',ev=>{if(ev.target===ask||ev.target.closest('[data-delete-cancel]'))finish(false);if(ev.target.closest('[data-delete-yes]'))finish(true)});
+      });
+      if(!approved)return;
       const {error:deleteError}=await supabaseClient.from('posts').delete().eq('id',id).eq('user_id',currentUser.id);
       if(deleteError){toast('No se pudo eliminar: '+deleteError.message);return}
       if(post.media_path){if(String(post.media_path).startsWith('GOVI_MEDIA_V1:')){try{const items=JSON.parse(post.media_path.slice(14));await supabaseClient.storage.from(BUCKET).remove(items.map(x=>x.path).filter(Boolean))}catch(_){}}else await supabaseClient.storage.from(BUCKET).remove([post.media_path]);}
