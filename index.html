@@ -885,6 +885,37 @@ html.govi-auth-pending #authModal{display:flex!important;z-index:20000!important
 }
 
 </style>
+<!-- GOVI TYPOGRAPHY WEIGHT V1 -->
+<style id="govi-typography-weight-v1">
+
+/* GOVI typography weight: stronger, clearer text on mobile and desktop */
+#goviProfileView #goviProfileDescription,
+#goviProfileView .profile-description{
+  font-weight:600!important;
+  color:#f1eee7!important;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+#goviApp .post-text,.post .post-text,.feed .post-text,.post-content,.post-caption,
+.comment,.comment-text,.comment-content,.comment-user{
+  font-weight:500!important;
+  color:#f1eee7!important;
+  -webkit-font-smoothing:antialiased;
+}
+#goviApp .post-author,.post .post-author,.post-header .author-name{
+  font-weight:800!important;
+}
+#goviApp .post-buttons button,.post .post-buttons button,
+#goviProfileView .govi-social-edit{
+  font-weight:700!important;
+}
+@media(max-width:700px){
+  #goviProfileView #goviProfileDescription,
+  #goviProfileView .profile-description{font-weight:650!important}
+  #goviApp .post-text,.post .post-text,.feed .post-text,.post-content,.post-caption{font-weight:550!important}
+}
+
+</style>
 </head>    
 <body>    
 <header class="topbar govi-topbar">
