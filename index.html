@@ -1641,6 +1641,8 @@ async function refreshSession(){
     $('authPassword').value='';
     $('authSubmit').textContent='Iniciar sesión';
     $('authSwitch').textContent='¿No tienes cuenta? · Registrarme';
+    const forgotButton=document.getElementById('goviForgotPassword');
+    if(forgotButton)forgotButton.style.display='block';
     openModal('authModal');
     return;
   }
