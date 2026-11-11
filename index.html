@@ -1094,8 +1094,17 @@ html body #goviProfileView #goviProfileDescription{
   <div class="modal-head"><h2 id="authTitle">Únete a GOVI</h2><button class="close" onclick="closeModal('authModal')">×</button></div>    
   <div class="auth-fields"><input id="authName" placeholder="Nombre y apellido" autocomplete="name"><input id="authEmail" type="email" placeholder="Correo electrónico" autocomplete="email"><input id="authPassword" type="password" placeholder="Contraseña (mínimo 8 caracteres)" autocomplete="new-password"></div>    
   <div class="modal-actions"><button class="primary-btn" id="authSubmit" onclick="handleAuth()">Crear cuenta</button></div>    
-  <button class="auth-switch" id="authSwitch" onclick="toggleAuthMode()">Ya tengo una cuenta · Iniciar sesión</button>    
-  <p class="demo-note">En el registro, Supabase puede pedirte confirmar tu correo electrónico.</p>    
+  <button class="auth-switch" id="authSwitch" onclick="toggleAuthMode()">Ya tengo una cuenta · Iniciar sesión</button>
+  <button type="button" class="auth-switch" id="goviForgotPassword" onclick="goviSendPasswordRecovery()" style="display:none">¿Olvidaste tu contraseña?</button>
+  <div id="goviPasswordRecoveryPanel" style="display:none;margin-top:16px">
+    <h3 style="margin:0 0 8px;color:#fff">Crear una contraseña nueva</h3>
+    <p style="margin:0 0 12px;color:#bdb5c6;font-size:13px">Introduce tu nueva contraseña para recuperar tu cuenta de GOVI.</p>
+    <input id="goviNewPassword" type="password" autocomplete="new-password" minlength="10" placeholder="Nueva contraseña (mínimo 10 caracteres)" style="width:100%;margin-bottom:10px">
+    <input id="goviConfirmNewPassword" type="password" autocomplete="new-password" minlength="10" placeholder="Repite la nueva contraseña" style="width:100%;margin-bottom:12px">
+    <button type="button" class="primary-btn" id="goviSaveNewPassword" onclick="goviSaveNewPassword()" style="width:100%">Guardar nueva contraseña</button>
+    <button type="button" class="auth-switch" onclick="goviCancelPasswordRecovery()">Volver al acceso</button>
+  </div>
+  <p class="demo-note" id="goviAuthDemoNote">En el registro, Supabase puede pedirte confirmar tu correo electrónico.</p>    
 </div></div>    
 <div id="goviStoryComposer" class="govi-story-composer" aria-label="Crear historia">
   <div class="govi-story-compose-card">
@@ -1283,6 +1292,7 @@ async function accountAction(){
     $('authPassword').autocomplete='current-password';
     $('authSubmit').textContent='Iniciar sesión';
     $('authSwitch').textContent='¿No tienes cuenta? · Registrarme';
+    const forgot=document.getElementById('goviForgotPassword');if(forgot)forgot.style.display='block';
     openModal('authModal');
   }
 }    
@@ -1513,7 +1523,7 @@ async function managePost(id){
     }
   });
 }    
-function toggleAuthMode(){authMode=authMode==='register'?'login':'register';$('authTitle').textContent=authMode==='register'?'Únete a GOVI':'Acceder a GOVI';$('authName').style.display='block';$('authName').placeholder=authMode==='register'?'Nombre y apellido':'Nombre y apellido (opcional)';$('authPassword').autocomplete=authMode==='register'?'new-password':'current-password';$('authSubmit').textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión';$('authSwitch').textContent=authMode==='register'?'Ya tengo una cuenta · Iniciar sesión':'¿No tienes cuenta? · Registrarme'}    
+function toggleAuthMode(){authMode=authMode==='register'?'login':'register';$('authTitle').textContent=authMode==='register'?'Únete a GOVI':'Acceder a GOVI';$('authName').style.display='block';$('authName').placeholder=authMode==='register'?'Nombre y apellido':'Nombre y apellido (opcional)';$('authPassword').autocomplete=authMode==='register'?'new-password':'current-password';$('authSubmit').textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión';$('authSwitch').textContent=authMode==='register'?'Ya tengo una cuenta · Iniciar sesión':'¿No tienes cuenta? · Registrarme';const forgot=document.getElementById('goviForgotPassword');if(forgot)forgot.style.display=authMode==='login'?'block':'none'}    
 async function handleAuth(){    
   const name=$('authName').value.trim(),email=$('authEmail').value.trim(),password=$('authPassword').value,button=$('authSubmit');    
   if(authMode==='register'&&!name){toast('Escribe tu nombre y apellido');return}    
@@ -1531,6 +1541,67 @@ supabaseClient.auth.onAuthStateChange(()=>{setTimeout(()=>window.goviLoadStories
   }catch(error){toast(error.message||'No se pudo completar la operación')}    
   finally{button.disabled=false;button.textContent=authMode==='register'?'Crear cuenta':'Iniciar sesión'}    
 }    
+
+let goviRecoveryMode=false;
+function goviShowPasswordRecovery(){
+  goviRecoveryMode=true;
+  const fields=document.querySelector('#authModal .auth-fields');
+  if(fields)fields.style.display='none';
+  ['authSubmit','authSwitch','goviForgotPassword','goviAuthDemoNote'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none'});
+  const panel=document.getElementById('goviPasswordRecoveryPanel');
+  if(panel)panel.style.display='block';
+  const title=document.getElementById('authTitle');if(title)title.textContent='Recuperar cuenta GOVI';
+  openModal('authModal');
+}
+function goviCancelPasswordRecovery(){
+  goviRecoveryMode=false;
+  const fields=document.querySelector('#authModal .auth-fields');if(fields)fields.style.display='';
+  const panel=document.getElementById('goviPasswordRecoveryPanel');if(panel)panel.style.display='none';
+  ['authSubmit','authSwitch','goviAuthDemoNote'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=''});
+  const forgot=document.getElementById('goviForgotPassword');if(forgot)forgot.style.display=authMode==='login'?'block':'none';
+  document.getElementById('authTitle').textContent=authMode==='register'?'Únete a GOVI':'Acceder a GOVI';
+}
+async function goviSendPasswordRecovery(){
+  const email=document.getElementById('authEmail').value.trim();
+  if(!email||!email.includes('@')){toast('Escribe primero el correo electrónico de tu cuenta GOVI.');document.getElementById('authEmail').focus();return}
+  const button=document.getElementById('goviForgotPassword');
+  button.disabled=true;button.textContent='Enviando enlace…';
+  try{
+    const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:'https://govi-97ft.vercel.app/'});
+    if(error)throw error;
+    toast('Si el correo está registrado, recibirás un enlace para recuperar tu cuenta. Revisa también spam.');
+  }catch(error){
+    console.error('GOVI password recovery request:',error);
+    toast('No se pudo enviar el enlace. Inténtalo de nuevo más tarde.');
+  }finally{button.disabled=false;button.textContent='¿Olvidaste tu contraseña?'}
+}
+async function goviSaveNewPassword(){
+  const password=document.getElementById('goviNewPassword').value;
+  const confirm=document.getElementById('goviConfirmNewPassword').value;
+  const button=document.getElementById('goviSaveNewPassword');
+  if(password.length<10){toast('La nueva contraseña debe tener al menos 10 caracteres.');return}
+  if(password!==confirm){toast('Las contraseñas no coinciden.');return}
+  button.disabled=true;button.textContent='Guardando…';
+  try{
+    const {error}=await supabaseClient.auth.updateUser({password});
+    if(error)throw error;
+    toast('¡Contraseña actualizada! Tu cuenta GOVI está recuperada.');
+    document.getElementById('goviNewPassword').value='';
+    document.getElementById('goviConfirmNewPassword').value='';
+    goviRecoveryMode=false;
+    document.getElementById('goviPasswordRecoveryPanel').style.display='none';
+    const fields=document.querySelector('#authModal .auth-fields');if(fields)fields.style.display='';
+    closeModal('authModal');
+    await refreshSession();
+  }catch(error){
+    console.error('GOVI password update:',error);
+    toast('No se pudo cambiar la contraseña. Abre de nuevo el enlace de recuperación e inténtalo otra vez.');
+  }finally{button.disabled=false;button.textContent='Guardar nueva contraseña'}
+}
+supabaseClient.auth.onAuthStateChange((event)=>{
+  if(event==='PASSWORD_RECOVERY')setTimeout(goviShowPasswordRecovery,100);
+});
+
 let goviLastSessionUserId=null;
 function goviResetAccountView(){
   goviProfileId=null;window.goviProfileViewingUserId=null;window.goviProfileId=null;
