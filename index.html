@@ -10,7 +10,19 @@
 <link rel="apple-touch-icon" href="/govi-icon.svg">
 <meta name="apple-mobile-web-app-title" content="GOVI">
 <meta name="format-detection" content="telephone=no">    
-<title>GOVI — Tu mundo. Tu gente.</title>    
+<title>GOVI — Tu mundo. Tu gente.</title>
+<script id="govi-profile-bio-first-render-fix-v1">
+/* Decode GOVI_PROFILE_V1 before any profile view paints it, preventing raw JSON flash and layout shift. */
+window.goviDecodeProfileBio=window.goviDecodeProfileBio||function(raw,fallback){
+ const value=String(raw||'');
+ if(!value.startsWith('GOVI_PROFILE_V1:'))return value||fallback||'';
+ try{
+  const data=JSON.parse(value.slice('GOVI_PROFILE_V1:'.length));
+  return String(data.description||fallback||'');
+ }catch(_){return fallback||''}
+};
+</script>
+    
 <style>    
 :root{--gold:#C99A32;--gold2:#E8C66A;--bg:#101010;--panel:#191919;--text:#F5F0E5;--muted:#aaa18d;--line:#393020}    
 *{box-sizing:border-box}body{margin:0;background:#080808;color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}    
@@ -2629,7 +2641,7 @@ async function goviUpdateAccountAvatars() {
     const homeName=document.getElementById('goviHomeName');
     const homeBio=document.getElementById('goviHomeBio');
     if(homeName)homeName.textContent=name;
-    if(homeBio)homeBio.textContent=profile.bio||'Tu perfil en GOVI · Tu mundo. Tu gente.';
+    if(homeBio)homeBio.textContent=window.goviDecodeProfileBio(profile.bio,'Tu perfil en GOVI · Tu mundo. Tu gente.');
     const homeCover=document.getElementById('goviHomeCover');
     if(homeCover){
       if(profile.cover_url){
@@ -4887,7 +4899,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     const profile=p||{id:userId,full_name:'Usuario GOVI'};
     const name=String(profile.display_name||profile.full_name||'Usuario GOVI');
     const isMilagros=/^milagros(?:\s|$)/i.test(name.trim());const nameEl=view.querySelector('#goviProfileName');if(nameEl){nameEl.textContent=name;nameEl.classList.toggle('govi-user-milagros',isMilagros)}
-    const bioEl=view.querySelector('#goviProfileDescription');if(bioEl)bioEl.textContent=profile.bio||'Tu mundo. Tu gente.';
+    const bioEl=view.querySelector('#goviProfileDescription');if(bioEl)bioEl.textContent=window.goviDecodeProfileBio(profile.bio,'Tu mundo. Tu gente.');
     const avatar=view.querySelector('#goviAvatar');if(avatar){avatar.classList.toggle('govi-user-milagros',isMilagros);avatar.replaceChildren();if(profile.avatar_url){const img=document.createElement('img');img.src=profile.avatar_url;img.alt='';avatar.append(img)}else avatar.textContent=name.slice(0,1).toUpperCase()}
     const cover=view.querySelector('#goviCover');
     if(cover){
@@ -6375,7 +6387,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     const cover=$id('goviCover'),avatar=$id('goviAvatar');
     if(!view||!feed||!cover||!avatar)throw new Error('Faltan elementos del perfil');
     $id('goviProfileName').textContent=name;
-    $id('goviProfileDescription').textContent=p.bio||'Tu mundo en GOVI. Tu mundo. Tu gente.';
+    $id('goviProfileDescription').textContent=window.goviDecodeProfileBio(p.bio,'Tu mundo en GOVI. Tu mundo. Tu gente.');
     cover.innerHTML=p.cover_url?'<img src="'+safe(p.cover_url)+'" alt="Portada de '+safe(name)+'" style="width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in">':'<div style="height:100%;display:grid;place-items:center;color:#e8c66a;font-weight:800">Tu portada en GOVI</div>';
     avatar.innerHTML=p.avatar_url?'<img src="'+safe(p.avatar_url)+'" alt="Foto de '+safe(name)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;cursor:zoom-in">':'<span style="display:grid;place-items:center;width:100%;height:100%;font-size:48px;color:#211708">G</span>';
     cover.onclick=()=>{if(p.cover_url)showImage(p.cover_url,'Portada de '+name)};
@@ -6477,7 +6489,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     const name=user.user_metadata?.display_name||user.user_metadata?.full_name||profile.display_name||profile.full_name||user.email?.split('@')[0]||'Usuario GOVI';
     const cover=document.getElementById('goviCover'),avatar=document.getElementById('goviAvatar');
     document.getElementById('goviProfileName').textContent=name;
-    document.getElementById('goviProfileDescription').textContent=profile.bio||'Tu perfil en GOVI · Tu mundo. Tu gente.';
+    document.getElementById('goviProfileDescription').textContent=window.goviDecodeProfileBio(profile.bio,'Tu perfil en GOVI · Tu mundo. Tu gente.');
     cover.innerHTML=profile.cover_url?'<img src="'+esc(profile.cover_url)+'" alt="Portada" style="width:100%;height:100%;object-fit:cover;cursor:zoom-in">':'<div style="height:100%;display:grid;place-items:center;color:#e8c66a">Tu portada en GOVI</div>';
     avatar.innerHTML=profile.avatar_url?'<img src="'+esc(profile.avatar_url)+'" alt="Foto de perfil" style="width:100%;height:100%;object-fit:cover;border-radius:50%;cursor:zoom-in">':'<span>G</span>';
     const lightbox=()=>{
