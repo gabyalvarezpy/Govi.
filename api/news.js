@@ -19,19 +19,19 @@ function decode(value) {
     .replace(/\s+/g, " ").trim();
 }
 function tag(xml, name) {
-  const re = new RegExp("<(?:[\\w.-]+:)?" + name + "(?:\\s[^>]*)?>([\\s\\S]*?)<\\/(?:[\\w.-]+:)?" + name + "\\s*>", "i");
+  const re = new RegExp("<(?:[\\w.-]+:)?" + name + "(?:\s[^>]*)?>([\s\S]*?)<\/(?:[\\w.-]+:)?" + name + "\s*>", "i");
   const m = xml.match(re); return m ? m[1] : "";
 }
 function itemImage(xml) {
   const candidates = [
-    xml.match(/<(?:media:)?(?:thumbnail|content)\\b[^>]*url=["']([^"']+)["']/i),
-    xml.match(/<enclosure\\b[^>]*url=["']([^"']+)["']/i),
+    xml.match(/<(?:media:)?(?:thumbnail|content)\b[^>]*url=["']([^"']+)["']/i),
+    xml.match(/<enclosure\b[^>]*url=["']([^"']+)["']/i),
     xml.match(/<img[^>]+src=["']([^"']+)["']/i)
   ];
   return candidates.find(Boolean)?.[1] || "";
 }
 function parseFeed(xml, feed) {
-  const blocks = xml.match(/<item\\b[\\s\\S]*?<\\/item>/gi) || xml.match(/<entry\\b[\\s\\S]*?<\\/entry>/gi) || [];
+  const blocks = xml.match(/<item\b[\s\S]*?<\/item>/gi) || xml.match(/<entry\b[\s\S]*?<\/entry>/gi) || [];
   return blocks.map(block => {
     const title = decode(tag(block, "title"));
     let link = tag(block, "link");
@@ -40,7 +40,7 @@ function parseFeed(xml, feed) {
     const description = decode(tag(block, "description") || tag(block, "summary") || tag(block, "content"));
     const dateRaw = decode(tag(block, "pubDate") || tag(block, "published") || tag(block, "updated"));
     const date = dateRaw ? new Date(dateRaw) : new Date();
-    if (!title || !/^https?:\\/\\//i.test(link)) return null;
+    if (!title || !/^https?:\/\//i.test(link)) return null;
     return { title, description: description.slice(0, 260), url: link, image: itemImage(block), source: feed.source, category: feed.category, publishedAt: Number.isNaN(date.getTime()) ? null : date.toISOString() };
   }).filter(Boolean);
 }
