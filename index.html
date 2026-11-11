@@ -1585,7 +1585,7 @@ async function refreshSession(){
     catch(storyError){console.warn('GOVI: no se pudieron cargar las historias:',storyError);}
   }
 }    
-function filterSection(section,el){activeFilter=section;document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');applyFilter()}    
+function filterSection(section,el){const news=document.getElementById('goviNewsView');if(news&&news.style.display!=='none'){document.querySelectorAll('.govi-content>:scope > section').forEach(x=>x.style.display=x.id==='goviNewsView'?'none':'');document.querySelectorAll('.govi-mobile-nav button').forEach(x=>x.classList.remove('active'));}activeFilter=section;document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));el.classList.add('active');applyFilter()}    
 function applyFilter(){    
   document.querySelectorAll('#feed .post').forEach(p=>{    
     const q=$('searchInput').value.toLowerCase(),matchesSearch=p.dataset.search.includes(q);    
