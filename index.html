@@ -1385,7 +1385,7 @@ function renderPost(post,likes,comments,profiles){
       ? `<video class="post-media video" controls playsinline preload="metadata" src="${escapeHTML(post.media_url)}"></video>`
       : `<img class="post-media" loading="lazy" src="${escapeHTML(post.media_url)}" alt="Fotografía compartida en GOVI">`;
   }    
-  const renderOneComment=(c,isReply=false)=>{const cp=profiles[c.user_id]||{};const cn=cp.name||(currentUser&&c.user_id===currentUser.id?(currentUser.user_metadata?.full_name||currentUser.email||'Tú'):'Usuario');const avatar=cp.avatar||(currentUser&&c.user_id===currentUser.id?(goviCurrentProfile?.avatar_url||currentUser.user_metadata?.avatar_url||currentUser.user_metadata?.picture||''):'');return `<div class="comment ${isReply?'comment-reply':''}"><div class="comment-user" style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span class="avatar comment-avatar" data-user-id="${escapeHTML(c.user_id)}" style="width:32px;height:32px;min-width:32px;min-height:32px;flex:0 0 32px;border-radius:50%;overflow:hidden;display:grid;place-items:center;cursor:pointer;background:#3b2b12;color:#f4d27b;font-weight:800">${avatar?`<img src="${escapeHTML(avatar)}" alt="" style="display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;border-radius:50%">`:escapeHTML(initials(cn))}</span><b data-user-id="${escapeHTML(c.user_id)}" style="cursor:pointer">${escapeHTML(cn)}</b></div>${escapeHTML(c.content)}<div class="post-meta">${timeLabel(c.created_at)}${c.updated_at?' · editado':''}</div><div class="comment-actions">${''}${currentUser&&c.user_id===currentUser.id?`<button data-action="edit-comment" data-id="${c.id}" data-post-id="${post.id}">Editar</button><button data-action="delete-comment" data-id="${c.id}" data-post-id="${post.id}">Eliminar</button>`:''}</div><div class="reply-composer" id="reply-${c.id}"></div>${postComments.filter(r=>r.parent_comment_id===c.id).map(r=>renderOneComment(r,true)).join('')}</div>`};
+  const renderOneComment=(c,isReply=false)=>{const cp=profiles[c.user_id]||{};const cn=cp.name||(currentUser&&c.user_id===currentUser.id?(currentUser.user_metadata?.full_name||currentUser.email||'Tú'):'Usuario');const avatar=cp.avatar||(currentUser&&c.user_id===currentUser.id?(goviCurrentProfile?.avatar_url||currentUser.user_metadata?.avatar_url||currentUser.user_metadata?.picture||''):'');return `<div class="comment ${isReply?'comment-reply':''}"><div class="comment-user" style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><span class="avatar comment-avatar" data-user-id="${escapeHTML(c.user_id)}" style="width:32px;height:32px;min-width:32px;min-height:32px;flex:0 0 32px;border-radius:50%;overflow:hidden;display:grid;place-items:center;cursor:pointer;background:#3b2b12;color:#f4d27b;font-weight:800">${avatar?`<img src="${escapeHTML(avatar)}" alt="" style="display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:cover;border-radius:50%">`:escapeHTML(initials(cn))}</span><b data-user-id="${escapeHTML(c.user_id)}" style="cursor:pointer">${escapeHTML(cn)}</b></div>${escapeHTML(c.content)}<div class="post-meta">${timeLabel(c.created_at)}${c.updated_at?' · editado':''}</div><div class="comment-actions">${currentUser?`<button data-action="reply-comment" data-id="${post.id}" data-comment-id="${c.id}">Responder</button>`:''}${currentUser&&c.user_id===currentUser.id?`<button data-action="edit-comment" data-id="${c.id}" data-post-id="${post.id}">Editar</button><button data-action="delete-comment" data-id="${c.id}" data-post-id="${post.id}">Eliminar</button>`:''}</div><div class="reply-composer" id="reply-${c.id}"></div>${postComments.filter(r=>r.parent_comment_id===c.id).map(r=>renderOneComment(r,true)).join('')}</div>`};
   const commentHTML=postComments.filter(c=>!c.parent_comment_id).map(c=>renderOneComment(c)).join('');    
   article.innerHTML=`    
     <div class="post-head"><div class="avatar ${isMilagros ? "govi-user-milagros" : ""}" data-user-id="${post.user_id}" style="overflow:hidden;cursor:pointer" title="Ver perfil de ${escapeHTML(author)}">${authorAvatar?`<img src="${escapeHTML(authorAvatar)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:escapeHTML(initials(author))}</div><div><div class="post-author ${isMilagros ? "govi-user-milagros" : ""}" data-user-id="${post.user_id}" style="cursor:pointer">${escapeHTML(author)}${mine?' · Tú':''}</div><div class="post-meta">${timeLabel(post.created_at)} · Público</div></div>    
@@ -5354,6 +5354,22 @@ html body .govi-post-collage{width:100%!important}
  window.addEventListener('resize',updateGap);
 })();
 </script>
+
+<style id="govi-comment-actions-readable-v2">
+.comment-actions{display:flex!important;flex-wrap:wrap!important;gap:10px!important;margin-top:10px!important}
+.comment-actions button{min-height:40px!important;min-width:94px!important;padding:9px 15px!important;border:1px solid #8e7138!important;border-radius:12px!important;background:#292318!important;color:#f3d98f!important;font-size:14px!important;font-weight:800!important}
+.comment{font-size:15px!important;line-height:1.6!important;padding:13px 14px!important}
+.comment .comment-user{font-size:14px!important}
+.comment .comment-user .comment-avatar{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;flex-basis:38px!important}
+.comment .reply-composer{margin-top:8px!important}
+.reply-form{display:flex!important;gap:8px!important;margin-top:8px!important}
+.reply-form input{min-height:44px!important;font-size:15px!important}
+.reply-form button{min-height:44px!important;padding:0 14px!important;border-radius:12px!important;font-size:14px!important;font-weight:800!important}
+@media(max-width:700px){
+ body.govi-commenting .comment-form.govi-comment-docked{bottom:8px!important;padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
+ body.govi-commenting .comment-form.govi-comment-docked input{font-size:16px!important}
+}
+</style>
 </body>
 </html>
 
