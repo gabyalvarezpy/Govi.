@@ -2850,6 +2850,7 @@ async function goviLoadGalleryInteractions(){
   }catch(error){console.error('GOVI gallery interactions:',error);row.innerHTML='<span style="color:#ffb0a0;font-size:12px">No se pudieron cargar las interacciones. Comprueba la configuración de Supabase.</span>';list.innerHTML=''}
 }
 $('goviGalleryReactionRow').addEventListener('click',async e=>{
+  e.preventDefault();e.stopPropagation();
   const btn=e.target.closest('[data-gallery-reaction]');if(!btn)return;
   if(!currentUser){toast('Inicia sesión para reaccionar');openModal('authModal');return}
   const item=goviGalleryItems[goviGalleryIndex];if(!item)return;
@@ -2872,7 +2873,7 @@ $('goviGalleryShare').addEventListener('click',async()=>{
   }catch(error){if(error.name!=='AbortError'){console.error(error);toast('No se pudo compartir la foto')}}
 });
 $('goviGalleryCommentForm').addEventListener('submit',async e=>{
-  e.preventDefault();const input=$('goviGalleryCommentInput'),content=input.value.trim();if(!content)return;
+  e.preventDefault();e.stopPropagation();const input=$('goviGalleryCommentInput'),content=input.value.trim();if(!content)return;
   if(!currentUser){toast('Inicia sesión para comentar');openModal('authModal');return}
   const item=goviGalleryItems[goviGalleryIndex];if(!item)return;
   const key=goviGalleryPhotoKey(item),submit=e.submitter; if(submit)submit.disabled=true;
@@ -2889,8 +2890,10 @@ $('goviGalleryPrev').addEventListener('click',()=>{if(goviGalleryItems.length>1)
 $('goviGalleryNext').addEventListener('click',()=>{if(goviGalleryItems.length>1){goviGalleryIndex=(goviGalleryIndex+1)%goviGalleryItems.length;goviRenderGallery()}});
 $('goviGalleryDelete').addEventListener('click',goviDeleteGalleryImage);
 let goviTouchX=0;
-goviPhotoViewer.addEventListener('touchstart',e=>{goviTouchX=e.changedTouches[0].screenX},{passive:true});
-goviPhotoViewer.addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-goviTouchX;if(Math.abs(dx)>45){if(dx<0)$('goviGalleryNext').click();else $('goviGalleryPrev').click()}},{passive:true});
+goviPhotoViewer.addEventListener('click',e=>{if(e.target!==goviPhotoViewer)e.stopPropagation()});
+goviPhotoViewer.addEventListener('touchstart',e=>{goviTouchX=e.changedTouches[0].screenX;goviTouchOnControls=!!e.target.closest('#goviGalleryInteractions,button,input,textarea,form')},{passive:true});
+let goviTouchOnControls=false;
+goviPhotoViewer.addEventListener('touchend',e=>{if(goviTouchOnControls||e.target.closest('#goviGalleryInteractions,button,input,textarea,form')){goviTouchOnControls=false;return}const dx=e.changedTouches[0].screenX-goviTouchX;if(Math.abs(dx)>45){if(dx<0)$('goviGalleryNext').click();else $('goviGalleryPrev').click()}},{passive:true});
 $('goviAvatar').style.cursor='zoom-in';
 $('goviAvatar').addEventListener('click',()=>goviOpenGallery('avatar'));
 $('goviCover').style.cursor='zoom-in';
