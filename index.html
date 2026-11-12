@@ -8814,17 +8814,32 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   else await deleteComment(commentId,postId);
  },true);
  document.addEventListener('click',async function(e){
-  const btn=e.target.closest('#goviMediaViewer [data-viewer-comment-action]');
+  const btn=e.target.closest('#goviMediaViewer button[data-viewer-comment-action]');
   if(!btn)return;
-  e.preventDefault();e.stopPropagation();
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
   if(btn.dataset.busy==='1')return;
-  btn.dataset.busy='1';
+  btn.dataset.busy='1';btn.disabled=true;
   const commentId=btn.dataset.id,postId=btn.dataset.postId;
   try{
+   if(!commentId||!postId){toast('No se pudo identificar el comentario');return}
    if(btn.dataset.viewerCommentAction==='edit')await editComment(commentId,postId);
-   else await deleteComment(commentId,postId);
+   else if(btn.dataset.viewerCommentAction==='delete')await deleteComment(commentId,postId);
    await window.goviRefreshViewerComments?.();
-  }finally{btn.dataset.busy='0'}
- });
+  }catch(err){console.error('GOVI viewer comment action:',err);toast('No se pudo completar la acción')}
+  finally{btn.dataset.busy='0';btn.disabled=false}
+ },true);
 })();
 </script>
+<style id="govi-desktop-viewer-comment-polish-v1">
+/* Solo ordenador: comentarios más legibles y acciones compactas en el panel lateral. */
+@media (min-width:701px){
+ #goviMediaViewer [data-viewer-comment-list]{font-size:16px!important;line-height:1.55!important;max-height: min(42vh,420px)!important}
+ #goviMediaViewer .govi-viewer-comment-item{padding:13px 4px!important}
+ #goviMediaViewer .govi-viewer-comment-item>b{font-size:16px!important}
+ #goviMediaViewer .govi-viewer-comment-content{font-size:17px!important;line-height:1.55!important;margin-top:3px!important;overflow-wrap:anywhere}
+ #goviMediaViewer .govi-viewer-comment-item small{font-size:12px!important}
+ #goviMediaViewer .govi-viewer-comment-actions{gap:6px!important;margin-top:6px!important}
+ #goviMediaViewer .govi-viewer-comment-actions button{font-size:12px!important;line-height:1.1!important;min-height:28px!important;padding:4px 9px!important;border-radius:8px!important}
+}
+</style>
+
