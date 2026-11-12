@@ -1139,12 +1139,12 @@ html body #goviProfileView #goviProfileDescription{
     </section>
     <section id="goviNewsView" class="govi-news-view" style="display:none" aria-label="GOVI Noticias">
       <div class="govi-news-head">
-        <div><span class="govi-kicker">EL MUNDO EN UN SOLO LUGAR</span><h1>📰 GOVI Noticias</h1><p>Información de medios internacionales, actualizada automáticamente.</p></div>
+        <div><span class="govi-kicker">EL MUNDO EN UN SOLO LUGAR</span><h1>📰 GOVI Noticias</h1><p>Noticias recientes de Paraguay y el mundo, con publicaciones de las últimas 24 horas.</p></div>
         <button type="button" id="goviNewsRefresh" class="govi-news-refresh" onclick="goviLoadNews(true)">↻ Actualizar</button>
       </div>
       <div class="govi-news-sourcebar"><span>Fuentes:</span> BBC Mundo · CNN en Español · DW · El País · Europa Press · Reuters · AP</div>
       <div class="govi-news-tools"><div class="govi-news-tabs" id="goviNewsTabs">
-        <button class="active" data-news-category="Todo">Todo</button><button data-news-category="Mundo">Mundo</button><button data-news-category="España">España</button><button data-news-category="América Latina">América Latina</button><button data-news-category="Tecnología">Tecnología</button><button data-news-category="Economía">Economía</button>
+        <button class="active" data-news-category="Todo">Últimas</button><button data-news-category="Paraguay">🇵🇾 Paraguay</button><button data-news-category="Mundo">🌍 Mundo</button><button data-news-category="América Latina">América Latina</button><button data-news-category="Tecnología">Tecnología</button><button data-news-category="Economía">Economía</button>
       </div><input id="goviNewsSearch" type="search" placeholder="Buscar noticias…" aria-label="Buscar noticias"></div>
       <div class="govi-news-status" id="goviNewsStatus">Preparando las últimas noticias…</div>
       <div class="govi-news-grid" id="goviNewsGrid"><div class="govi-news-loading">Cargando titulares internacionales…</div></div>
@@ -5801,9 +5801,10 @@ html body .govi-post-collage{width:100%!important}
  const esc=value=>String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function dateLabel(value){if(!value)return 'Actualidad';const d=new Date(value);return Number.isNaN(d.getTime())?'Actualidad':d.toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
  function categoryMatch(item){
+  if(newsCategory==='Todo')return true;
+  if(newsCategory==='Paraguay')return item.category==='Paraguay';
+  if(newsCategory==='Mundo')return item.category==='Mundo';
   const t=(item.title+' '+item.description+' '+item.source).toLowerCase();
-  if(newsCategory==='Todo'||newsCategory==='Mundo')return newsCategory==='Todo'||!/(españa|español|madrid|barcelona|cataluña|andalucía)/i.test(t);
-  if(newsCategory==='España')return /(españa|español|madrid|barcelona|cataluña|andalucía|europa press|el país)/i.test(t)||item.category==='España';
   if(newsCategory==='América Latina')return /(américa latina|latinoamérica|paraguay|argentina|brasil|méxico|chile|colombia|venezuela|uruguay|perú|bolivia|ecuador)/i.test(t);
   if(newsCategory==='Tecnología')return /(tecnolog|inteligencia artificial|software|internet|ciberseguridad|móvil|apple|google|microsoft)/i.test(t);
   if(newsCategory==='Economía')return /(econom|mercado|inflación|empleo|banco|finanzas|precio|empresas|comercio)/i.test(t);
