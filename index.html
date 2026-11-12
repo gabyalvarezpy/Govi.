@@ -1547,17 +1547,25 @@ async function loadFeed(){
       .from('govi_follows').select('followed_id')
       .eq('follower_id',GOVI_FOUNDER_ID);
     if(founderUserError)throw founderUserError;
-    const personIds=[...new Set((founderUserRelations||[]).map(x=>x.followed_id).filter(id=>id&&id!==GOVI_FOUNDER_ID))];
+    const founderFollowedIds=[...new Set((founderUserRelations||[]).map(x=>x.followed_id).filter(id=>id&&id!==GOVI_FOUNDER_ID))];
+    const peopleResult=await supabaseClient.from('profiles')
+      .select('id,full_name,display_name,avatar_url').limit(60);
+    if(peopleResult.error)throw peopleResult.error;
+    const allPeople=(peopleResult.data||[]).filter(person=>person.id!==currentUser?.id);
+    const personIds=allPeople.map(person=>person.id);
     if(personIds.length){
-      const [peopleResult,myUserFollowsResult]=await Promise.all([
-        supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').in('id',personIds),
-        currentUser?supabaseClient.from('govi_follows').select('followed_id').eq('follower_id',currentUser.id).in('followed_id',personIds):Promise.resolve({data:[],error:null})
-      ]);
-      if(peopleResult.error)throw peopleResult.error;
+      const myUserFollowsResult=currentUser
+        ?await supabaseClient.from('govi_follows').select('followed_id').eq('follower_id',currentUser.id).in('followed_id',personIds)
+        :{data:[],error:null};
       if(myUserFollowsResult.error)throw myUserFollowsResult.error;
-      recommendedPeople=(peopleResult.data||[]).filter(person=>person.id!==currentUser?.id);
       myUserFollows=new Set((myUserFollowsResult.data||[]).map(x=>x.followed_id));
     }
+    // Prioriza las personas que sigue el fundador; también descubre otras cuentas registradas.
+    recommendedPeople=allPeople.sort((a,b)=>{
+      const aPriority=founderFollowedIds.includes(a.id)?0:1;
+      const bPriority=founderFollowedIds.includes(b.id)?0:1;
+      return aPriority-bPriority;
+    });
   }catch(peopleRecommendationError){
     console.warn('GOVI recomendaciones de personas:',peopleRecommendationError);
   }
