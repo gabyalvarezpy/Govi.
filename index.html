@@ -1627,6 +1627,7 @@ async function loadFeed(){
     }catch(profileError){console.warn('GOVI: perfiles no disponibles temporalmente:',profileError)}
   }
   feed.replaceChildren();
+  await loadGoviNasaApodFeed(feed);
   if(!posts?.length&&!recommendedPages.length&&!recommendedPeople.length){
     feed.innerHTML='<section class="panel" style="padding:22px;text-align:center"><b>¡Bienvenido a GOVI!</b><p class="demo-note">Todavía no hay publicaciones. Sé el primero en compartir una foto, un vídeo o una idea.</p></section>';
     return;
@@ -1656,6 +1657,38 @@ async function loadFeed(){
   }
   applyFilter();
   if(location.hash.startsWith('#post-'))requestAnimationFrame(()=>document.querySelector(location.hash)?.scrollIntoView({behavior:'smooth',block:'center'}));
+}
+// GOVI_NASA_APOD_FEED_V1: contenido APOD integrado con atribución y filtro conservador de derechos.
+async function loadGoviNasaApodFeed(feed){
+  try{
+    let items=window.__goviNasaApodItems;
+    if(!items){
+      const response=await fetch('https://science.nasa.gov/wp-json/wp/v2/apod-basic/?count=8',{headers:{'Accept':'application/json'}});
+      if(!response.ok)throw new Error('NASA APOD respondió '+response.status);
+      const payload=await response.json();
+      items=Array.isArray(payload)?payload:(Array.isArray(payload?.items)?payload.items:[payload]);
+      window.__goviNasaApodItems=items;
+    }
+    const safeItems=(items||[]).filter(item=>
+      item && item.media_type==='image' && item.hdurl &&
+      (!item.copyright || !String(item.copyright).trim())
+    );
+    safeItems.forEach(item=>{
+      const card=document.createElement('article');
+      card.className='post panel govi-nasa-external-post';
+      card.dataset.kind='image';
+      card.dataset.search=('NASA ciencia espacio '+(item.title||'')+' '+(item.explanation||'')).toLowerCase();
+      const title=escapeHTML(item.title||'Imagen astronómica del día');
+      const explanation=escapeHTML(item.explanation||'');
+      const date=escapeHTML(item.date||'');
+      const image=escapeHTML(item.hdurl);
+      const alt=escapeHTML(item.alt||item.title||'Imagen astronómica publicada por NASA');
+      card.innerHTML='<div class="post-head"><div class="avatar" aria-hidden="true" style="background:#17243a;color:#fff">N</div><div><div class="post-author">NASA · Astronomy Picture of the Day</div><div class="post-meta">'+date+' · Fuente externa</div></div></div><div class="post-content"><strong>'+title+'</strong><p>'+explanation+'</p></div><img class="post-media" loading="lazy" src="'+image+'" alt="'+alt+'"><div class="post-meta" style="padding:10px 14px">Imagen y descripción: NASA/APOD. Se muestra contenido sin crédito de terceros identificado en la respuesta de la fuente.</div>';
+      feed.append(card);
+    });
+  }catch(error){
+    console.warn('GOVI NASA APOD: no se pudo cargar el contenido:',error);
+  }
 }
 function renderPost(post,likes,comments,profiles){    
   const mine=currentUser&&post.user_id===currentUser.id;    
@@ -6025,6 +6058,12 @@ html body .govi-post-collage{width:100%!important}
 })();
 </script>
 
+<style id="govi-nasa-apod-feed-v1">
+.govi-nasa-external-post .post-content{padding:14px 16px 4px;line-height:1.55}
+.govi-nasa-external-post .post-content p{margin:8px 0;color:var(--text-secondary,#c5c5c5)}
+.govi-nasa-external-post .post-media{display:block;width:100%;height:auto;max-height:680px;object-fit:contain;background:#08090c}
+.govi-nasa-external-post .post-author{font-weight:800}
+</style>
 </body>
 </html>
 
