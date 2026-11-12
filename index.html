@@ -1539,6 +1539,60 @@ async function loadFeed(){
     return card;
   };
 
+
+  // Recomendaciones de personas: perfiles que sigue el fundador, visibles para toda la comunidad.
+  let recommendedPeople=[],myUserFollows=new Set();
+  try{
+    const {data:founderUserRelations,error:founderUserError}=await supabaseClient
+      .from('govi_follows').select('followed_id')
+      .eq('follower_id',GOVI_FOUNDER_ID);
+    if(founderUserError)throw founderUserError;
+    const personIds=[...new Set((founderUserRelations||[]).map(x=>x.followed_id).filter(id=>id&&id!==GOVI_FOUNDER_ID))];
+    if(personIds.length){
+      const [peopleResult,myUserFollowsResult]=await Promise.all([
+        supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').in('id',personIds),
+        currentUser?supabaseClient.from('govi_follows').select('followed_id').eq('follower_id',currentUser.id).in('followed_id',personIds):Promise.resolve({data:[],error:null})
+      ]);
+      if(peopleResult.error)throw peopleResult.error;
+      if(myUserFollowsResult.error)throw myUserFollowsResult.error;
+      recommendedPeople=(peopleResult.data||[]).filter(person=>person.id!==currentUser?.id);
+      myUserFollows=new Set((myUserFollowsResult.data||[]).map(x=>x.followed_id));
+    }
+  }catch(peopleRecommendationError){
+    console.warn('GOVI recomendaciones de personas:',peopleRecommendationError);
+  }
+
+  const renderPersonRecommendation=person=>{
+    const name=String(person.display_name||person.full_name||'Usuario GOVI').trim();
+    const following=myUserFollows.has(person.id);
+    const card=document.createElement('section');
+    card.className='panel govi-feed-person-recommendation';
+    card.style.cssText='display:flex;align-items:center;gap:13px;padding:15px;margin:16px 0;border:1px solid #3977b9;border-radius:18px;background:linear-gradient(145deg,#14202c,#101010);color:#e7f2ff;box-shadow:0 8px 24px #0005';
+    const avatar=person.avatar_url
+      ?'<img src="'+escapeHTML(person.avatar_url)+'" alt="" style="width:54px;height:54px;object-fit:cover;border-radius:50%">'
+      :'<span style="width:54px;height:54px;flex:0 0 54px;display:grid;place-items:center;border-radius:50%;background:#20354b;color:#a9d3ff;font-size:23px;font-weight:900">'+escapeHTML(initials(name))+'</span>';
+    card.innerHTML='<div style="min-width:0;flex:1"><div style="font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#8fc5ff;font-weight:900;margin-bottom:10px">Persona recomendada por GOVI</div><div style="display:flex;align-items:center;gap:11px">'+avatar+'<div style="min-width:0"><strong style="display:block;font-size:16px;color:#fff">'+escapeHTML(name)+'</strong><span style="display:block;color:#aebdca;font-size:12px;margin-top:3px">Usuario de GOVI</span></div></div></div><button type="button" data-govi-feed-person-follow="'+escapeHTML(person.id)+'" style="flex:0 0 auto;padding:11px 15px;border:1px solid #8fc5ff;border-radius:12px;background:'+(following?'#20354b':'linear-gradient(135deg,#b9ddff,#5b9fe0)')+';color:'+(following?'#cce6ff':'#102235')+';font-weight:900">'+(following?'Siguiendo':'Seguir')+'</button>';
+    const button=card.querySelector('[data-govi-feed-person-follow]');
+    button.addEventListener('click',async()=>{
+      if(!currentUser){toast('Inicia sesión para seguir personas');return}
+      if(button.disabled)return;
+      const wasFollowing=myUserFollows.has(person.id);
+      button.disabled=true;
+      try{
+        const {error}=await supabaseClient.rpc(wasFollowing?'govi_unfollow_user':'govi_follow_user',{target_user_id:person.id});
+        if(error)throw error;
+        if(wasFollowing)myUserFollows.delete(person.id);else myUserFollows.add(person.id);
+        button.textContent=wasFollowing?'Seguir':'Siguiendo';
+        button.style.background=wasFollowing?'linear-gradient(135deg,#b9ddff,#5b9fe0)':'#20354b';
+        button.style.color=wasFollowing?'#102235':'#cce6ff';
+        if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
+        toast(wasFollowing?'Dejaste de seguir este perfil':'¡Ahora sigues este perfil!');
+        await loadFeed();
+      }catch(e){console.error('GOVI seguir persona desde feed:',e);toast('No se pudo actualizar el seguimiento: '+e.message)}
+      finally{button.disabled=false}
+    });
+    return card;
+  };
   let likes=[],comments=[];
   if(posts?.length){
     const ids=posts.map(p=>p.id);
@@ -1565,13 +1619,14 @@ async function loadFeed(){
     }catch(profileError){console.warn('GOVI: perfiles no disponibles temporalmente:',profileError)}
   }
   feed.replaceChildren();
-  if(!posts?.length&&!recommendedPages.length){
+  if(!posts?.length&&!recommendedPages.length&&!recommendedPeople.length){
     feed.innerHTML='<section class="panel" style="padding:22px;text-align:center"><b>¡Bienvenido a GOVI!</b><p class="demo-note">Todavía no hay publicaciones. Sé el primero en compartir una foto, un vídeo o una idea.</p></section>';
     return;
   }
   if(!posts?.length){
-    feed.append(Object.assign(document.createElement('div'),{className:'demo-note',textContent:'Descubre las páginas recomendadas por GOVI'}));
+    feed.append(Object.assign(document.createElement('div'),{className:'demo-note',textContent:'Descubre páginas y personas recomendadas por GOVI'}));
     recommendedPages.forEach(page=>feed.append(renderPageRecommendation(page)));
+    recommendedPeople.forEach(person=>feed.append(renderPersonRecommendation(person)));
     return;
   }
   posts.forEach((post,index)=>{
@@ -1580,9 +1635,16 @@ async function loadFeed(){
       const page=recommendedPages[Math.floor(index/3)%recommendedPages.length];
       feed.append(renderPageRecommendation(page));
     }
+    if(recommendedPeople.length&&((index+1)%4===0)){
+      const person=recommendedPeople[Math.floor(index/4)%recommendedPeople.length];
+      feed.append(renderPersonRecommendation(person));
+    }
   });
   if(recommendedPages.length&&posts.length<3){
     recommendedPages.slice(0,Math.min(2,recommendedPages.length)).forEach(page=>feed.append(renderPageRecommendation(page)));
+  }
+  if(recommendedPeople.length&&posts.length<4){
+    recommendedPeople.slice(0,Math.min(2,recommendedPeople.length)).forEach(person=>feed.append(renderPersonRecommendation(person)));
   }
   applyFilter();
   if(location.hash.startsWith('#post-'))requestAnimationFrame(()=>document.querySelector(location.hash)?.scrollIntoView({behavior:'smooth',block:'center'}));
