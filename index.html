@@ -1435,6 +1435,8 @@ async function publishPost(){
   }catch(error){console.error(error);toast('No se pudo guardar: '+(error.message||'revisa la configuración de Supabase'))}    
   finally{button.disabled=false;button.textContent=$('publishButton').dataset.editId?'Guardar cambios':'Publicar'}    
 }    
+const GOVI_HIDDEN_PAGE_NAMES=['nasa','nasa en español','discovery turbo','canal de bloopers','espn'];
+function goviIsHiddenPage(page){return blocked.includes(String(page?.name||'').trim().toLowerCase())}
 async function loadFeed(){
   const feed=$('feed');feed.innerHTML='<p class="demo-note">Cargando publicaciones…</p>';
   let feedResult;
@@ -1473,7 +1475,7 @@ async function loadFeed(){
         ]);
         if(pagesResult.error)throw pagesResult.error;
         if(pagePostsResult.error)throw pagePostsResult.error;
-        (pagesResult.data||[]).forEach(page=>{followedPagesById[page.id]=page});
+        (pagesResult.data||[]).filter(page=>!goviIsHiddenPage(page)).forEach(page=>{followedPagesById[page.id]=page});
         const followedPagePosts=(pagePostsResult.data||[]).filter(post=>followedPagesById[post.page_id]);
         followedPagePosts.forEach(post=>{post.__goviPage=followedPagesById[post.page_id]});
         posts=[...posts,...followedPagePosts]
@@ -1501,7 +1503,7 @@ async function loadFeed(){
       ]);
       if(pagesResult.error)throw pagesResult.error;
       if(myFollowsResult.error)throw myFollowsResult.error;
-      recommendedPages=pagesResult.data||[];
+      recommendedPages=(pagesResult.data||[]).filter(page=>!goviIsHiddenPage(page));
       myPageFollows=new Set((myFollowsResult.data||[]).map(x=>x.page_id));
     }
   }catch(pageRecommendationError){
@@ -1627,7 +1629,7 @@ async function loadFeed(){
     }catch(profileError){console.warn('GOVI: perfiles no disponibles temporalmente:',profileError)}
   }
   feed.replaceChildren();
-  await loadGoviNasaApodFeed(feed);
+  
   if(!posts?.length&&!recommendedPages.length&&!recommendedPeople.length){
     feed.insertAdjacentHTML('beforeend','<section class="panel" style="padding:22px;text-align:center"><b>¡Bienvenido a GOVI!</b><p class="demo-note">Todavía no hay publicaciones. Sé el primero en compartir una foto, un vídeo o una idea.</p></section>');
     return;
@@ -1659,49 +1661,7 @@ async function loadFeed(){
   if(location.hash.startsWith('#post-'))requestAnimationFrame(()=>document.querySelector(location.hash)?.scrollIntoView({behavior:'smooth',block:'center'}));
 }
 // GOVI_NASA_APOD_FEED_V1: contenido APOD integrado con atribución y filtro conservador de derechos.
-async function loadGoviNasaApodFeed(feed){
-  const addStatus=message=>{
-    const note=document.createElement('div');
-    note.className='panel govi-nasa-status';
-    note.style.cssText='padding:14px 16px;margin:12px 0;border:1px solid #263c5b;border-radius:16px;background:#101a2a;color:#dce9ff';
-    note.textContent=message;feed.append(note);
-  };
-  try{
-    const response=await fetch('https://images-api.nasa.gov/search?q=NASA&media_type=image&page_size=30&year_start=2024',{headers:{'Accept':'application/json'}});
-    if(!response.ok)throw new Error('NASA Images API respondió '+response.status);
-    const payload=await response.json();
-    const items=payload?.collection?.items||[];
-    const eligible=items.filter(entry=>{
-      const data=entry?.data?.[0],href=entry?.links?.find(link=>link.render==='image')?.href;
-      if(!data||!href||!data.nasa_id)return false;
-      const copyright=String(data.copyright||'').trim();
-      return !copyright;
-    }).slice(0,8);
-    if(!eligible.length){
-      addStatus('NASA: ahora mismo no hay imágenes de la biblioteca con información de derechos suficiente.');
-      console.warn('GOVI NASA Images: sin resultados elegibles',items.slice(0,3));
-      return;
-    }
-    eligible.forEach(entry=>{
-      const data=entry.data[0];
-      const image=entry.links.find(link=>link.render==='image').href;
-      const source='https://images.nasa.gov/details/'+encodeURIComponent(data.nasa_id);
-      const title=escapeHTML(data.title||'Imagen de la biblioteca NASA');
-      const description=escapeHTML(String(data.description||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim());
-      const date=escapeHTML((data.date_created||'').slice(0,10));
-      const credit=escapeHTML(data.photographer||data.center||'NASA');
-      const card=document.createElement('article');
-      card.className='post panel govi-nasa-external-post';
-      card.dataset.kind='image';
-      card.dataset.search=('NASA espacio ciencia '+(data.title||'')+' '+(data.description||'')).toLowerCase();
-      card.innerHTML='<div class="post-head"><div class="avatar" aria-hidden="true" style="background:#17243a;color:#fff">N</div><div><div class="post-author">NASA <span class="govi-nasa-verified" title="Fuente oficial verificada por GOVI" aria-label="Fuente oficial verificada por GOVI">✓</span></div><div class="post-meta">'+date+' · Biblioteca de imágenes NASA</div></div></div><div class="post-content"><strong>'+title+'</strong><p>'+description+'</p></div><a href="'+escapeHTML(source)+'" target="_blank" rel="noopener noreferrer" aria-label="Abrir publicación original de NASA"><img class="post-media" loading="lazy" src="'+escapeHTML(image)+'" alt="'+title+'"></a><div class="post-meta" style="padding:10px 14px">Crédito: '+credit+' · <a href="'+escapeHTML(source)+'" target="_blank" rel="noopener noreferrer" style="color:#d8b965">Ver en NASA</a></div>';
-      feed.append(card);
-    });
-  }catch(error){
-    console.warn('GOVI NASA Images: no se pudo cargar contenido:',error);
-    addStatus('No se pudo conectar con la biblioteca de imágenes NASA. Inténtalo de nuevo más tarde.');
-  }
-}
+
 function renderPost(post,likes,comments,profiles){    
   const mine=currentUser&&post.user_id===currentUser.id;    
   const postLikes=likes.filter(x=>x.post_id===post.id), postComments=comments.filter(x=>x.post_id===post.id);    
@@ -5945,7 +5905,7 @@ html body .govi-post-collage{width:100%!important}
     supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').or('display_name.ilike.'+pattern+',full_name.ilike.'+pattern).limit(8),
     supabaseClient.from('govi_pages').select('id,name,slug,category,description,avatar_url,is_verified').eq('is_active',true).or('name.ilike.'+pattern+',category.ilike.'+pattern+',description.ilike.'+pattern).limit(12)
    ]);
-   people=peopleResult.data||[];pages=pageResult.data||[];error=peopleResult.error||pageResult.error;
+   people=peopleResult.data||[];pages=(pageResult.data||[]).filter(page=>!goviIsHiddenPage(page));error=peopleResult.error||pageResult.error;
    if(currentUser&&pages.length){
     const follows=await supabaseClient.from('govi_page_follows').select('page_id').eq('follower_id',currentUser.id).in('page_id',pages.map(p=>p.id));
     myFollows=(follows.data||[]).map(x=>x.page_id);
@@ -5982,7 +5942,7 @@ html body .govi-post-collage{width:100%!important}
  
  async function openOfficialPage(pageId){
   const {data:page,error}=await supabaseClient.from('govi_pages').select('id,name,category,description,avatar_url,cover_url,is_verified').eq('id',pageId).eq('is_active',true).maybeSingle();
-  if(error||!page){toast('No se pudo abrir esta página');return}
+  if(error||!page||goviIsHiddenPage(page)){toast('Esta página no está disponible en GOVI');return}
   let following=false,count=0,posts=[];
   try{
    const [followResult,countResult,postsResult]=await Promise.all([
@@ -6070,13 +6030,7 @@ html body .govi-post-collage{width:100%!important}
 })();
 </script>
 
-<style id="govi-nasa-apod-feed-v1">
-.govi-nasa-external-post .post-content{padding:14px 16px 4px;line-height:1.55}
-.govi-nasa-external-post .post-content p{margin:8px 0;color:var(--text-secondary,#c5c5c5)}
-.govi-nasa-external-post .post-media{display:block;width:100%;height:auto;max-height:680px;object-fit:contain;background:#08090c}
-.govi-nasa-external-post .post-author{font-weight:800}
-.govi-nasa-verified{display:inline-grid;place-items:center;width:19px;height:19px;margin-left:5px;border-radius:50%;background:#168cf0;color:#fff;font-size:13px;font-weight:950;vertical-align:middle;box-shadow:0 0 0 2px #168cf033}
-</style>
+
 </body>
 </html>
 
@@ -7977,10 +7931,10 @@ window.goviOpenCropEditor = goviOpenCropEditor;
    if(profilesResult.error)throw profilesResult.error;
    if(pagesResult.error)throw pagesResult.error;
    const profilesById=new Map((profilesResult.data||[]).map(p=>[p.id,p]));
-   const pagesById=new Map((pagesResult.data||[]).map(p=>[p.id,p]));
+   const pagesById=new Map((pagesResult.data||[]).filter(p=>!goviIsHiddenPage(p)).map(p=>[p.id,p]));
    const entries=[
     ...(relations||[]).map(row=>({type:'user',id:row[column],created_at:row.created_at})),
-    ...pageRelations.map(row=>({type:'page',id:row.page_id,created_at:row.created_at}))
+    ...pageRelations.filter(row=>pagesById.has(row.page_id)).map(row=>({type:'page',id:row.page_id,created_at:row.created_at}))
    ].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
    if(!entries.length){body.innerHTML='<div class="govi-social-list-empty">'+(isFollowing?'Este usuario todavía no sigue a nadie.':'Todavía no tiene seguidores.')+'</div>';return}
    body.innerHTML=entries.map(entry=>{
