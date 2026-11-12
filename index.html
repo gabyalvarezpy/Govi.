@@ -5821,7 +5821,8 @@ html body .govi-post-collage{width:100%!important}
   const button=$('goviNewsRefresh'),status=$('goviNewsStatus');if(button){button.disabled=true;button.textContent='Actualizando…'}
   if(status)status.textContent='Buscando las últimas publicaciones de los medios…';
   try{
-   const response=await fetch('/api/news'+(force?'?refresh='+Date.now():''),{headers:{Accept:'application/json'}});
+   const refreshUrl='/api/news'+(force?'?refresh='+Date.now():'');
+   const response=await fetch(refreshUrl,{cache:'no-store',headers:{Accept:'application/json','Cache-Control':'no-cache'}});
    if(!response.ok)throw new Error('No se pudo conectar con el servicio de noticias ('+response.status+').');
    const data=await response.json();newsItems=Array.isArray(data.articles)?data.articles:[];lastUpdated=data.updatedAt;newsLoaded=true;render();
    if(status)status.textContent=newsItems.length+' noticias disponibles · Actualizado '+new Date(lastUpdated||Date.now()).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})+' · Se renueva automáticamente cada 15 minutos.';
