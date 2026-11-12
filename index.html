@@ -1435,8 +1435,8 @@ async function publishPost(){
   }catch(error){console.error(error);toast('No se pudo guardar: '+(error.message||'revisa la configuración de Supabase'))}    
   finally{button.disabled=false;button.textContent=$('publishButton').dataset.editId?'Guardar cambios':'Publicar'}    
 }    
-async function loadFeed(){    
-  const feed=$('feed');feed.innerHTML='<p class="demo-note">Cargando publicaciones…</p>';    
+async function loadFeed(){
+  const feed=$('feed');feed.innerHTML='<p class="demo-note">Cargando publicaciones…</p>';
   let feedResult;
   try{
     feedResult=await Promise.race([
@@ -1448,22 +1448,77 @@ async function loadFeed(){
     feed.innerHTML='<p class="demo-note">GOVI no pudo conectar con la base de datos. Comprueba tu conexión y pulsa Recargar.</p><button type="button" onclick="loadFeed()">RECARGAR</button>';
     return;
   }
-  const {data:posts,error}=feedResult;    
-  if(error){console.error(error);feed.innerHTML='<p class="demo-note">No se pudieron cargar las publicaciones. Comprueba que ejecutaste el SQL de configuración en Supabase.</p>';return}    
-  if(!posts?.length){feed.innerHTML='<section class="panel" style="padding:22px;text-align:center"><b>¡Bienvenido a GOVI!</b><p class="demo-note">Todavía no hay publicaciones. Sé el primero en compartir una foto, un vídeo o una idea.</p></section>';return}    
-  const ids=posts.map(p=>p.id);    
-  let likes=[],comments=[];
+  const {data:posts,error}=feedResult;
+  if(error){console.error(error);feed.innerHTML='<p class="demo-note">No se pudieron cargar las publicaciones. Comprueba que ejecutaste el SQL de configuración en Supabase.</p>';return}
+
+  // Recomendaciones globales: páginas que sigue el fundador, mostradas a toda la comunidad.
+  const GOVI_FOUNDER_ID='5e631491-4c29-4e8d-9aff-0e40bcd3b7f9';
+  let recommendedPages=[],myPageFollows=new Set();
   try{
-    const extra=await Promise.race([
-      Promise.all([
-        supabaseClient.from('post_likes').select('post_id,user_id').in('post_id',ids),
-        supabaseClient.from('post_comments').select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id').in('post_id',ids).order('created_at',{ascending:true})
-      ]),
-      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Datos complementarios lentos')),8000))
-    ]);
-    likes=extra[0]?.data||[];comments=extra[1]?.data||[];
-  }catch(extraError){console.warn('GOVI: se muestran publicaciones sin reacciones/comentarios temporalmente:',extraError)}
-  const userIds=[...new Set([...likes.map(x=>x.user_id),...comments.map(x=>x.user_id),...posts.map(x=>x.user_id)])];
+    const {data:founderRelations,error:founderError}=await supabaseClient
+      .from('govi_page_follows').select('page_id')
+      .eq('follower_id',GOVI_FOUNDER_ID);
+    if(founderError)throw founderError;
+    const pageIds=[...new Set((founderRelations||[]).map(x=>x.page_id).filter(Boolean))];
+    if(pageIds.length){
+      const [pagesResult,myFollowsResult]=await Promise.all([
+        supabaseClient.from('govi_pages').select('id,name,category,description,avatar_url,is_verified').in('id',pageIds).eq('is_active',true),
+        currentUser?supabaseClient.from('govi_page_follows').select('page_id').eq('follower_id',currentUser.id).in('page_id',pageIds):Promise.resolve({data:[],error:null})
+      ]);
+      if(pagesResult.error)throw pagesResult.error;
+      if(myFollowsResult.error)throw myFollowsResult.error;
+      recommendedPages=pagesResult.data||[];
+      myPageFollows=new Set((myFollowsResult.data||[]).map(x=>x.page_id));
+    }
+  }catch(pageRecommendationError){
+    console.warn('GOVI recomendaciones de páginas:',pageRecommendationError);
+  }
+
+  const renderPageRecommendation=page=>{
+    const card=document.createElement('section');
+    card.className='panel govi-feed-page-recommendation';
+    card.style.cssText='display:flex;align-items:center;gap:13px;padding:15px;margin:16px 0;border:1px solid #80652f;border-radius:18px;background:linear-gradient(145deg,#211d15,#101010);color:#f5e7c2;box-shadow:0 8px 24px #0005';
+    const avatar=page.avatar_url
+      ?'<img src="'+escapeHTML(page.avatar_url)+'" alt="" style="width:54px;height:54px;object-fit:cover;border-radius:50%">'
+      :'<span style="width:54px;height:54px;flex:0 0 54px;display:grid;place-items:center;border-radius:50%;background:#302719;color:#f1d27d;font-size:23px;font-weight:900">'+escapeHTML((page.name||'G').trim().slice(0,1).toUpperCase())+'</span>';
+    const following=myPageFollows.has(page.id);
+    card.innerHTML='<div style="min-width:0;flex:1"><div style="font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#d8b965;font-weight:900;margin-bottom:10px">Página recomendada por GOVI</div><div style="display:flex;align-items:center;gap:11px">'+avatar+'<div style="min-width:0"><strong style="display:block;font-size:16px;color:#fff">'+escapeHTML(page.name)+(page.is_verified?' ✓':'')+'</strong><span style="display:block;color:#bdb6a8;font-size:13px;margin-top:3px">'+escapeHTML(page.category||'General')+'</span><span style="display:block;color:#aaa;font-size:12px;margin-top:3px">'+escapeHTML(page.description||'Descubre esta página en GOVI')+'</span></div></div></div><button type="button" data-govi-feed-follow="'+escapeHTML(page.id)+'" style="flex:0 0 auto;padding:11px 15px;border:1px solid #d8b965;border-radius:12px;background:'+(following?'#29251d':'linear-gradient(135deg,#f4d98b,#c49a43)')+';color:'+(following?'#f3d58a':'#17120b')+';font-weight:900">'+(following?'Siguiendo':'Seguir')+'</button>';
+    const button=card.querySelector('[data-govi-feed-follow]');
+    button.addEventListener('click',async()=>{
+      if(!currentUser){toast('Inicia sesión para seguir páginas');return}
+      if(button.disabled)return;
+      const wasFollowing=myPageFollows.has(page.id);
+      button.disabled=true;
+      try{
+        const {error}=await supabaseClient.rpc(wasFollowing?'govi_unfollow_page':'govi_follow_page',{target_page_id:page.id});
+        if(error)throw error;
+        if(wasFollowing)myPageFollows.delete(page.id);else myPageFollows.add(page.id);
+        button.textContent=wasFollowing?'Seguir':'Siguiendo';
+        button.style.background=wasFollowing?'linear-gradient(135deg,#f4d98b,#c49a43)':'#29251d';
+        button.style.color=wasFollowing?'#17120b':'#f3d58a';
+        if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
+        if(typeof window.toast==='function')toast(wasFollowing?'Dejaste de seguir la página':'¡Ahora sigues esta página!');
+      }catch(e){console.error('GOVI seguir página desde feed:',e);toast('No se pudo actualizar el seguimiento: '+e.message)}
+      finally{button.disabled=false}
+    });
+    return card;
+  };
+
+  let likes=[],comments=[];
+  if(posts?.length){
+    const ids=posts.map(p=>p.id);
+    try{
+      const extra=await Promise.race([
+        Promise.all([
+          supabaseClient.from('post_likes').select('post_id,user_id').in('post_id',ids),
+          supabaseClient.from('post_comments').select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id').in('post_id',ids).order('created_at',{ascending:true})
+        ]),
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error('Datos complementarios lentos')),8000))
+      ]);
+      likes=extra[0]?.data||[];comments=extra[1]?.data||[];
+    }catch(extraError){console.warn('GOVI: se muestran publicaciones sin reacciones/comentarios temporalmente:',extraError)}
+  }
+  const userIds=[...new Set([...(likes||[]).map(x=>x.user_id),...(comments||[]).map(x=>x.user_id),...(posts||[]).map(x=>x.user_id)])];
   let profiles={};
   if(userIds.length){
     try{
@@ -1473,12 +1528,30 @@ async function loadFeed(){
       ]);
       (profileResult.data||[]).forEach(p=>profiles[p.id]={name:String(p.display_name||p.full_name||'').trim(),avatar:p.avatar_url});
     }catch(profileError){console.warn('GOVI: perfiles no disponibles temporalmente:',profileError)}
-  }    
-  feed.replaceChildren();    
-  posts.forEach(post=>feed.append(renderPost(post,likes||[],comments||[],profiles)));    
-  applyFilter();    
-  if(location.hash.startsWith('#post-'))requestAnimationFrame(()=>document.querySelector(location.hash)?.scrollIntoView({behavior:'smooth',block:'center'}));    
-}    
+  }
+  feed.replaceChildren();
+  if(!posts?.length&&!recommendedPages.length){
+    feed.innerHTML='<section class="panel" style="padding:22px;text-align:center"><b>¡Bienvenido a GOVI!</b><p class="demo-note">Todavía no hay publicaciones. Sé el primero en compartir una foto, un vídeo o una idea.</p></section>';
+    return;
+  }
+  if(!posts?.length){
+    feed.append(Object.assign(document.createElement('div'),{className:'demo-note',textContent:'Descubre las páginas recomendadas por GOVI'}));
+    recommendedPages.forEach(page=>feed.append(renderPageRecommendation(page)));
+    return;
+  }
+  posts.forEach((post,index)=>{
+    feed.append(renderPost(post,likes||[],comments||[],profiles));
+    if(recommendedPages.length&&((index+1)%3===0)){
+      const page=recommendedPages[Math.floor(index/3)%recommendedPages.length];
+      feed.append(renderPageRecommendation(page));
+    }
+  });
+  if(recommendedPages.length&&posts.length<3){
+    recommendedPages.slice(0,Math.min(2,recommendedPages.length)).forEach(page=>feed.append(renderPageRecommendation(page)));
+  }
+  applyFilter();
+  if(location.hash.startsWith('#post-'))requestAnimationFrame(()=>document.querySelector(location.hash)?.scrollIntoView({behavior:'smooth',block:'center'}));
+}
 function renderPost(post,likes,comments,profiles){    
   const mine=currentUser&&post.user_id===currentUser.id;    
   const postLikes=likes.filter(x=>x.post_id===post.id), postComments=comments.filter(x=>x.post_id===post.id);    
