@@ -5719,19 +5719,7 @@ window.openGoviLive=function(){
  document.addEventListener('keydown',e=>{if(!document.getElementById('goviMediaViewer')?.classList.contains('open'))return;if(e.key==='ArrowRight')move(-1);if(e.key==='ArrowLeft')move(1);if(e.key==='Escape')document.getElementById('goviMediaViewer').classList.remove('open')});
  document.addEventListener('error',e=>{const img=e.target;if(!(img instanceof HTMLImageElement)||!img.closest('.govi-post-collage'))return;const cell=img.closest('.govi-collage-cell');if(cell){cell.classList.add('govi-media-failed');img.remove();cell.removeAttribute('data-open-media');cell.disabled=true;cell.closest('.govi-post-collage')?.classList.add('govi-has-failed')}},true);
  let goviPhotoLikeRequest=0;window.goviRefreshViewerPhotoLike=async function(){const viewer=document.getElementById('goviMediaViewer'),state=window.__goviViewerCurrent;if(!viewer||!state)return;const postId=state.postId,mediaIndex=Number(state.index)||0,request=++goviPhotoLikeRequest,b=viewer.querySelector('[data-viewer-like]');if(b)b.textContent='♡ Me gusta';if(!currentUser)return;const {data,error}=await supabaseClient.from('post_media_likes').select('id').eq('post_id',postId).eq('media_index',mediaIndex).eq('user_id',currentUser.id).maybeSingle();if(request!==goviPhotoLikeRequest||window.__goviViewerCurrent?.postId!==postId||Number(window.__goviViewerCurrent?.index||0)!==mediaIndex)return;if(error){console.warn('GOVI per-photo like:',error);if(b)b.textContent='♡ Me gusta';return}if(b)b.textContent=data?'♥ Te gusta':'♡ Me gusta'};
- let goviViewerCommentsRequest=0;window.goviHandleViewerCommentAction=async function(event,btn){
- if(event){event.preventDefault();event.stopPropagation();event.stopImmediatePropagation?.()}
- if(!btn||btn.dataset.busy==='1')return;
- const action=btn.dataset.viewerCommentAction,commentId=btn.dataset.id,postId=btn.dataset.postId;
- if(!commentId||!postId){toast('No se pudo identificar el comentario');return}
- btn.dataset.busy='1';btn.disabled=true;
- try{
-  if(action==='edit')await editComment(commentId,postId);
-  else if(action==='delete')await deleteComment(commentId,postId);
-  await window.goviRefreshViewerComments?.();
- }catch(err){console.error('GOVI viewer comment action:',err);toast('No se pudo completar la acción')}
- finally{btn.dataset.busy='0';btn.disabled=false}
-};
+ let goviViewerCommentsRequest=0;
 window.goviRefreshViewerComments=async function(){
   const viewer=document.getElementById('goviMediaViewer'),state=window.__goviViewerCurrent;
   if(!viewer||!state)return;
@@ -5753,7 +5741,7 @@ window.goviRefreshViewerComments=async function(){
       +'<div class="govi-viewer-comment-content">'+escapeHTML(c.content)+'</div>'
       +'<small style="display:block;color:#aaa;margin-top:4px">'+(c.updated_at?'Editado · ':'')+new Date(c.created_at).toLocaleString()+'</small>'
       +(own?'<div class="govi-viewer-comment-actions" style="display:flex;gap:8px;margin-top:8px">'
-        +'<button type="button" data-viewer-comment-action="edit" data-id="'+escapeHTML(c.id)+'" data-post-id="'+escapeHTML(postId)+'" onclick="window.goviHandleViewerCommentAction(event,this)">Editar</button>'
+        +'<button type="button" data-viewer-comment-action="edit" data-id="'+escapeHTML(c.id)+'" data-post-id="'+escapeHTML(postId)+'">Editar</button>'
         +'<button type="button" data-viewer-comment-action="delete" data-id="'+escapeHTML(c.id)+'" data-post-id="'+escapeHTML(postId)+'">Eliminar</button></div>':'')
       +'</div>';
   }).join('')||'Todavía no hay comentarios';
@@ -8825,6 +8813,12 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   if(!commentId||!postId)return;
   if(btn.dataset.action==='edit-comment')await editComment(commentId,postId);
   else await deleteComment(commentId,postId);
+ },true);
+ document.addEventListener('click',function(e){
+  const close=e.target.closest('#goviMediaViewer [data-viewer-close]');
+  if(!close)return;
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  document.getElementById('goviMediaViewer')?.classList.remove('open');
  },true);
  document.addEventListener('click',async function(e){
   const btn=e.target.closest('#goviMediaViewer button[data-viewer-comment-action]');
