@@ -1440,7 +1440,7 @@ async function loadFeed(){
   let feedResult;
   try{
     feedResult=await Promise.race([
-      supabaseClient.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').order('created_at',{ascending:false}).limit(100),
+      supabaseClient.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').is('page_id',null).order('created_at',{ascending:false}).limit(100),
       new Promise((_,reject)=>setTimeout(()=>reject(new Error('La conexión con Supabase tardó demasiado.')),12000))
     ]);
   }catch(timeoutError){
@@ -1448,8 +1448,42 @@ async function loadFeed(){
     feed.innerHTML='<p class="demo-note">GOVI no pudo conectar con la base de datos. Comprueba tu conexión y pulsa Recargar.</p><button type="button" onclick="loadFeed()">RECARGAR</button>';
     return;
   }
-  const {data:posts,error}=feedResult;
+  const {data:personalPosts,error}=feedResult;
   if(error){console.error(error);feed.innerHTML='<p class="demo-note">No se pudieron cargar las publicaciones. Comprueba que ejecutaste el SQL de configuración en Supabase.</p>';return}
+
+  // Publicaciones de las páginas que sigue ESTE usuario: se mezclan con el feed personal.
+  let posts=personalPosts||[];
+  let followedPagesById={};
+  if(currentUser){
+    try{
+      const {data:followRows,error:followError}=await supabaseClient
+        .from('govi_page_follows').select('page_id')
+        .eq('follower_id',currentUser.id);
+      if(followError)throw followError;
+      const followedIds=[...new Set((followRows||[]).map(row=>row.page_id).filter(Boolean))];
+      if(followedIds.length){
+        const [pagesResult,pagePostsResult]=await Promise.all([
+          supabaseClient.from('govi_pages')
+            .select('id,name,avatar_url,is_verified')
+            .in('id',followedIds).eq('is_active',true),
+          supabaseClient.from('posts')
+            .select('id,user_id,page_id,content,media_url,media_type,media_path,created_at,updated_at')
+            .in('page_id',followedIds)
+            .order('created_at',{ascending:false}).limit(100)
+        ]);
+        if(pagesResult.error)throw pagesResult.error;
+        if(pagePostsResult.error)throw pagePostsResult.error;
+        (pagesResult.data||[]).forEach(page=>{followedPagesById[page.id]=page});
+        const followedPagePosts=(pagePostsResult.data||[]).filter(post=>followedPagesById[post.page_id]);
+        followedPagePosts.forEach(post=>{post.__goviPage=followedPagesById[post.page_id]});
+        posts=[...posts,...followedPagePosts]
+          .sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))
+          .slice(0,100);
+      }
+    }catch(followedPagesError){
+      console.warn('GOVI: no se pudieron cargar publicaciones de páginas seguidas:',followedPagesError);
+    }
+  }
 
   // Recomendaciones globales: páginas que sigue el fundador, mostradas a toda la comunidad.
   const GOVI_FOUNDER_ID='5e631491-4c29-4e8d-9aff-0e40bcd3b7f9';
@@ -1498,6 +1532,7 @@ async function loadFeed(){
         button.style.color=wasFollowing?'#17120b':'#f3d58a';
         if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
         if(typeof window.toast==='function')toast(wasFollowing?'Dejaste de seguir la página':'¡Ahora sigues esta página!');
+        await loadFeed();
       }catch(e){console.error('GOVI seguir página desde feed:',e);toast('No se pudo actualizar el seguimiento: '+e.message)}
       finally{button.disabled=false}
     });
@@ -5857,6 +5892,7 @@ html body .govi-post-collage{width:100%!important}
     if(result.error){toast('No se pudo actualizar el seguimiento');b.disabled=false;return}
     following=!following;b.textContent=following?'Siguiendo':'Seguir página';b.style.background=following?'#292b32':'linear-gradient(135deg,#e7c77f,#b98939)';b.style.color=following?'#fff':'#17130a';b.disabled=false;
     if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
+    await loadFeed();
    }
   };
  }
@@ -5880,6 +5916,45 @@ html body .govi-post-collage{width:100%!important}
  html body #goviProfileView .profile-controls{grid-area:controls!important;align-self:start!important;margin-top:0!important}
 }
 </style>
+
+<script id="govi-followed-page-posts-feed-v1">
+(function(){
+ if(window.__goviFollowedPagePostsFeedV1)return;
+ window.__goviFollowedPagePostsFeedV1=true;
+ if(typeof renderPost!=='function')return;
+ const original=renderPost;
+ renderPost=function(post,likes,comments,profiles){
+  const card=original(post,likes,comments,profiles);
+  const page=post&&post.__goviPage;
+  if(!page)return card;
+  card.dataset.pageId=page.id;
+  card.dataset.search=((page.name||'')+' '+(post.content||'')).toLowerCase();
+  const avatar=card.querySelector('.post-head .avatar');
+  const author=card.querySelector('.post-head .post-author');
+  if(avatar){
+   avatar.removeAttribute('data-user-id');
+   avatar.dataset.pageId=page.id;
+   avatar.title='Ver página '+page.name;
+   avatar.innerHTML=page.avatar_url
+    ?'<img src="'+escapeHTML(page.avatar_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'
+    :escapeHTML(initials(page.name||'Página'));
+  }
+  if(author){
+   author.removeAttribute('data-user-id');
+   author.dataset.pageId=page.id;
+   author.style.cursor='default';
+   author.textContent=(page.name||'Página')+(page.is_verified?' ✓':'');
+  }
+  card.querySelectorAll('.govi-inline-friend').forEach(button=>button.remove());
+  const manage=card.querySelector('[data-action="manage"]');
+  if(manage)manage.remove();
+  const meta=card.querySelector('.post-meta');
+  if(meta)meta.textContent=timeLabel(post.created_at)+' · Página · Público';
+  return card;
+ };
+})();
+</script>
+
 </body>
 </html>
 
