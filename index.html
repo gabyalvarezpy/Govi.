@@ -5749,7 +5749,7 @@ html body .govi-post-collage{width:100%!important}
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&layer.classList.contains('open'))hide()});
  results.addEventListener('click',e=>{
   const follow=e.target.closest('[data-channel-follow]');
-  if(follow){const id=follow.dataset.channelFollow,on=!followed().includes(id);saveFollow(id,on);const c=channels.find(x=>x.id===id);if(c)follow.outerHTML=channelRow(c).replace(/^<div class="govi-search-result">/,'<div class="govi-search-result">');return}
+  if(follow){const id=follow.dataset.channelFollow,on=!followed().includes(id);saveFollow(id,on);const c=channels.find(x=>x.id===id);if(c)follow.outerHTML=channelRow(c);if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();return}
   const user=e.target.closest('[data-open-user]');
   if(user){hide();input.blur();if(typeof window.openGoviProfile==='function')window.openGoviProfile(user.dataset.openUser)}
  });
@@ -7731,7 +7731,13 @@ window.goviOpenCropEditor = goviOpenCropEditor;
    for(const r of [followers,following,posts])if(r.error)throw r.error;
    let box=document.getElementById('goviProfileStats');
    if(!box){box=document.createElement('div');box.id='goviProfileStats';const desc=document.getElementById('goviProfileDescription');(desc||document.getElementById('goviProfileName'))?.after(box)}
-   const items=[['followers',followers.count||0,'SEGUIDORES'],['posts',posts.count||0,'PUBLICACIONES'],['following',following.count||0,'SEGUIDOS']];
+   let followedChannels=0;
+   try{
+    const savedChannels=JSON.parse(localStorage.getItem('govi_followed_channels_v1')||'[]');
+    followedChannels=Array.isArray(savedChannels)?new Set(savedChannels.filter(Boolean)).size:0;
+   }catch(_){}
+   const followingTotal=(following.count||0)+followedChannels;
+   const items=[['followers',followers.count||0,'SEGUIDORES'],['posts',posts.count||0,'PUBLICACIONES'],['following',followingTotal,'SEGUIDOS']];
    const markup=items.map(([key,num,label])=>'<div class="govi-stat-card"><span class="govi-stat-icon">'+icons[key]+'</span><span class="govi-stat-copy"><b class="govi-stat-number">'+fmt(num)+'</b><span class="govi-stat-label">'+label+'</span></span></div>').join('');if(box.innerHTML!==markup)box.innerHTML=markup;
   }catch(e){console.warn('GOVI estadísticas:',e.message)}
  }
@@ -7813,7 +7819,13 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   };
  }
  window.addEventListener('hashchange',()=>scheduleEnhance(400));
- window.goviRefreshSocialProfile=()=>scheduleEnhance(0);
+ window.goviRefreshSocialProfile=async()=>{
+  const user=me();
+  const view=document.getElementById('goviProfileView');
+  const viewing=window.goviProfileViewingUserId||window.goviProfileId||location.hash.match(/^#profile-([0-9a-f-]{36})$/i)?.[1]||user?.id;
+  if(user?.id&&view&&view.style.display!=='none'&&viewing===user.id){await renderStats(user.id)}
+  scheduleEnhance(0);
+ };
  scheduleEnhance(1000);
 })();
 </script>
@@ -8095,5 +8107,12 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   html body header.topbar.govi-topbar .govi-top-actions>a,
   html body header.topbar.govi-topbar .govi-top-actions>[role="button"]{flex-basis:35px!important;width:35px!important;max-width:35px!important;height:38px!important;min-height:38px!important}
   html body header.topbar.govi-topbar #accountButton{flex-basis:37px!important;width:37px!important;min-width:37px!important;max-width:37px!important;height:38px!important;min-height:38px!important}
+}
+</style>
+
+<style id="govi-following-counter-and-name-spacing-v1">
+@media(max-width:700px){
+ html body #goviProfileView .profile-info{grid-template-rows:56px auto auto!important;row-gap:4px!important}
+ html body #goviProfileView .profile-name{margin-top:0!important;padding-top:0!important;align-self:start!important}
 }
 </style>
