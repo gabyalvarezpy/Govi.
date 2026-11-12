@@ -7656,17 +7656,39 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   try{
    const column=isFollowing?'followed_id':'follower_id';
    const targetColumn=isFollowing?'follower_id':'followed_id';
-   const {data:relations,error}=await c.from('govi_follows').select(column).eq(targetColumn,profileId).order('created_at',{ascending:false});
+   const {data:relations,error}=await c.from('govi_follows').select(column+',created_at').eq(targetColumn,profileId).order('created_at',{ascending:false});
    if(error)throw error;
+   let pageRelations=[];
+   if(isFollowing){
+    const {data,error:pageError}=await c.from('govi_page_follows').select('page_id,created_at').eq('follower_id',profileId).order('created_at',{ascending:false});
+    if(pageError)throw pageError;
+    pageRelations=data||[];
+   }
    const ids=[...new Set((relations||[]).map(row=>row[column]).filter(Boolean))];
-   if(!ids.length){body.innerHTML='<div class="govi-social-list-empty">'+(isFollowing?'Este usuario todavía no sigue a nadie.':'Todavía no tiene seguidores.')+'</div>';return}
-   const {data:profiles,error:profileError}=await c.from('profiles').select('id,full_name,display_name,avatar_url').in('id',ids);
-   if(profileError)throw profileError;
-   const byId=new Map((profiles||[]).map(p=>[p.id,p]));
-   body.innerHTML=ids.map(id=>{
-    const p=byId.get(id)||{},name=p.display_name||p.full_name||'Usuario GOVI';
-    const avatar=p.avatar_url?'<img src="'+escapeHTML(p.avatar_url)+'" alt="">':escapeHTML(name.trim().split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'G');
-    return '<button type="button" class="govi-social-list-row" data-govi-user="'+escapeHTML(id)+'"><span class="govi-social-list-avatar">'+avatar+'</span><span class="govi-social-list-name">'+escapeHTML(name)+'</span></button>';
+   const pageIds=[...new Set(pageRelations.map(row=>row.page_id).filter(Boolean))];
+   const [profilesResult,pagesResult]=await Promise.all([
+    ids.length?c.from('profiles').select('id,full_name,display_name,avatar_url').in('id',ids):Promise.resolve({data:[],error:null}),
+    pageIds.length?c.from('govi_pages').select('id,name,category,avatar_url').in('id',pageIds):Promise.resolve({data:[],error:null})
+   ]);
+   if(profilesResult.error)throw profilesResult.error;
+   if(pagesResult.error)throw pagesResult.error;
+   const profilesById=new Map((profilesResult.data||[]).map(p=>[p.id,p]));
+   const pagesById=new Map((pagesResult.data||[]).map(p=>[p.id,p]));
+   const entries=[
+    ...(relations||[]).map(row=>({type:'user',id:row[column],created_at:row.created_at})),
+    ...pageRelations.map(row=>({type:'page',id:row.page_id,created_at:row.created_at}))
+   ].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+   if(!entries.length){body.innerHTML='<div class="govi-social-list-empty">'+(isFollowing?'Este usuario todavía no sigue a nadie.':'Todavía no tiene seguidores.')+'</div>';return}
+   body.innerHTML=entries.map(entry=>{
+    if(entry.type==='page'){
+     const p=pagesById.get(entry.id);if(!p)return '';
+     const name=p.name||'Página GOVI';
+     const avatar=p.avatar_url?'<img src="'+escapeHTML(p.avatar_url)+'" alt="">':escapeHTML((name.trim().split(/\\s+/).slice(0,2).map(x=>x[0]).join('')||'G').toUpperCase());
+     return '<div class="govi-social-list-row"><span class="govi-social-list-avatar">'+avatar+'</span><span class="govi-social-list-name">'+escapeHTML(name)+'<small style="display:block;color:#b8b3a8;font-weight:500">Página oficial · '+escapeHTML(p.category||'General')+'</small></span></div>';
+    }
+    const p=profilesById.get(entry.id)||{},name=p.display_name||p.full_name||'Usuario GOVI';
+    const avatar=p.avatar_url?'<img src="'+escapeHTML(p.avatar_url)+'" alt="">':escapeHTML(name.trim().split(/\\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'G');
+    return '<button type="button" class="govi-social-list-row" data-govi-user="'+escapeHTML(entry.id)+'"><span class="govi-social-list-avatar">'+avatar+'</span><span class="govi-social-list-name">'+escapeHTML(name)+'</span></button>';
    }).join('');
    body.querySelectorAll('[data-govi-user]').forEach(btn=>btn.addEventListener('click',()=>{
     const id=btn.dataset.goviUser;close();
@@ -7726,20 +7748,16 @@ window.goviOpenCropEditor = goviOpenCropEditor;
  async function renderStats(profileId){
   const c=db(),view=document.getElementById('goviProfileView');if(!c||!view||!profileId)return;
   try{
-   const [followers,following,posts]=await Promise.all([
+   const [followers,following,pageFollowing,posts]=await Promise.all([
     c.from('govi_follows').select('follower_id',{count:'exact',head:true}).eq('followed_id',profileId),
     c.from('govi_follows').select('followed_id',{count:'exact',head:true}).eq('follower_id',profileId),
+    c.from('govi_page_follows').select('page_id',{count:'exact',head:true}).eq('follower_id',profileId),
     c.from('posts').select('id',{count:'exact',head:true}).eq('user_id',profileId)
    ]);
-   for(const r of [followers,following,posts])if(r.error)throw r.error;
+   for(const r of [followers,following,pageFollowing,posts])if(r.error)throw r.error;
    let box=document.getElementById('goviProfileStats');
    if(!box){box=document.createElement('div');box.id='goviProfileStats';const desc=document.getElementById('goviProfileDescription');(desc||document.getElementById('goviProfileName'))?.after(box)}
-   let followedChannels=0;
-   try{
-    const savedChannels=JSON.parse(localStorage.getItem('govi_followed_channels_v1')||'[]');
-    followedChannels=Array.isArray(savedChannels)?new Set(savedChannels.filter(Boolean)).size:0;
-   }catch(_){}
-   const followingTotal=(following.count||0)+followedChannels;
+   const followingTotal=(following.count||0)+(pageFollowing.count||0);
    const items=[['followers',followers.count||0,'SEGUIDORES'],['posts',posts.count||0,'PUBLICACIONES'],['following',followingTotal,'SEGUIDOS']];
    const markup=items.map(([key,num,label])=>'<div class="govi-stat-card"><span class="govi-stat-icon">'+icons[key]+'</span><span class="govi-stat-copy"><b class="govi-stat-number">'+fmt(num)+'</b><span class="govi-stat-label">'+label+'</span></span></div>').join('');if(box.innerHTML!==markup)box.innerHTML=markup;
   }catch(e){console.warn('GOVI estadísticas:',e.message)}
