@@ -8020,3 +8020,80 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   #goviCover.profile-cover{height:auto!important;aspect-ratio:2.65 / 1!important}
 }
 </style>
+
+
+<style id="govi-header-ga-and-profile-name-final-v2">
+/* Final mobile fit: preserve every header control, including the account avatar */
+@media(max-width:700px){
+  html body header.topbar.govi-topbar{
+    display:flex!important;align-items:center!important;gap:5px!important;
+    width:100%!important;max-width:100vw!important;box-sizing:border-box!important;
+    padding-left:7px!important;padding-right:7px!important;overflow:hidden!important;
+  }
+  html body header.topbar.govi-topbar .govi-brand{
+    flex:0 1 31%!important;width:31%!important;max-width:31%!important;min-width:0!important;
+    gap:5px!important;overflow:hidden!important;
+  }
+  html body header.topbar.govi-topbar .govi-brand .brand-mark{
+    flex:0 0 31px!important;width:31px!important;height:31px!important;
+  }
+  html body header.topbar.govi-topbar .govi-brand-copy{min-width:0!important;overflow:hidden!important}
+  html body header.topbar.govi-topbar .govi-brand-copy strong{font-size:15px!important;letter-spacing:1px!important}
+  html body header.topbar.govi-topbar .govi-brand-copy small{font-size:5px!important;letter-spacing:.35px!important;white-space:nowrap!important}
+  html body header.topbar.govi-topbar .govi-search{display:none!important}
+  html body header.topbar.govi-topbar .govi-top-actions{
+    flex:1 1 69%!important;width:69%!important;max-width:69%!important;min-width:0!important;
+    display:flex!important;justify-content:flex-end!important;align-items:center!important;
+    gap:4px!important;margin:0!important;overflow:visible!important;
+  }
+  html body header.topbar.govi-topbar .govi-top-actions>button,
+  html body header.topbar.govi-topbar .govi-top-actions>a,
+  html body header.topbar.govi-topbar .govi-top-actions>[role="button"]{
+    flex:0 1 38px!important;width:38px!important;min-width:0!important;max-width:38px!important;
+    height:40px!important;min-height:40px!important;max-height:40px!important;
+    padding:0!important;margin:0!important;box-sizing:border-box!important;
+    display:grid!important;place-items:center!important;overflow:hidden!important;
+  }
+  html body header.topbar.govi-topbar #accountButton{
+    flex:0 0 40px!important;width:40px!important;min-width:40px!important;max-width:40px!important;
+    height:40px!important;min-height:40px!important;border-radius:12px!important;
+    font-size:13px!important;
+  }
+  html body header.topbar.govi-topbar .govi-top-actions svg{width:19px!important;height:19px!important}
+}
+/* Profile: put the verified name directly below the profile photo, not below the tall action stack */
+@media(max-width:700px){
+  html body #goviProfileView .profile-info{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-rows:110px auto auto!important;
+    grid-template-areas:"avatar controls" "name controls" "description description"!important;
+    align-items:start!important;column-gap:12px!important;row-gap:4px!important;
+    padding:0 16px 18px!important;
+  }
+  html body #goviProfileView .profile-avatar{
+    grid-area:avatar!important;justify-self:start!important;
+    margin-top:-55px!important;align-self:start!important;
+  }
+  html body #goviProfileView .profile-name{
+    grid-area:name!important;align-self:start!important;justify-self:start!important;
+    margin:0!important;padding:0!important;font-size:21px!important;line-height:1.2!important;
+  }
+  html body #goviProfileView .profile-description{
+    grid-area:description!important;margin-top:7px!important;
+    grid-column:1/-1!important;
+  }
+  html body #goviProfileView .profile-controls{
+    grid-area:controls!important;align-self:start!important;margin-top:0!important;
+  }
+}
+@media(max-width:390px){
+  html body header.topbar.govi-topbar{gap:3px!important;padding-left:5px!important;padding-right:5px!important}
+  html body header.topbar.govi-topbar .govi-brand{flex-basis:29%!important;width:29%!important;max-width:29%!important}
+  html body header.topbar.govi-topbar .govi-top-actions{flex-basis:71%!important;width:71%!important;max-width:71%!important;gap:3px!important}
+  html body header.topbar.govi-topbar .govi-top-actions>button,
+  html body header.topbar.govi-topbar .govi-top-actions>a,
+  html body header.topbar.govi-topbar .govi-top-actions>[role="button"]{flex-basis:35px!important;width:35px!important;max-width:35px!important;height:38px!important;min-height:38px!important}
+  html body header.topbar.govi-topbar #accountButton{flex-basis:37px!important;width:37px!important;min-width:37px!important;max-width:37px!important;height:38px!important;min-height:38px!important}
+}
+</style>
