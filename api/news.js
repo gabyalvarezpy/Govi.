@@ -1,11 +1,22 @@
 const FEEDS = [
+  { source: "ABC Color", category: "Paraguay", url: "https://www.abc.com.py/arc/outboundfeeds/rss/nacionales/" },
+  { source: "ABC Color · Mundo", category: "Mundo", url: "https://www.abc.com.py/arc/outboundfeeds/rss/mundo/" },
+  { source: "Última Hora", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:ultimahora.com&hl=es&gl=PY&ceid=PY:es" },
+  { source: "La Nación", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:lanacion.com.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "IP Paraguay", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:ip.gov.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "Telefuturo", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:telefuturo.com.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "C9N", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:c9n.com.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "SNT", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:snt.com.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "NPY", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:npy.com.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "Trece", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:trece.com.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "GEN", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:gen.com.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "Unicanal", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:unicanal.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "BBC Mundo", category: "Mundo", url: "https://feeds.bbci.co.uk/mundo/rss.xml" },
   { source: "DW Español", category: "Mundo", url: "https://rss.dw.com/xml/rss-es-all" },
-  { source: "El País", category: "España", url: "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada" },
-  { source: "CNN en Español", category: "Mundo", url: "https://news.google.com/rss/search?q=when:2d+site:cnnespanol.cnn.com&hl=es-419&gl=US&ceid=US:es-419" },
-  { source: "Reuters", category: "Mundo", url: "https://news.google.com/rss/search?q=when:2d+site:reuters.com&hl=es&gl=ES&ceid=ES:es" },
-  { source: "Associated Press", category: "Mundo", url: "https://news.google.com/rss/search?q=when:2d+site:apnews.com&hl=es-419&gl=US&ceid=US:es-419" },
-  { source: "Europa Press", category: "España", url: "https://www.europapress.es/rss/rss.aspx" }
+  { source: "Reuters", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+site:reuters.com&hl=es&gl=ES&ceid=ES:es" },
+  { source: "Associated Press", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+site:apnews.com&hl=es-419&gl=US&ceid=US:es-419" },
+  { source: "CNN en Español", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+site:cnnespanol.cnn.com&hl=es-419&gl=US&ceid=US:es-419" },
+  { source: "Actualidad mundial", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+noticias+internacionales&hl=es&gl=ES&ceid=ES:es" }
 ];
 
 function decode(value) {
@@ -39,9 +50,9 @@ function parseFeed(xml, feed) {
     link = decode(link);
     const description = decode(tag(block, "description") || tag(block, "summary") || tag(block, "content"));
     const dateRaw = decode(tag(block, "pubDate") || tag(block, "published") || tag(block, "updated"));
-    const date = dateRaw ? new Date(dateRaw) : new Date();
+    const date = dateRaw ? new Date(dateRaw) : null;
     if (!title || !/^https?:\/\//i.test(link)) return null;
-    return { title, description: description.slice(0, 260), url: link, image: itemImage(block), source: feed.source, category: feed.category, publishedAt: Number.isNaN(date.getTime()) ? null : date.toISOString() };
+    return { title, description: description.slice(0, 260), url: link, image: itemImage(block), source: feed.source, category: feed.category, publishedAt: !date || Number.isNaN(date.getTime()) ? null : date.toISOString() };
   }).filter(Boolean);
 }
 module.exports = async function handler(req, res) {
