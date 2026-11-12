@@ -5702,44 +5702,37 @@ html body .govi-post-collage{width:100%!important}
 (function(){
  const input=document.getElementById('goviUniversalSearchInput')||document.getElementById('searchInput'),layer=document.getElementById('goviUniversalSearchLayer'),results=document.getElementById('goviUniversalSearchResults'),close=document.getElementById('goviUniversalSearchClose');
  if(!input||!layer||!results||!close)return;
- const channels=[
-  {id:'bloopers',name:'Canal de Bloopers',category:'Entretenimiento',description:'Humor y momentos divertidos',keywords:'bloopers blooper humor comedia videos graciosos'},
-  {id:'discovery',name:'Discovery Channel',category:'Documentales',description:'Ciencia, exploración y descubrimientos',keywords:'discovery documental ciencia exploracion'},
-  {id:'discovery-kids',name:'Discovery Kids',category:'Infantil',description:'Contenido educativo y familiar',keywords:'kids infantil niños educativo'},
-  {id:'animal-planet',name:'Animal Planet',category:'Naturaleza',description:'Animales y vida salvaje',keywords:'animal planet animales naturaleza fauna'},
-  {id:'discovery-turbo',name:'Discovery Turbo',category:'Motor',description:'Automóviles, motores y tecnología',keywords:'turbo coches autos motores automotive'},
-  {id:'cnn',name:'CNN',category:'Noticias',description:'Actualidad y noticias internacionales',keywords:'cnn noticias internacional actualidad'},
-  {id:'bbc-mundo',name:'BBC Mundo',category:'Noticias',description:'Información internacional en español',keywords:'bbc mundo noticias español'},
-  {id:'national-geographic',name:'National Geographic',category:'Ciencia y naturaleza',description:'Ciencia, fotografía y exploración',keywords:'national geographic natgeo ciencia animales'},
-  {id:'espn',name:'ESPN',category:'Deportes',description:'Deportes y actualidad deportiva',keywords:'espn futbol deportes'},
-  {id:'cartoon-network',name:'Cartoon Network',category:'Animación',description:'Series y entretenimiento animado',keywords:'cartoon network dibujos animados'}
- ];
  let timer=null,request=0;
- const savedKey='govi_followed_channels_v1';
- function followed(){try{return JSON.parse(localStorage.getItem(savedKey)||'[]')}catch(_){return []}}
- function saveFollow(id,on){const list=followed().filter(x=>x!==id);if(on)list.push(id);try{localStorage.setItem(savedKey,JSON.stringify(list))}catch(_){}}
  function open(){layer.classList.add('open');layer.setAttribute('aria-hidden','false')}
  function hide(){layer.classList.remove('open');layer.setAttribute('aria-hidden','true')}
  function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
- function channelRow(c){const isOn=followed().includes(c.id);return '<div class="govi-search-result"><div class="govi-search-result-avatar">G</div><div class="govi-search-result-copy"><strong>'+safe(c.name)+'</strong><small>Página temática de GOVI · '+safe(c.category)+' · '+safe(c.description)+'</small></div><button type="button" class="'+(isOn?'following':'')+'" data-channel-follow="'+safe(c.id)+'">'+(isOn?'Siguiendo':'Seguir')+'</button></div>'}
+ function pageRow(p,followed){
+  const avatar=p.avatar_url?'<img src="'+safe(p.avatar_url)+'" alt="">':safe((p.name||'G').trim().slice(0,1).toUpperCase());
+  return '<div class="govi-search-result"><div class="govi-search-result-avatar">'+avatar+'</div><div class="govi-search-result-copy"><strong>'+safe(p.name)+(p.is_verified?' ✓':'')+'</strong><small>Página oficial · '+safe(p.category||'General')+' · '+safe(p.description||'')+'</small></div><button type="button" class="'+(followed?'following':'')+'" data-page-follow="'+safe(p.id)+'" data-following="'+(followed?'1':'0')+'">'+(followed?'Siguiendo':'Seguir')+'</button></div>';
+ }
  function userRow(p){const name=p.display_name||p.full_name||'Usuario GOVI';const avatar=p.avatar_url?'<img src="'+safe(p.avatar_url)+'" alt="">':safe((name.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('')||'G').toUpperCase());return '<button type="button" class="govi-search-result" data-open-user="'+safe(p.id)+'" style="width:100%;text-align:left;color:inherit;border:0;cursor:pointer"><div class="govi-search-result-avatar">'+avatar+'</div><div class="govi-search-result-copy"><strong>'+safe(name)+'</strong><small>Persona · Usuario de GOVI</small></div><span aria-hidden="true">›</span></button>'}
  async function search(){
   const q=input.value.trim(),seq=++request;
-  if(!q){results.innerHTML='<div class="govi-search-empty">Escribe un nombre, una persona o un canal.</div>';return}
+  if(!q){results.innerHTML='<div class="govi-search-empty">Escribe un nombre, una persona o una página.</div>';return}
   results.innerHTML='<div class="govi-search-empty">Buscando en GOVI…</div>';
-  const terms=q.toLocaleLowerCase('es');
-  const matches=channels.filter(c=>(c.name+' '+c.category+' '+c.description+' '+c.keywords).toLocaleLowerCase('es').includes(terms)).slice(0,8);
-  let people=[],error=null;
+  const pattern='%'+q.replace(/[,%()]/g,' ').trim()+'%';
+  let people=[],pages=[],myFollows=[],error=null;
   try{
-   const pattern='%'+q.replace(/[,%()]/g,' ').trim()+'%';
-   const result=await supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').or('display_name.ilike.'+pattern+',full_name.ilike.'+pattern).limit(8);
-   people=result.data||[];error=result.error;
+   const [peopleResult,pageResult]=await Promise.all([
+    supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').or('display_name.ilike.'+pattern+',full_name.ilike.'+pattern).limit(8),
+    supabaseClient.from('govi_pages').select('id,name,slug,category,description,avatar_url,is_verified').eq('is_active',true).or('name.ilike.'+pattern+',category.ilike.'+pattern+',description.ilike.'+pattern).limit(12)
+   ]);
+   people=peopleResult.data||[];pages=pageResult.data||[];error=peopleResult.error||pageResult.error;
+   if(currentUser&&pages.length){
+    const follows=await supabaseClient.from('govi_page_follows').select('page_id').eq('follower_id',currentUser.id).in('page_id',pages.map(p=>p.id));
+    myFollows=(follows.data||[]).map(x=>x.page_id);
+   }
   }catch(e){error=e}
   if(seq!==request)return;
   let html='';
   if(people.length)html+='<div class="govi-search-section-title">Personas</div>'+people.map(userRow).join('');
-  if(matches.length)html+='<div class="govi-search-section-title">Páginas y canales</div>'+matches.map(channelRow).join('');
-  if(!html)html='<div class="govi-search-empty">'+(error?'No se pudo completar la búsqueda de personas. Revisa tu conexión e inténtalo de nuevo.':'No encontramos resultados para «'+safe(q)+'».')+'</div>';
+  if(pages.length)html+='<div class="govi-search-section-title">Páginas oficiales</div>'+pages.map(p=>pageRow(p,myFollows.includes(p.id))).join('');
+  if(!html)html='<div class="govi-search-empty">'+(error?'No se pudo completar la búsqueda. Comprueba que ejecutaste la migración de páginas oficiales en Supabase.':'No encontramos resultados para «'+safe(q)+'».')+'</div>';
   results.innerHTML=html;
  }
  input.addEventListener('focus',()=>{open();search()});
@@ -5747,9 +5740,19 @@ html body .govi-post-collage{width:100%!important}
  close.addEventListener('click',hide);
  layer.addEventListener('click',e=>{if(e.target===layer)hide()});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&layer.classList.contains('open'))hide()});
- results.addEventListener('click',e=>{
-  const follow=e.target.closest('[data-channel-follow]');
-  if(follow){const id=follow.dataset.channelFollow,on=!followed().includes(id);saveFollow(id,on);const c=channels.find(x=>x.id===id);if(c)follow.outerHTML=channelRow(c);if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();return}
+ results.addEventListener('click',async e=>{
+  const follow=e.target.closest('[data-page-follow]');
+  if(follow){
+   if(!currentUser){toast('Inicia sesión para seguir páginas');return}
+   const id=follow.dataset.pageFollow,wasOn=follow.dataset.following==='1';follow.disabled=true;
+   try{
+    const result=await supabaseClient.rpc(wasOn?'govi_unfollow_page':'govi_follow_page',{target_page_id:id});
+    if(result.error)throw result.error;
+    await search();
+    if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
+   }catch(err){console.error('GOVI page follow:',err);toast('No se pudo actualizar el seguimiento. Comprueba la migración de páginas.');follow.disabled=false}
+   return;
+  }
   const user=e.target.closest('[data-open-user]');
   if(user){hide();input.blur();if(typeof window.openGoviProfile==='function')window.openGoviProfile(user.dataset.openUser)}
  });
