@@ -8764,3 +8764,24 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   .post .demo-note{font-size:15px!important}
 }
 </style>
+
+<script id="govi-comment-actions-global-delegation-v1">
+/* Los controles Editar/Eliminar deben funcionar también cuando la publicación
+   o su panel de comentarios se muestra fuera del contenedor #feed. */
+(function(){
+ if(window.__goviCommentActionsGlobalV1)return;
+ window.__goviCommentActionsGlobalV1=true;
+ document.addEventListener('click',function(e){
+  const btn=e.target.closest('button[data-action="edit-comment"],button[data-action="delete-comment"]');
+  if(!btn)return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  const commentId=btn.dataset.id;
+  const postId=btn.dataset.postId;
+  if(!commentId||!postId)return;
+  if(btn.dataset.action==='edit-comment')editComment(commentId,postId);
+  else deleteComment(commentId,postId);
+ },true);
+})();
+</script>
