@@ -1655,18 +1655,19 @@ async function loadFeed(){
     });
     return card;
   };
-  let likes=[],comments=[];
+  let likes=[],comments=[],mediaLikes=[];
   if(posts?.length){
     const ids=posts.map(p=>p.id);
     try{
       const extra=await Promise.race([
         Promise.all([
           supabaseClient.from('post_likes').select('post_id,user_id').in('post_id',ids),
-          supabaseClient.from('post_comments').select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id').in('post_id',ids).order('created_at',{ascending:true})
+          supabaseClient.from('post_comments').select('id,post_id,user_id,content,created_at,updated_at,parent_comment_id').in('post_id',ids).order('created_at',{ascending:true}),
+          supabaseClient.from('post_media_likes').select('post_id,media_index,user_id').in('post_id',ids)
         ]),
         new Promise((_,reject)=>setTimeout(()=>reject(new Error('Datos complementarios lentos')),8000))
       ]);
-      likes=extra[0]?.data||[];comments=extra[1]?.data||[];
+      likes=extra[0]?.data||[];comments=extra[1]?.data||[];mediaLikes=extra[2]?.data||[];
     }catch(extraError){console.warn('GOVI: se muestran publicaciones sin reacciones/comentarios temporalmente:',extraError)}
   }
   const userIds=[...new Set([...(likes||[]).map(x=>x.user_id),...(comments||[]).map(x=>x.user_id),...(posts||[]).map(x=>x.user_id)])];
@@ -1693,7 +1694,7 @@ async function loadFeed(){
     return;
   }
   posts.forEach((post,index)=>{
-    feed.append(renderPost(post,likes||[],comments||[],profiles));
+    feed.append(renderPost(post,likes||[],comments||[],profiles,mediaLikes||[]));
     if(recommendedPages.length&&((index+1)%3===0)){
       const page=recommendedPages[Math.floor(index/3)%recommendedPages.length];
       feed.append(renderPageRecommendation(page));
@@ -1714,9 +1715,9 @@ async function loadFeed(){
 }
 // GOVI_NASA_APOD_FEED_V1: contenido APOD integrado con atribución y filtro conservador de derechos.
 
-function renderPost(post,likes,comments,profiles){    
+function renderPost(post,likes,comments,profiles,mediaLikes=[]){    
   const mine=currentUser&&post.user_id===currentUser.id;    
-  const postLikes=likes.filter(x=>x.post_id===post.id), postComments=comments.filter(x=>x.post_id===post.id);    
+  const postLikes=likes.filter(x=>x.post_id===post.id), postComments=comments.filter(x=>x.post_id===post.id), postPhotoLikes=mediaLikes.filter(x=>x.post_id===post.id);    
   const liked=!!currentUser&&postLikes.some(x=>x.user_id===currentUser.id);    
   const authorProfile=profiles[post.user_id]||{}; const author=authorProfile.name|| (mine?(currentUser?.user_metadata?.display_name||currentUser?.user_metadata?.full_name||'Tú'):'Usuario GOVI'); const authorAvatar=authorProfile.avatar;    
   const isMilagros=/^milagros(?:\s|$)/i.test(String(author||'').trim()); const article=document.createElement('article');article.className='post panel';article.id='post-'+post.id;article.dataset.kind=post.media_type==='gallery'?'image':(post.media_type||'text');article.dataset.search=(author+' '+(post.content||'')).toLowerCase();    
@@ -1736,7 +1737,7 @@ function renderPost(post,likes,comments,profiles){
     <div class="post-head"><div class="avatar ${isMilagros ? "govi-user-milagros" : ""}" data-user-id="${post.user_id}" style="overflow:hidden;cursor:pointer" title="Ver perfil de ${escapeHTML(author)}">${authorAvatar?`<img src="${escapeHTML(authorAvatar)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:escapeHTML(initials(author))}</div><div><div class="post-author ${isMilagros ? "govi-user-milagros" : ""}" data-user-id="${post.user_id}" style="cursor:pointer">${escapeHTML(author)}${mine?' · Tú':''}</div><div class="post-meta">${timeLabel(post.created_at)} · Público</div></div>    
     ${mine?`<button class="more" aria-label="Opciones" data-action="manage" data-id="${post.id}">···</button>`:''}</div>    
     ${post.content?`<p class="post-text">${escapeHTML(post.content)}</p>`:''}${media}    
-    <div class="post-stats"><span>💛 ${postLikes.length} Me gusta</span><span role="button" tabindex="0" data-action="comments" data-id="${post.id}" style="cursor:pointer">${postComments.length} comentarios</span></div>    
+    <div class="post-stats"><span>💛 ${(post.media_type==='gallery'?postPhotoLikes.length:postLikes.length)} Me gusta</span><span role="button" tabindex="0" data-action="comments" data-id="${post.id}" style="cursor:pointer">${postComments.length} comentarios</span></div>    
     <div class="post-buttons"><button class="${liked?'liked':''}" data-action="like" data-id="${post.id}">${liked?'♥ Te gusta':'♡ Me gusta'}</button><button data-action="comments" data-id="${post.id}">◯ Comentar</button><button data-action="share" data-id="${post.id}">↗ Compartir</button></div>    
     <div class="comments" id="comments-${post.id}"><div class="comment-list">${commentHTML||'<p class="demo-note">Sé el primero en comentar.</p>'}</div><div class="comment-form"><input maxlength="1000" placeholder="Escribe un comentario…" ${currentUser?'':'disabled'}><button data-action="send-comment" data-id="${post.id}" ${currentUser?'':'disabled'}>Enviar</button></div></div>`;    
   return article;    
@@ -5718,7 +5719,7 @@ window.openGoviLive=function(){
  document.addEventListener('keydown',e=>{if(!document.getElementById('goviMediaViewer')?.classList.contains('open'))return;if(e.key==='ArrowRight')move(-1);if(e.key==='ArrowLeft')move(1);if(e.key==='Escape')document.getElementById('goviMediaViewer').classList.remove('open')});
  document.addEventListener('error',e=>{const img=e.target;if(!(img instanceof HTMLImageElement)||!img.closest('.govi-post-collage'))return;const cell=img.closest('.govi-collage-cell');if(cell){cell.classList.add('govi-media-failed');img.remove();cell.removeAttribute('data-open-media');cell.disabled=true;cell.closest('.govi-post-collage')?.classList.add('govi-has-failed')}},true);
  let goviPhotoLikeRequest=0;window.goviRefreshViewerPhotoLike=async function(){const viewer=document.getElementById('goviMediaViewer'),state=window.__goviViewerCurrent;if(!viewer||!state)return;const postId=state.postId,mediaIndex=Number(state.index)||0,request=++goviPhotoLikeRequest,b=viewer.querySelector('[data-viewer-like]');if(b)b.textContent='♡ Me gusta';if(!currentUser)return;const {data,error}=await supabaseClient.from('post_media_likes').select('id').eq('post_id',postId).eq('media_index',mediaIndex).eq('user_id',currentUser.id).maybeSingle();if(request!==goviPhotoLikeRequest||window.__goviViewerCurrent?.postId!==postId||Number(window.__goviViewerCurrent?.index||0)!==mediaIndex)return;if(error){console.warn('GOVI per-photo like:',error);if(b)b.textContent='♡ Me gusta';return}if(b)b.textContent=data?'♥ Te gusta':'♡ Me gusta'};
- let goviViewerCommentsRequest=0;window.goviRefreshViewerComments=async function(){const viewer=document.getElementById('goviMediaViewer'),state=window.__goviViewerCurrent;if(!viewer||!state)return;const list=viewer.querySelector('[data-viewer-comment-list]');if(!list)return;const request=++goviViewerCommentsRequest,postId=state.postId,mediaIndex=Number(state.index)||0;list.textContent='Cargando comentarios…';const {data,error}=await supabaseClient.from('post_comments').select('user_id,content,created_at').eq('post_id',postId).eq('media_index',mediaIndex).order('created_at',{ascending:true});if(request!==goviViewerCommentsRequest||window.__goviViewerCurrent?.postId!==postId||Number(window.__goviViewerCurrent?.index||0)!==mediaIndex)return;if(error){list.textContent='No se pudieron cargar los comentarios';return}const rows=data||[];list.innerHTML=rows.map(c=>'<div style="padding:6px 0;border-bottom:1px solid #393020"><b>'+escapeHTML(c.user_id===currentUser?.id?'Tú':'Usuario GOVI')+'</b><div>'+escapeHTML(c.content)+'</div></div>').join('')||'Todavía no hay comentarios';const card=document.getElementById('post-'+postId),count=card?.querySelector('.post-stats [data-action="comments"]');if(count){const {count:total,error:countError}=await supabaseClient.from('post_comments').select('id',{count:'exact',head:true}).eq('post_id',postId);if(!countError)count.textContent=(total||0)+' comentarios'}const head=viewer.querySelector('.govi-viewer-head b');if(head)head.textContent='GOVI · '+(mediaIndex+1)+' / '+(state.items?.length||1)+' · '+rows.length+' comentarios'};async function loadViewerComments(){return window.goviRefreshViewerComments?.()}
+ let goviViewerCommentsRequest=0;window.goviRefreshViewerComments=async function(){const viewer=document.getElementById('goviMediaViewer'),state=window.__goviViewerCurrent;if(!viewer||!state)return;const list=viewer.querySelector('[data-viewer-comment-list]');if(!list)return;const request=++goviViewerCommentsRequest,postId=state.postId,mediaIndex=Number(state.index)||0;list.textContent='Cargando comentarios…';const {data,error}=await supabaseClient.from('post_comments').select('user_id,content,created_at').eq('post_id',postId).eq('media_index',mediaIndex).order('created_at',{ascending:true});if(request!==goviViewerCommentsRequest||window.__goviViewerCurrent?.postId!==postId||Number(window.__goviViewerCurrent?.index||0)!==mediaIndex)return;if(error){list.textContent='No se pudieron cargar los comentarios';return}const rows=data||[];list.innerHTML=rows.map(c=>'<div style="padding:6px 0;border-bottom:1px solid #393020"><b>'+escapeHTML(c.user_id===currentUser?.id?'Tú':'Usuario GOVI')+'</b><div>'+escapeHTML(c.content)+'</div></div>').join('')||'Todavía no hay comentarios';const card=document.getElementById('post-'+postId),count=card?.querySelector('.post-stats [data-action="comments"]');if(count){const {count:total,error:countError}=await supabaseClient.from('post_comments').select('id',{count:'exact',head:true}).eq('post_id',postId);if(!countError){count.textContent=(total||0)+' comentarios';const stats=card?.querySelector('.post-stats span:last-child');if(stats)stats.textContent=(total||0)+' comentarios'}}const head=viewer.querySelector('.govi-viewer-head b');if(head)head.textContent='GOVI · '+(mediaIndex+1)+' / '+(state.items?.length||1)+' · '+rows.length+' comentarios'};async function loadViewerComments(){return window.goviRefreshViewerComments?.()}
  document.addEventListener('click',e=>{if(!e.target.closest('#goviMediaViewer [data-viewer-comment]'))return;e.preventDefault();e.stopImmediatePropagation();document.querySelector('#goviMediaViewer [data-viewer-comment-input]')?.focus();},true);
 })();
 </script>
