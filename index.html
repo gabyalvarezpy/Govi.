@@ -1010,6 +1010,41 @@ html body #goviProfileView #goviProfileDescription{
 .govi-header-search-button svg{display:block!important;width:23px!important;height:23px!important;fill:none!important;stroke:currentColor!important;stroke-width:2.1!important;stroke-linecap:round!important;stroke-linejoin:round!important}
 @media(max-width:700px){.govi-header-search-button{width:40px!important;height:40px!important;min-width:40px!important;border-radius:12px!important}}
 </style>
+
+<style id="govi-mobile-fit-and-search-input-fix">
+/* Campo real dentro del buscador universal */
+#goviUniversalSearchInputWrap{padding:14px 18px 4px}
+#goviUniversalSearchInput{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;height:52px!important;padding:0 16px!important;border:1px solid #51452d!important;border-radius:13px!important;background:#090a0d!important;color:#fff!important;font:500 16px/1.2 system-ui,sans-serif!important;outline:none!important;opacity:1!important;visibility:visible!important}
+#goviUniversalSearchInput::placeholder{color:#999da8!important;opacity:1}
+#goviUniversalSearchInput:focus{border-color:#d6ad58!important;box-shadow:0 0 0 3px #d6ad5826!important}
+#goviUniversalSearchResults{padding-top:10px!important}
+/* Header fluido: evita que el avatar GA quede fuera de pantalla */
+@media(max-width:700px){
+ .govi-topbar{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;padding-left:10px!important;padding-right:10px!important;gap:8px!important;overflow:visible!important}
+ .govi-brand{flex:1 1 auto!important;min-width:0!important;width:auto!important;gap:8px!important}
+ .govi-brand .brand-mark{flex:0 0 38px!important;width:38px!important;height:38px!important}
+ .govi-brand-copy{min-width:0!important}
+ .govi-brand-copy strong{font-size:clamp(16px,4.6vw,20px)!important;letter-spacing:2px!important}
+ .govi-brand-copy small{font-size:clamp(6px,1.8vw,8px)!important;letter-spacing:1px!important;white-space:nowrap!important}
+ .govi-top-actions{flex:0 0 auto!important;min-width:0!important;gap:5px!important;margin-left:auto!important}
+ .govi-top-actions .govi-header-search-button,.govi-top-actions .govi-notify-btn,.govi-top-actions .avatar{box-sizing:border-box!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:12px!important}
+ .govi-top-actions .avatar{font-size:14px!important;overflow:hidden!important}
+}
+/* Mostrar la portada completa sin recortar laterales */
+.profile-cover{height:auto!important;aspect-ratio:2.65/1!important;min-height:0!important;overflow:hidden!important;background:#080808!important}
+.profile-cover img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;background:#080808!important}
+@media(max-width:700px){
+ .profile-cover{aspect-ratio:2.55/1!important;max-height:none!important}
+ .profile-info{box-sizing:border-box!important;max-width:100%!important}
+}
+@media(max-width:380px){
+ .govi-topbar{gap:5px!important;padding-left:7px!important;padding-right:7px!important}
+ .govi-brand{gap:6px!important}
+ .govi-brand .brand-mark{flex-basis:34px!important;width:34px!important;height:34px!important}
+ .govi-top-actions{gap:3px!important}
+ .govi-top-actions .govi-header-search-button,.govi-top-actions .govi-notify-btn,.govi-top-actions .avatar{flex-basis:36px!important;width:36px!important;min-width:36px!important;height:36px!important}
+}
+</style>
 </head>    
 <body>    
 <header class="topbar govi-topbar">
@@ -5615,12 +5650,13 @@ html body .govi-post-collage{width:100%!important}
 <div id="goviUniversalSearchLayer" aria-hidden="true">
  <section id="goviUniversalSearchPanel" role="dialog" aria-modal="true" aria-label="Buscar en GOVI">
   <header id="goviUniversalSearchHead"><div><span class="govi-kicker">PERSONAS Y PÁGINAS</span><h2>Buscar en GOVI</h2></div><button id="goviUniversalSearchClose" type="button" aria-label="Cerrar">×</button></header>
+  <div id="goviUniversalSearchInputWrap"><input id="goviUniversalSearchInput" type="search" inputmode="search" autocomplete="off" placeholder="Buscar personas o canales…" aria-label="Escribe para buscar en GOVI"></div>
   <div id="goviUniversalSearchResults"><div class="govi-search-empty">Escribe para encontrar personas y canales.</div></div>
  </section>
 </div>
 <script id="govi-universal-search-v1">
 (function(){
- const input=document.getElementById('searchInput'),layer=document.getElementById('goviUniversalSearchLayer'),results=document.getElementById('goviUniversalSearchResults'),close=document.getElementById('goviUniversalSearchClose');
+ const input=document.getElementById('goviUniversalSearchInput')||document.getElementById('searchInput'),layer=document.getElementById('goviUniversalSearchLayer'),results=document.getElementById('goviUniversalSearchResults'),close=document.getElementById('goviUniversalSearchClose');
  if(!input||!layer||!results||!close)return;
  const channels=[
   {id:'bloopers',name:'Canal de Bloopers',category:'Entretenimiento',description:'Humor y momentos divertidos',keywords:'bloopers blooper humor comedia videos graciosos'},
