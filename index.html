@@ -8622,3 +8622,28 @@ window.goviOpenCropEditor = goviOpenCropEditor;
  if(typeof oldOpen==='function')window.goviOpenMediaViewer=function(...args){reset();const out=oldOpen.apply(this,args);setTimeout(fit,80);return out};
 })();
 </script>
+
+<style id="govi-album-comment-panel-pinned-v5">
+/* Mantener el formulario siempre visible; solo la lista de comentarios se desplaza. */
+#goviMediaViewer{box-sizing:border-box!important;overflow:hidden!important}
+#goviMediaViewer.open{display:flex!important;flex-direction:column!important}
+#goviMediaViewer .govi-viewer-head{flex:0 0 54px!important}
+#goviMediaViewer .govi-viewer-stage{flex:1 1 0!important;min-height:0!important;overflow:hidden!important}
+#goviMediaViewer .govi-viewer-actions{flex:0 0 auto!important}
+#goviMediaViewer .govi-viewer-comments{display:flex!important;flex:0 0 auto!important;flex-direction:column!important;width:100%!important;max-height:min(34dvh,250px)!important;min-height:108px!important;box-sizing:border-box!important;overflow:hidden!important;padding:8px 12px calc(8px + env(safe-area-inset-bottom))!important}
+#goviMediaViewer [data-viewer-comment-list]{flex:1 1 auto!important;min-height:28px!important;max-height:none!important;overflow-y:auto!important;overscroll-behavior:contain!important}
+#goviMediaViewer [data-viewer-comment-form]{display:flex!important;flex:0 0 auto!important;align-items:stretch!important;gap:8px!important;margin-top:8px!important;min-height:46px!important}
+#goviMediaViewer [data-viewer-comment-input]{flex:1 1 auto!important;width:0!important;min-width:0!important;height:46px!important;max-height:46px!important;align-self:stretch!important;font-size:16px!important;line-height:1.3!important;}
+#goviMediaViewer [data-viewer-comment-form] button{flex:0 0 auto!important;height:46px!important;min-height:46px!important}
+@media(max-width:700px){#goviMediaViewer .govi-viewer-comments{max-height:min(36dvh,230px)!important;min-height:104px!important;padding-bottom:8px!important}#goviMediaViewer .govi-viewer-stage{min-height:50px!important}}
+</style>
+<script id="govi-album-comment-panel-pinned-v5-script">
+(function(){
+ if(window.__goviAlbumCommentPanelPinnedV5)return;window.__goviAlbumCommentPanelPinnedV5=true;
+ const v=()=>document.getElementById('goviMediaViewer');
+ function fit(){const el=v(),vv=window.visualViewport;if(!el||!vv||!el.classList.contains('open'))return;el.style.top=vv.offsetTop+'px';el.style.height=vv.height+'px';el.style.bottom='auto'}
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',fit);window.visualViewport.addEventListener('scroll',fit)}
+ document.addEventListener('focusin',e=>{if(!e.target.matches('#goviMediaViewer [data-viewer-comment-input]'))return;setTimeout(fit,60)});
+ const open=window.goviOpenMediaViewer;if(typeof open==='function')window.goviOpenMediaViewer=function(...a){const out=open.apply(this,a);setTimeout(fit,80);return out};
+})();
+</script>
