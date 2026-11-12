@@ -1401,40 +1401,80 @@ $('mediaFile').addEventListener('change',e=>{
    selectedFiles.forEach(f=>{const url=URL.createObjectURL(f);const el=f.type.startsWith('video/')?document.createElement('video'):document.createElement('img');el.src=url;if(el.tagName==='VIDEO'){el.muted=true;el.playsInline=true}else el.alt='Vista previa';el.style.cssText='width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#111';grid.appendChild(el)});
   }
 });
-async function uploadMedia(file,userId){    
-  const ext=(file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');    
-  const path=`${userId}/${Date.now()}-${crypto.randomUUID()}.${ext}`;    
-  const {error}=await supabaseClient.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});    
-  if(error)throw error;    
-  const {data}=supabaseClient.storage.from(BUCKET).getPublicUrl(path);    
-  return {url:data.publicUrl,type:file.type.startsWith('video/')?'video':'image',path};    
-}    
-async function publishPost(){    
-  if(!currentUser){toast('Inicia sesión para publicar');openModal('authModal');return}    
-  const content=$('postText').value.trim(), editId=$('publishButton').dataset.editId;
+async function uploadMedia(file,userId){
+  const mime=(typeof goviMediaMime==='function'?goviMediaMime(file):'')||file.type||'application/octet-stream';
+  const ext=(String(file.name||'archivo').split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'')||'bin';
+  const path=String(userId)+'/'+Date.now()+'-'+crypto.randomUUID()+'.'+ext;
+  let lastError=null;
+  for(let attempt=0;attempt<3;attempt++){
+    try{
+      const {error}=await supabaseClient.storage.from(BUCKET).upload(path,file,{
+        cacheControl:'3600',upsert:false,contentType:mime
+      });
+      if(error)throw error;
+      const {data}=supabaseClient.storage.from(BUCKET).getPublicUrl(path);
+      return {url:data.publicUrl,type:mime.startsWith('video/')?'video':'image',path};
+    }catch(error){
+      lastError=error;
+      const message=String(error?.message||error||'Error de red');
+      console.error('GOVI upload intento '+(attempt+1)+' para '+file.name+':',error);
+      if(attempt<2 && /failed to fetch|network|fetch|timeout|load failed/i.test(message)){
+        await new Promise(resolve=>setTimeout(resolve,800*(attempt+1)));
+        continue;
+      }
+      break;
+    }
+  }
+  throw new Error('No se pudo subir "'+(file.name||'el archivo')+'". '+String(lastError?.message||'Comprueba la conexión y el almacenamiento de GOVI.'));
+}
+async function publishPost(){
+  if(!currentUser){toast('Inicia sesión para publicar');openModal('authModal');return}
+  const content=$('postText').value.trim(),editId=$('publishButton').dataset.editId;
   const files=selectedFiles.length?selectedFiles:(selectedFile?[selectedFile]:[]);
   if(!content&&!files.length&&!editId){toast('Escribe algo o añade fotos/vídeo');return}
   if(editId&&files.length>1){toast('Para editar una publicación, selecciona un solo archivo.');return}
-  const button=$('publishButton');button.disabled=true;button.textContent=editId?'Guardando…':'Publicando…';
+  const button=$('publishButton');
+  button.disabled=true;
+  button.textContent=editId?'Guardando…':(files.length>1?'Preparando collage…':'Publicando…');
+  let gallery=[];
   try{
-    let media={url:null,type:null,path:null},gallery=[];
-    if(files.length){for(const file of files){const uploaded=await uploadMedia(file,currentUser.id);gallery.push(uploaded)}media=gallery[0];}
-    
-    if(editId){    
-      const update={content,updated_at:new Date().toISOString()};    
-      if(selectedFile){update.media_url=media.url;update.media_type=media.type;update.media_path=media.path}    
-      const {error}=await supabaseClient.from('posts').update(update).eq('id',editId).eq('user_id',currentUser.id);    
-      if(error)throw error;    
-      toast('Publicación actualizada');    
-    }else{    
-      const galleryPath=gallery.length>1?'GOVI_MEDIA_V1:'+JSON.stringify(gallery):media.path;const {error}=await supabaseClient.from('posts').insert({user_id:currentUser.id,content,media_url:media.url,media_type:gallery.length>1?'gallery':media.type,media_path:galleryPath});    
-      if(error)throw error;    
-      toast('¡Publicación compartida en GOVI!');    
-    }    
-    resetComposer();closeModal('postModal');await loadFeed();    
-  }catch(error){console.error(error);toast('No se pudo guardar: '+(error.message||'revisa la configuración de Supabase'))}    
-  finally{button.disabled=false;button.textContent=$('publishButton').dataset.editId?'Guardar cambios':'Publicar'}    
-}    
+    let media={url:null,type:null,path:null};
+    if(files.length){
+      for(let index=0;index<files.length;index++){
+        button.textContent=files.length>1?'Subiendo '+(index+1)+' de '+files.length+'…':'Subiendo archivo…';
+        const uploaded=await uploadMedia(files[index],currentUser.id);
+        gallery.push(uploaded);
+      }
+      media=gallery[0];
+    }
+    if(editId){
+      const update={content,updated_at:new Date().toISOString()};
+      if(selectedFile){update.media_url=media.url;update.media_type=media.type;update.media_path=media.path}
+      const {error}=await supabaseClient.from('posts').update(update).eq('id',editId).eq('user_id',currentUser.id);
+      if(error)throw error;
+      toast('Publicación actualizada');
+    }else{
+      const galleryPath=gallery.length>1?'GOVI_MEDIA_V1:'+JSON.stringify(gallery):media.path;
+      const {error}=await supabaseClient.from('posts').insert({
+        user_id:currentUser.id,content,media_url:media.url,
+        media_type:gallery.length>1?'gallery':media.type,media_path:galleryPath
+      });
+      if(error)throw error;
+      toast('¡Publicación compartida en GOVI!');
+    }
+    resetComposer();closeModal('postModal');await loadFeed();
+  }catch(error){
+    console.error('GOVI: error al publicar:',error);
+    if(gallery.length){
+      try{await supabaseClient.storage.from(BUCKET).remove(gallery.map(item=>item.path).filter(Boolean))}
+      catch(cleanupError){console.warn('GOVI: no se pudieron limpiar archivos de una publicación fallida:',cleanupError)}
+    }
+    toast('No se pudo guardar: '+String(error?.message||'Error desconocido'));
+  }finally{
+    button.disabled=false;
+    button.textContent=$('publishButton').dataset.editId?'Guardar cambios':'Publicar';
+  }
+}
 const GOVI_HIDDEN_PAGE_NAMES=['nasa','nasa en español','discovery turbo','canal de bloopers','espn'];
 function goviIsHiddenPage(page){return blocked.includes(String(page?.name||'').trim().toLowerCase())}
 async function loadFeed(){
