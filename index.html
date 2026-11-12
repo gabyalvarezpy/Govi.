@@ -1746,7 +1746,7 @@ $('feed').addEventListener('click',async e=>{
   const btn=e.target.closest('[data-action]');if(!btn)return;    
   const {action,id}=btn.dataset;    
   if(action==='like')return toggleLike(id);    
-  if(action==='comments'){const area=$('comments-'+id);area.classList.toggle('open');if(area.classList.contains('open'))area.querySelector('input')?.focus();return}    
+  if(action==='comments'){const area=$('comments-'+id);if(area){area.classList.add('open');const list=area.querySelector('.comment-list');if(list)list.scrollIntoView({behavior:'smooth',block:'nearest'});}return}    
   if(action==='share')return sharePost(id);    
   if(action==='manage')return managePost(id);    
   if(action==='send-comment')return addComment(id,btn);
@@ -8744,5 +8744,23 @@ window.goviOpenCropEditor = goviOpenCropEditor;
     flex:0 0 auto!important;
     min-height:48px!important;
   }
+}
+</style>
+
+<style id="govi-desktop-comments-readable-v1">
+/* Lectura cómoda de comentarios en ordenador; móvil permanece sin cambios. */
+@media screen and (min-width:900px){
+  .post .post-stats{font-size:15px!important}
+  .post .post-stats [data-action="comments"]{font-size:15px!important}
+  .post .post-buttons button{font-size:16px!important;min-height:48px!important}
+  .post .comments.open{padding:16px 12px 12px!important}
+  .post .comment-list{gap:12px!important;margin:12px 0 16px!important}
+  .post .comment{font-size:16px!important;line-height:1.65!important;padding:15px 17px!important}
+  .post .comment b{font-size:16px!important}
+  .post .comment .post-meta{font-size:13px!important}
+  .post .comment-actions button{font-size:14px!important;min-height:34px!important;padding:6px 10px!important}
+  .post .comment-form input{font-size:16px!important;min-height:54px!important;padding:13px 17px!important}
+  .post .comment-form button{font-size:15px!important;min-height:54px!important;padding:0 20px!important}
+  .post .demo-note{font-size:15px!important}
 }
 </style>
