@@ -1660,34 +1660,46 @@ async function loadFeed(){
 }
 // GOVI_NASA_APOD_FEED_V1: contenido APOD integrado con atribución y filtro conservador de derechos.
 async function loadGoviNasaApodFeed(feed){
+  const addStatus=(message)=>{
+    const note=document.createElement('div');
+    note.className='panel govi-nasa-status';
+    note.style.cssText='padding:14px 16px;margin:12px 0;border:1px solid #263c5b;border-radius:16px;background:#101a2a;color:#dce9ff';
+    note.textContent=message;
+    feed.append(note);
+  };
   try{
-    let items=window.__goviNasaApodItems;
-    if(!items){
-      const response=await fetch('https://science.nasa.gov/wp-json/wp/v2/apod-basic/?count=8',{headers:{'Accept':'application/json'}});
-      if(!response.ok)throw new Error('NASA APOD respondió '+response.status);
-      const payload=await response.json();
-      items=Array.isArray(payload)?payload:(Array.isArray(payload?.items)?payload.items:[payload]);
-      window.__goviNasaApodItems=items;
+    const response=await fetch('https://science.nasa.gov/wp-json/wp/v2/apod-basic/?count=25',{headers:{'Accept':'application/json'}});
+    if(!response.ok)throw new Error('NASA APOD respondió '+response.status);
+    const payload=await response.json();
+    const items=Array.isArray(payload)?payload:(Array.isArray(payload?.items)?payload.items:(payload&&typeof payload==='object'?[payload]:[]));
+    const safeItems=items.filter(item=>{
+      if(!item||item.media_type!=='image'||!item.hdurl)return false;
+      const rights=String(item.copyright||'').replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').trim();
+      if(!rights)return true;
+      return /^(NASA|National Aeronautics and Space Administration|Public Domain|U\.S\. Government)$/i.test(rights);
+    }).slice(0,6);
+    if(!safeItems.length){
+      addStatus('NASA: no hay imágenes APOD disponibles con derechos claros para mostrar ahora mismo.');
+      console.warn('GOVI NASA APOD: respuesta recibida sin imágenes que superen el filtro de derechos.',items.slice(0,3));
+      return;
     }
-    const safeItems=(items||[]).filter(item=>
-      item && item.media_type==='image' && item.hdurl &&
-      (!item.copyright || !String(item.copyright).trim())
-    );
     safeItems.forEach(item=>{
       const card=document.createElement('article');
       card.className='post panel govi-nasa-external-post';
       card.dataset.kind='image';
       card.dataset.search=('NASA ciencia espacio '+(item.title||'')+' '+(item.explanation||'')).toLowerCase();
       const title=escapeHTML(item.title||'Imagen astronómica del día');
-      const explanation=escapeHTML(item.explanation||'');
+      const explanation=escapeHTML(String(item.explanation||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim());
       const date=escapeHTML(item.date||'');
       const image=escapeHTML(item.hdurl);
       const alt=escapeHTML(item.alt||item.title||'Imagen astronómica publicada por NASA');
-      card.innerHTML='<div class="post-head"><div class="avatar" aria-hidden="true" style="background:#17243a;color:#fff">N</div><div><div class="post-author">NASA · Astronomy Picture of the Day</div><div class="post-meta">'+date+' · Fuente externa</div></div></div><div class="post-content"><strong>'+title+'</strong><p>'+explanation+'</p></div><img class="post-media" loading="lazy" src="'+image+'" alt="'+alt+'"><div class="post-meta" style="padding:10px 14px">Imagen y descripción: NASA/APOD. Se muestra contenido sin crédito de terceros identificado en la respuesta de la fuente.</div>';
+      const source=escapeHTML(item.permalink||item.url||'https://science.nasa.gov/solar-system/');
+      card.innerHTML='<div class="post-head"><div class="avatar" aria-hidden="true" style="background:#17243a;color:#fff">N</div><div><div class="post-author">NASA · Astronomy Picture of the Day</div><div class="post-meta">'+date+' · Fuente oficial NASA</div></div></div><div class="post-content"><strong>'+title+'</strong><p>'+explanation+'</p></div><img class="post-media" loading="lazy" src="'+image+'" alt="'+alt+'"><div class="post-meta" style="padding:10px 14px">Imagen: NASA/APOD · <a href="'+source+'" target="_blank" rel="noopener noreferrer" style="color:#d8b965">Fuente original</a></div>';
       feed.append(card);
     });
   }catch(error){
     console.warn('GOVI NASA APOD: no se pudo cargar el contenido:',error);
+    addStatus('No se pudo conectar con NASA ahora mismo. Inténtalo de nuevo en unos minutos.');
   }
 }
 function renderPost(post,likes,comments,profiles){    
