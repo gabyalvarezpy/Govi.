@@ -1629,7 +1629,7 @@ async function loadFeed(){
   feed.replaceChildren();
   await loadGoviNasaApodFeed(feed);
   if(!posts?.length&&!recommendedPages.length&&!recommendedPeople.length){
-    feed.innerHTML='<section class="panel" style="padding:22px;text-align:center"><b>¡Bienvenido a GOVI!</b><p class="demo-note">Todavía no hay publicaciones. Sé el primero en compartir una foto, un vídeo o una idea.</p></section>';
+    feed.insertAdjacentHTML('beforeend','<section class="panel" style="padding:22px;text-align:center"><b>¡Bienvenido a GOVI!</b><p class="demo-note">Todavía no hay publicaciones. Sé el primero en compartir una foto, un vídeo o una idea.</p></section>');
     return;
   }
   if(!posts?.length){
@@ -7975,7 +7975,7 @@ window.goviOpenCropEditor = goviOpenCropEditor;
      const p=pagesById.get(entry.id);if(!p)return '';
      const name=p.name||'Página GOVI';
      const avatar=p.avatar_url?'<img src="'+escapeHTML(p.avatar_url)+'" alt="">':escapeHTML((name.trim().split(/\\s+/).slice(0,2).map(x=>x[0]).join('')||'G').toUpperCase());
-     return '<div class="govi-social-list-row"><span class="govi-social-list-avatar">'+avatar+'</span><span class="govi-social-list-name">'+escapeHTML(name)+'<small style="display:block;color:#b8b3a8;font-weight:500">Página oficial · '+escapeHTML(p.category||'General')+'</small></span></div>';
+     return '<div class="govi-social-list-row" data-govi-page="'+escapeHTML(entry.id)+'" role="button" tabindex="0" style="cursor:pointer"><span class="govi-social-list-avatar">'+avatar+'</span><span class="govi-social-list-name" style="flex:1">'+escapeHTML(name)+'<small style="display:block;color:#b8b3a8;font-weight:500">Página oficial · '+escapeHTML(p.category||'General')+'</small></span>'+(isFollowing&&profileId===(window.currentUser?.id||window.goviCurrentUser?.id)?'<button type="button" data-govi-unfollow-page="'+escapeHTML(entry.id)+'" style="padding:9px 12px;border:1px solid #cba65c;border-radius:10px;background:#29251d;color:#f1d27d;font-weight:800">Siguiendo</button>':'')+'</div>';
     }
     const p=profilesById.get(entry.id)||{},name=p.display_name||p.full_name||'Usuario GOVI';
     const avatar=p.avatar_url?'<img src="'+escapeHTML(p.avatar_url)+'" alt="">':escapeHTML(name.trim().split(/\\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'G');
@@ -7984,6 +7984,24 @@ window.goviOpenCropEditor = goviOpenCropEditor;
    body.querySelectorAll('[data-govi-user]').forEach(btn=>btn.addEventListener('click',()=>{
     const id=btn.dataset.goviUser;close();
     if(typeof window.openGoviProfile==='function')window.openGoviProfile(id);
+   }));
+   body.querySelectorAll('[data-govi-page]').forEach(row=>row.addEventListener('click',e=>{
+    if(e.target.closest('[data-govi-unfollow-page]'))return;
+    const id=row.dataset.goviPage;close();
+    if(typeof window.goviOpenOfficialPage==='function')window.goviOpenOfficialPage(id);
+   }));
+   body.querySelectorAll('[data-govi-page]').forEach(row=>row.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&!e.target.closest('[data-govi-unfollow-page]')){e.preventDefault();const id=row.dataset.goviPage;close();if(typeof window.goviOpenOfficialPage==='function')window.goviOpenOfficialPage(id)}
+   }));
+   body.querySelectorAll('[data-govi-unfollow-page]').forEach(btn=>btn.addEventListener('click',async e=>{
+    e.stopPropagation();btn.disabled=true;
+    try{
+     const {error}=await c.rpc('govi_unfollow_page',{target_page_id:btn.dataset.goviUnfollowPage});
+     if(error)throw error;
+     await show('following');
+     if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
+     if(typeof loadFeed==='function')await loadFeed();
+    }catch(err){console.error('GOVI unfollow page:',err);btn.disabled=false;toast('No se pudo dejar de seguir esta página.')}
    }));
   }catch(error){
    console.error('GOVI lista social:',error);
