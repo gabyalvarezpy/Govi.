@@ -2824,9 +2824,55 @@ let goviGalleryItems=[],goviGalleryIndex=0,goviGalleryType='avatar',goviGalleryO
 const goviPhotoViewer=document.createElement('div');
 goviPhotoViewer.id='goviPhotoViewer';
 goviPhotoViewer.style.cssText='display:none;position:fixed;inset:0;z-index:12000;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:18px;flex-direction:column;gap:12px';
-goviPhotoViewer.innerHTML='<button type="button" id="goviGalleryClose" aria-label="Cerrar" style="position:absolute;top:15px;right:16px;background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:42px;height:42px;font-size:25px">×</button><div style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;height:78vh"><button id="goviGalleryPrev" type="button" style="background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:42px;height:42px;font-size:24px">‹</button><img id="goviGalleryImage" alt="Foto ampliada" style="max-width:78vw;max-height:75vh;object-fit:contain;border-radius:12px"><button id="goviGalleryNext" type="button" style="background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:42px;height:42px;font-size:24px">›</button></div><div id="goviGalleryCount" style="color:#f4d27b;font-size:13px"></div><button id="goviGalleryDelete" type="button" style="display:none;background:#492020;color:#ffd0d0;border:1px solid #a55;border-radius:10px;padding:9px 14px">Eliminar esta foto</button>';
+goviPhotoViewer.innerHTML='<button type="button" id="goviGalleryClose" aria-label="Cerrar" style="position:absolute;top:12px;right:14px;z-index:5;background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:42px;height:42px;font-size:25px">×</button><div style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:min(62vh,620px);min-height:180px"><button id="goviGalleryPrev" type="button" style="background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:40px;height:40px;font-size:24px;flex:0 0 40px">‹</button><img id="goviGalleryImage" alt="Foto ampliada" style="max-width:min(76vw,900px);max-height:60vh;object-fit:contain;border-radius:12px"><button id="goviGalleryNext" type="button" style="background:#292116;color:#fff;border:1px solid #8b6b2d;border-radius:50%;width:40px;height:40px;font-size:24px;flex:0 0 40px">›</button></div><div id="goviGalleryCount" style="color:#f4d27b;font-size:13px"></div><section id="goviGalleryInteractions" style="width:min(620px,100%);max-height:27vh;overflow:auto;background:#171717;border:1px solid #51452d;border-radius:14px;padding:12px;color:#fff"><div id="goviGalleryReactionRow" style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:8px"></div><div id="goviGalleryCommentList" style="max-height:110px;overflow:auto;font-size:13px"></div><form id="goviGalleryCommentForm" style="display:flex;gap:7px;margin-top:9px"><input id="goviGalleryCommentInput" maxlength="1000" placeholder="Escribe un comentario sobre esta foto…" style="min-width:0;flex:1;background:#090909;color:#fff;border:1px solid #69552f;border-radius:10px;padding:10px"><button type="submit" style="background:linear-gradient(120deg,#f4d989,#b77b18);color:#17120a;border:0;border-radius:10px;padding:0 14px;font-weight:900">Enviar</button></form></section><button id="goviGalleryDelete" type="button" style="display:none;background:#492020;color:#ffd0d0;border:1px solid #a55;border-radius:10px;padding:9px 14px">Eliminar esta foto</button>';
 document.body.appendChild(goviPhotoViewer);
-function goviRenderGallery(){if(!goviGalleryItems.length)return;const item=goviGalleryItems[goviGalleryIndex];$('goviGalleryImage').src=item.url;$('goviGalleryCount').textContent=(goviGalleryIndex+1)+' / '+goviGalleryItems.length;$('goviGalleryPrev').style.visibility=goviGalleryItems.length>1?'visible':'hidden';$('goviGalleryNext').style.visibility=goviGalleryItems.length>1?'visible':'hidden';$('goviGalleryDelete').style.display=currentUser&&currentUser.id===goviGalleryOwner?'block':'none'}
+function goviGalleryPhotoKey(item){return 'govi-photo:'+goviGalleryOwner+':'+goviGalleryType+':'+String(item?.id||item?.path||item?.url||'').trim()}
+function goviRenderGallery(){if(!goviGalleryItems.length)return;const item=goviGalleryItems[goviGalleryIndex];$('goviGalleryImage').src=item.url;$('goviGalleryCount').textContent=(goviGalleryIndex+1)+' / '+goviGalleryItems.length;$('goviGalleryPrev').style.visibility=goviGalleryItems.length>1?'visible':'hidden';$('goviGalleryNext').style.visibility=goviGalleryItems.length>1?'visible':'hidden';$('goviGalleryDelete').style.display=currentUser&&currentUser.id===goviGalleryOwner?'block':'none';goviLoadGalleryInteractions()}
+async function goviLoadGalleryInteractions(){
+  const item=goviGalleryItems[goviGalleryIndex];if(!item)return;
+  const key=goviGalleryPhotoKey(item),row=$('goviGalleryReactionRow'),list=$('goviGalleryCommentList');
+  row.innerHTML='<span style="color:#aaa;font-size:12px">Cargando reacciones…</span>';list.innerHTML='';
+  try{
+    const [{data:reactions,error:reErr},{data:comments,error:comErr}]=await Promise.all([
+      supabaseClient.from('profile_photo_reactions').select('user_id,reaction').eq('photo_key',key),
+      supabaseClient.from('profile_photo_comments').select('id,user_id,content,created_at').eq('photo_key',key).order('created_at',{ascending:true})
+    ]);
+    if(reErr)throw reErr;if(comErr)throw comErr;
+    if(goviGalleryPhotoKey(goviGalleryItems[goviGalleryIndex])!==key)return;
+    const mine=(reactions||[]).find(x=>currentUser&&x.user_id===currentUser.id);
+    const counts={};(reactions||[]).forEach(x=>counts[x.reaction]=(counts[x.reaction]||0)+1);
+    const emojis=['👍','❤️','😂','😮','😢','🔥'];
+    row.innerHTML='<span style="font-weight:800;margin-right:3px">Reaccionar</span>'+emojis.map(emoji=>'<button type="button" data-gallery-reaction="'+emoji+'" aria-pressed="'+(mine?.reaction===emoji)+'" style="border:1px solid '+(mine?.reaction===emoji?'#e8c66a':'#51452d')+';background:'+(mine?.reaction===emoji?'#4a3918':'#101010')+';color:white;border-radius:20px;padding:6px 9px">'+emoji+' '+(counts[emoji]||'')+'</button>').join('')+'<span style="color:#aaa;font-size:12px">'+(reactions||[]).length+' reacciones</span>';
+    if(!(comments||[]).length){list.innerHTML='<p style="color:#aaa;margin:7px 0">Todavía no hay comentarios. ¡Sé el primero!</p>';return}
+    const ids=[...new Set(comments.map(c=>c.user_id))],profiles={};
+    if(ids.length){const {data}=await supabaseClient.from('profiles').select('id,full_name,display_name,avatar_url').in('id',ids);(data||[]).forEach(p=>profiles[p.id]=p)}
+    list.innerHTML=(comments||[]).map(c=>{const p=profiles[c.user_id]||{};const name=p.display_name||p.full_name||(currentUser&&c.user_id===currentUser.id?'Tú':'Usuario GOVI');return '<div style="padding:7px 0;border-bottom:1px solid #393020"><b>'+escapeHTML(name)+'</b><span style="color:#aaa;font-size:11px;margin-left:7px">'+timeLabel(c.created_at)+'</span><div style="margin-top:3px;overflow-wrap:anywhere">'+escapeHTML(c.content)+'</div></div>'}).join('');
+  }catch(error){console.error('GOVI gallery interactions:',error);row.innerHTML='<span style="color:#ffb0a0;font-size:12px">No se pudieron cargar las interacciones. Comprueba la configuración de Supabase.</span>';list.innerHTML=''}
+}
+$('goviGalleryReactionRow').addEventListener('click',async e=>{
+  const btn=e.target.closest('[data-gallery-reaction]');if(!btn)return;
+  if(!currentUser){toast('Inicia sesión para reaccionar');openModal('authModal');return}
+  const item=goviGalleryItems[goviGalleryIndex];if(!item)return;
+  const key=goviGalleryPhotoKey(item),reaction=btn.dataset.galleryReaction;
+  try{
+    const {data:existing,error:readError}=await supabaseClient.from('profile_photo_reactions').select('reaction').eq('photo_key',key).eq('user_id',currentUser.id).maybeSingle();if(readError)throw readError;
+    let result;
+    if(existing?.reaction===reaction)result=await supabaseClient.from('profile_photo_reactions').delete().eq('photo_key',key).eq('user_id',currentUser.id);
+    else result=await supabaseClient.from('profile_photo_reactions').upsert({photo_key:key,owner_id:goviGalleryOwner,user_id:currentUser.id,reaction},{onConflict:'photo_key,user_id'});
+    if(result.error)throw result.error;await goviLoadGalleryInteractions();
+  }catch(error){console.error(error);toast('No se pudo guardar la reacción: '+error.message)}
+});
+$('goviGalleryCommentForm').addEventListener('submit',async e=>{
+  e.preventDefault();const input=$('goviGalleryCommentInput'),content=input.value.trim();if(!content)return;
+  if(!currentUser){toast('Inicia sesión para comentar');openModal('authModal');return}
+  const item=goviGalleryItems[goviGalleryIndex];if(!item)return;
+  const key=goviGalleryPhotoKey(item),submit=e.submitter; if(submit)submit.disabled=true;
+  try{
+    const {error}=await supabaseClient.from('profile_photo_comments').insert({photo_key:key,owner_id:goviGalleryOwner,user_id:currentUser.id,content});if(error)throw error;
+    input.value='';await goviLoadGalleryInteractions();
+  }catch(error){console.error(error);toast('No se pudo publicar el comentario: '+error.message)}
+  finally{if(submit)submit.disabled=false}
+});
 function goviOpenGallery(type){if(!goviCurrentProfile)return;goviGalleryType=type;goviGalleryOwner=goviCurrentProfile.id;const column=type==='avatar'?'avatar_url':'cover_url';const main=goviCurrentProfile[column];goviGalleryItems=(goviCurrentProfile._gallery||[]).filter(x=>x.image_type===type).map(x=>({id:x.id,url:x.image_url,path:x.image_path}));if(main&&!goviGalleryItems.some(x=>x.url===main))goviGalleryItems.unshift({id:null,url:main,path:goviStoragePath(main)});if(!goviGalleryItems.length)return;goviGalleryIndex=0;goviRenderGallery();goviPhotoViewer.style.display='flex'}
 function goviShowProfilePhoto(url){if(!url)return;goviOpenGallery('avatar')}
 $('goviGalleryClose').addEventListener('click',()=>goviPhotoViewer.style.display='none');
