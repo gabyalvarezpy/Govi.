@@ -8592,3 +8592,33 @@ window.goviOpenCropEditor = goviOpenCropEditor;
  html body #goviProfileView .profile-name{margin-top:0!important;padding-top:0!important;align-self:start!important}
 }
 </style>
+<style id="govi-album-comments-panel-keyboard-v4">
+#goviMediaViewer .govi-viewer-comments{flex:0 0 auto!important;display:flex!important;flex-direction:column!important;gap:8px!important;width:100%!important;max-height:min(32vh,250px)!important;min-height:112px!important;overflow:hidden!important;padding:10px 12px calc(10px + env(safe-area-inset-bottom))!important;box-sizing:border-box!important;background:#171717!important}
+#goviMediaViewer [data-viewer-comment-list]{flex:1 1 auto!important;min-height:34px!important;max-height:none!important;overflow-y:auto!important;overscroll-behavior:contain!important;font-size:14px!important}
+#goviMediaViewer [data-viewer-comment-form]{flex:0 0 auto!important;display:flex!important;gap:8px!important;margin:0!important;padding:0!important}
+#goviMediaViewer [data-viewer-comment-input]{display:block!important;min-width:0!important;width:100%!important;min-height:46px!important;max-height:90px!important;font-size:16px!important;line-height:1.35!important;color:#fff!important;background:#090909!important;border:1px solid #b99a4b!important;border-radius:12px!important;padding:10px 12px!important;box-sizing:border-box!important;opacity:1!important}
+#goviMediaViewer [data-viewer-comment-form] button{flex:0 0 auto!important;min-height:46px!important;padding:8px 14px!important;white-space:nowrap!important}
+@media(max-width:700px){#goviMediaViewer .govi-viewer-comments{max-height:min(34vh,260px)!important;min-height:118px!important}#goviMediaViewer .govi-viewer-actions{flex:0 0 auto!important;padding:8px 10px!important}#goviMediaViewer .govi-viewer-actions button{min-height:48px!important}}
+</style>
+<script id="govi-album-comments-visual-viewport-v4">
+(function(){
+ if(window.__goviAlbumCommentsViewportV4)return;window.__goviAlbumCommentsViewportV4=true;
+ const viewer=()=>document.getElementById('goviMediaViewer');
+ function fit(){
+  const v=viewer(),vv=window.visualViewport;
+  if(!v||!vv||!v.classList.contains('open'))return;
+  v.style.top=vv.offsetTop+'px';
+  v.style.height=vv.height+'px';
+  v.style.bottom='auto';
+ }
+ function reset(){const v=viewer();if(v){v.style.top='0';v.style.height='100dvh';v.style.bottom='auto'}}
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',fit);window.visualViewport.addEventListener('scroll',fit)}
+ document.addEventListener('focusin',e=>{
+  if(!e.target.matches('#goviMediaViewer [data-viewer-comment-input]'))return;
+  setTimeout(()=>{fit();const panel=e.target.closest('.govi-viewer-comments');panel?.scrollIntoView({block:'nearest'});e.target.scrollIntoView({block:'nearest'});},80);
+ });
+ document.addEventListener('click',e=>{if(e.target.closest('#goviMediaViewer [data-viewer-close]'))setTimeout(reset,50)});
+ const oldOpen=window.goviOpenMediaViewer;
+ if(typeof oldOpen==='function')window.goviOpenMediaViewer=function(...args){reset();const out=oldOpen.apply(this,args);setTimeout(fit,80);return out};
+})();
+</script>
