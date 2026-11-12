@@ -7992,3 +7992,31 @@ window.goviOpenCropEditor = goviOpenCropEditor;
 </script>
 
 
+
+
+<style id="govi-cover-no-crop-final">
+/* Portada completa: no cortar laterales ni contenido en móviles */
+#goviCover.profile-cover{
+  height:auto!important;
+  aspect-ratio:2.65 / 1!important;
+  min-height:0!important;
+  background-color:#080808!important;
+  background-size:contain!important;
+  background-position:center!important;
+  overflow:hidden!important;
+}
+#goviCover.profile-cover > img{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  background:#080808!important;
+}
+@media(max-width:700px){
+  #goviCover.profile-cover{height:auto!important;aspect-ratio:2.65 / 1!important}
+}
+</style>
