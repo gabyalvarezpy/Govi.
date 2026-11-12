@@ -1089,6 +1089,18 @@ html body #goviProfileView #goviProfileDescription{
   .govi-top-actions>button svg{width:19px!important;height:19px!important}
 }
 </style>
+<style id="govi-collage-empty-cell-fix">
+/* Evita el hueco negro que dejaba la primera foto al ocupar dos filas */
+html body .govi-post-collage:not(.govi-collage-count-2) .govi-collage-cell:first-child{
+  grid-row:auto!important;
+  aspect-ratio:1/1!important;
+  min-height:0!important;
+}
+html body .govi-post-collage{
+  grid-auto-flow:row!important;
+  align-items:stretch!important;
+}
+</style>
 </head>    
 <body>    
 <header class="topbar govi-topbar">
