@@ -5781,7 +5781,7 @@ html body .govi-post-collage{width:100%!important}
  function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
  function pageRow(p,followed){
   const avatar=p.avatar_url?'<img src="'+safe(p.avatar_url)+'" alt="">':safe((p.name||'G').trim().slice(0,1).toUpperCase());
-  return '<div class="govi-search-result"><div class="govi-search-result-avatar">'+avatar+'</div><div class="govi-search-result-copy"><strong>'+safe(p.name)+(p.is_verified?' ✓':'')+'</strong><small>Página oficial · '+safe(p.category||'General')+' · '+safe(p.description||'')+'</small></div><button type="button" class="'+(followed?'following':'')+'" data-page-follow="'+safe(p.id)+'" data-following="'+(followed?'1':'0')+'">'+(followed?'Siguiendo':'Seguir')+'</button></div>';
+  return '<div class="govi-search-result" role="button" tabindex="0" data-open-page="'+safe(p.id)+'" style="cursor:pointer"><div class="govi-search-result-avatar">'+avatar+'</div><div class="govi-search-result-copy"><strong>'+safe(p.name)+(p.is_verified?' ✓':'')+'</strong><small>Página oficial · '+safe(p.category||'General')+' · '+safe(p.description||'')+'</small></div><button type="button" class="'+(followed?'following':'')+'" data-page-follow="'+safe(p.id)+'" data-following="'+(followed?'1':'0')+'">'+(followed?'Siguiendo':'Seguir')+'</button></div>';
  }
  function userRow(p){const name=p.display_name||p.full_name||'Usuario GOVI';const avatar=p.avatar_url?'<img src="'+safe(p.avatar_url)+'" alt="">':safe((name.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join('')||'G').toUpperCase());return '<button type="button" class="govi-search-result" data-open-user="'+safe(p.id)+'" style="width:100%;text-align:left;color:inherit;border:0;cursor:pointer"><div class="govi-search-result-avatar">'+avatar+'</div><div class="govi-search-result-copy"><strong>'+safe(name)+'</strong><small>Persona · Usuario de GOVI</small></div><span aria-hidden="true">›</span></button>'}
  async function search(){
@@ -5829,6 +5829,40 @@ html body .govi-post-collage{width:100%!important}
   const user=e.target.closest('[data-open-user]');
   if(user){hide();input.blur();if(typeof window.openGoviProfile==='function')window.openGoviProfile(user.dataset.openUser)}
  });
+ 
+ async function openOfficialPage(pageId){
+  const {data:page,error}=await supabaseClient.from('govi_pages').select('id,name,category,description,avatar_url,cover_url,is_verified').eq('id',pageId).eq('is_active',true).maybeSingle();
+  if(error||!page){toast('No se pudo abrir esta página');return}
+  let following=false,count=0,posts=[];
+  try{
+   const [followResult,countResult,postsResult]=await Promise.all([
+    currentUser?supabaseClient.from('govi_page_follows').select('page_id').eq('page_id',pageId).eq('follower_id',currentUser.id).maybeSingle():Promise.resolve({data:null,error:null}),
+    supabaseClient.from('govi_page_follows').select('page_id',{count:'exact',head:true}).eq('page_id',pageId),
+    supabaseClient.from('posts').select('id,content,media_url,media_type,created_at').eq('page_id',pageId).order('created_at',{ascending:false}).limit(30)
+   ]);
+   following=!!followResult.data;count=countResult.count||0;posts=postsResult.data||[];
+  }catch(err){console.warn('GOVI page profile data:',err)}
+  let modal=document.getElementById('goviOfficialPageModal');
+  if(!modal){modal=document.createElement('div');modal.id='goviOfficialPageModal';modal.style.cssText='position:fixed;inset:0;z-index:10050;background:#000b;display:flex;align-items:center;justify-content:center;padding:16px';document.body.appendChild(modal)}
+  const esc=safe;
+  const avatar=page.avatar_url?'<img src="'+esc(page.avatar_url)+'" alt="" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid #cba65c">':'<div style="width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:#292b35;color:#e7c77f;font-size:30px;font-weight:900">'+esc((page.name||'G')[0].toUpperCase())+'</div>';
+  const postHtml=posts.length?posts.map(p=>'<article style="padding:14px;border:1px solid #333;border-radius:14px;margin-top:12px;background:#111318;color:#eee">'+(p.content?'<p style="white-space:pre-wrap;margin:0 0 10px">'+esc(p.content)+'</p>':'')+(p.media_url?(p.media_type==='video'?'<video controls playsinline style="width:100%;max-height:420px;border-radius:10px" src="'+esc(p.media_url)+'"></video>':'<img loading="lazy" style="width:100%;border-radius:10px" src="'+esc(p.media_url)+'" alt="">'):'')+'<small style="color:#999">'+new Date(p.created_at).toLocaleString('es-ES')+'</small></article>').join(''):'<p style="color:#aaa;text-align:center;padding:24px 8px">Esta página todavía no tiene publicaciones en GOVI.</p>';
+  modal.innerHTML='<section role="dialog" aria-modal="true" aria-label="'+esc(page.name)+'" style="width:min(620px,100%);max-height:88vh;overflow:auto;background:#17191f;border:1px solid #393a40;border-radius:22px;color:#fff;padding:20px;box-shadow:0 20px 70px #000b"><div style="display:flex;justify-content:flex-end"><button type="button" data-close-page style="border:0;border-radius:10px;background:#292b32;color:white;padding:10px 15px;font-size:22px">×</button></div>'+(page.cover_url?'<img src="'+esc(page.cover_url)+'" alt="" style="width:100%;height:145px;object-fit:cover;border-radius:14px;margin-bottom:16px">':'')+'<div style="display:flex;align-items:center;gap:14px">'+avatar+'<div><h2 style="margin:0 0 5px;font-size:23px">'+esc(page.name)+(page.is_verified?' ✓':'')+'</h2><div style="color:#c9b078">'+esc(page.category||'General')+' · '+count+' seguidores</div></div></div><p style="color:#ccc;line-height:1.5">'+esc(page.description||'Página oficial de GOVI')+'</p><button type="button" data-page-profile-follow style="width:100%;padding:13px;border-radius:12px;border:1px solid #b58d48;background:'+(following?'#292b32':'linear-gradient(135deg,#e7c77f,#b98939)')+';color:'+(following?'#fff':'#17130a')+';font-weight:800">'+(following?'Siguiendo':'Seguir página')+'</button><h3 style="margin:22px 0 8px">Publicaciones</h3><div>'+postHtml+'</div></section>';
+  modal.onclick=async ev=>{
+   if(ev.target===modal||ev.target.closest('[data-close-page]')){modal.remove();return}
+   if(ev.target.closest('[data-page-profile-follow]')){
+    if(!currentUser){toast('Inicia sesión para seguir páginas');return}
+    const b=ev.target.closest('[data-page-profile-follow]');b.disabled=true;
+    const result=await supabaseClient.rpc(following?'govi_unfollow_page':'govi_follow_page',{target_page_id:pageId});
+    if(result.error){toast('No se pudo actualizar el seguimiento');b.disabled=false;return}
+    following=!following;b.textContent=following?'Siguiendo':'Seguir página';b.style.background=following?'#292b32':'linear-gradient(135deg,#e7c77f,#b98939)';b.style.color=following?'#fff':'#17130a';b.disabled=false;
+    if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
+   }
+  };
+ }
+ results.addEventListener('click',e=>{const row=e.target.closest('[data-open-page]');if(row&&!e.target.closest('[data-page-follow]'))openOfficialPage(row.dataset.openPage)});
+ results.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-open-page]')&&!e.target.closest('[data-page-follow]')){e.preventDefault();openOfficialPage(e.target.closest('[data-open-page]').dataset.openPage)}});
+ window.goviOpenOfficialPage=openOfficialPage;
  window.goviOpenUniversalSearch=()=>{open();input.focus();search()};
 })();
 </script>
