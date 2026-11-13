@@ -1151,12 +1151,12 @@ html body .govi-post-collage{
     </section>
     <section id="goviNewsView" class="govi-news-view" style="display:none" aria-label="GOVI Noticias">
       <div class="govi-news-head">
-        <div><span class="govi-kicker">EL MUNDO EN UN SOLO LUGAR</span><h1>📰 GOVI Noticias</h1><p>Noticias recientes de Paraguay y el mundo, con publicaciones de las últimas 24 horas.</p></div>
+        <div><span class="govi-kicker">EL MUNDO EN UN SOLO LUGAR</span><h1>📰 GOVI Noticias</h1><p>Las noticias principales de Paraguay, España y el mundo, en ese orden.</p></div>
         <button type="button" id="goviNewsRefresh" class="govi-news-refresh" onclick="goviLoadNews(true)">↻ Actualizar</button>
       </div>
       <div class="govi-news-sourcebar"><span>Fuentes:</span> BBC Mundo · CNN en Español · DW · El País · Europa Press · Reuters · AP</div>
       <div class="govi-news-tools"><div class="govi-news-tabs" id="goviNewsTabs">
-        <button class="active" data-news-category="Todo">Últimas</button><button data-news-category="Paraguay">🇵🇾 Paraguay</button><button data-news-category="Mundo">🌍 Mundo</button><button data-news-category="América Latina">América Latina</button><button data-news-category="Tecnología">Tecnología</button><button data-news-category="Economía">Economía</button>
+        <button class="active" data-news-category="Todo">Todas</button><button data-news-category="Paraguay">🇵🇾 Paraguay</button><button data-news-category="España">🇪🇸 España</button><button data-news-category="Mundo">🌍 Mundo</button>
       </div><input id="goviNewsSearch" type="search" placeholder="Buscar noticias…" aria-label="Buscar noticias"></div>
       <div class="govi-news-status" id="goviNewsStatus">Preparando las últimas noticias…</div>
       <div class="govi-news-grid" id="goviNewsGrid"><div class="govi-news-loading">Cargando titulares internacionales…</div></div>
@@ -5951,6 +5951,7 @@ html body .govi-post-collage{width:100%!important}
  function categoryMatch(item){
   if(newsCategory==='Todo')return true;
   if(newsCategory==='Paraguay')return item.category==='Paraguay';
+  if(newsCategory==='España')return item.category==='España';
   if(newsCategory==='Mundo')return item.category==='Mundo';
   const t=(item.title+' '+item.description+' '+item.source).toLowerCase();
   if(newsCategory==='América Latina')return /(américa latina|latinoamérica|paraguay|argentina|brasil|méxico|chile|colombia|venezuela|uruguay|perú|bolivia|ecuador)/i.test(t);
@@ -5980,13 +5981,17 @@ html body .govi-post-collage{width:100%!important}
   finally{newsLoading=false;if(button){button.disabled=false;button.textContent='↻ Actualizar'}}
  };
  window.goviShowNewsView=function(el){
-  const main=document.querySelector('.govi-content');if(!main)return;
+  const main=document.querySelector('.govi-content');
+  const news=$('goviNewsView');
+  if(!main||!news){console.error('GOVI Noticias: no se encontró la vista de noticias');return}
   document.querySelector('.govi-shell')?.classList.add('govi-news-mode');
-  main.querySelectorAll(':scope > section').forEach(section=>{section.style.display=section.id==='goviNewsView'?'block':'none'});
-  document.querySelectorAll('.govi-sidebar .nav-item').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.govi-mobile-nav button').forEach(x=>x.classList.remove('active'));
+  Array.from(main.children).filter(node=>node.tagName==='SECTION').forEach(section=>{
+   section.style.display=section===news?'block':'none';
+  });
+  news.style.display='block';
+  document.querySelectorAll('.govi-sidebar .nav-item,.govi-mobile-nav button').forEach(x=>x.classList.remove('active'));
   const nav=el?.closest('.nav-item,.govi-mobile-nav button');if(nav)nav.classList.add('active');
-  if(!newsLoaded)window.goviLoadNews(false);
+  if(!newsLoaded&&!newsLoading)window.goviLoadNews(false);
   window.scrollTo({top:0,behavior:'smooth'});
  };
  window.goviShowHomeView=function(el){
