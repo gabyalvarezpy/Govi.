@@ -5731,7 +5731,7 @@ window.goviRefreshViewerComments=async function(){
   const {data,error}=await supabaseClient.from('post_comments')
     .select('id,user_id,content,created_at,updated_at')
     .eq('post_id',postId).eq('media_index',mediaIndex).order('created_at',{ascending:true});
-  if(request!==goviViewerCommentsRequest||window.__goviViewerCurrent?.postId!==postId||Number(window.__goviViewerCurrent?.index||0)!==mediaIndex)return;
+  if(request!==goviViewerCommentsRequest||!viewer.classList.contains('open')||window.__goviViewerCurrent?.postId!==postId||Number(window.__goviViewerCurrent?.index||0)!==mediaIndex)return;
   if(error){list.textContent='No se pudieron cargar los comentarios';return}
   const rows=data||[];
   list.innerHTML=rows.map(c=>{
@@ -8818,7 +8818,7 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   const close=e.target.closest('#goviMediaViewer [data-viewer-close]');
   if(!close)return;
   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-  document.getElementById('goviMediaViewer')?.classList.remove('open');
+  const closedViewer=document.getElementById('goviMediaViewer');closedViewer?.classList.remove('open');window.__goviViewerCurrent=null;if(closedViewer){const commentList=closedViewer.querySelector('[data-viewer-comment-list]');if(commentList)commentList.textContent='';}
  },true);
  document.addEventListener('click',async function(e){
   const btn=e.target.closest('#goviMediaViewer button[data-viewer-comment-action]');
