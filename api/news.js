@@ -1,10 +1,12 @@
 const FEEDS = [
   { source: "ABC Color", category: "Paraguay", url: "https://www.abc.com.py/arc/outboundfeeds/rss/nacionales/" },
   { source: "ABC Color · Política", category: "Paraguay", url: "https://www.abc.com.py/arc/outboundfeeds/rss/politica/" },
-  { source: "ABC Color · Internacional", category: "Paraguay", url: "https://www.abc.com.py/arc/outboundfeeds/rss/mundo/" },
+  { source: "ABC Color · Mundo", category: "Mundo", url: "https://www.abc.com.py/arc/outboundfeeds/rss/mundo/" },
   { source: "Última Hora", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:ultimahora.com&hl=es&gl=PY&ceid=PY:es" },
   { source: "La Nación", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:lanacion.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "IP Paraguay", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:ip.gov.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "Crónica", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:cronica.com.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "Popular", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:popular.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "RTVE", category: "España", url: "https://www.rtve.es/rss/temas_noticias.xml" },
   { source: "El País", category: "España", url: "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada" },
   { source: "La Vanguardia", category: "España", url: "https://www.lavanguardia.com/rss/home.xml" },
@@ -91,30 +93,35 @@ module.exports = async function handler(req, res) {
     if (key && !unique.has(key)) unique.set(key, article);
   });
   const priority = { Paraguay: 0, España: 1, Mundo: 2 };
-  const sorted = [...unique.values()].sort((a, b) =>
-    (priority[a.category] ?? 9) - (priority[b.category] ?? 9) ||
-    new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0)
-  );
-  // Reservar espacio para las tres regiones evita que Paraguay ocupe los 60 resultados.
   const articles = [];
-  const selected = new Set();
+  // Round-robin por medio: máximo 4 titulares por fuente y 20 por región.
   for (const category of ["Paraguay", "España", "Mundo"]) {
-    sorted.filter(article => article.category === category).slice(0, 20).forEach(article => {
-      articles.push(article);
-      selected.add(article.url.split("?")[0]);
+    const pool = [...unique.values()]
+      .filter(article => article.category === category)
+      .sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0));
+    const bySource = new Map();
+    pool.forEach(article => {
+      const key = article.source;
+      if (!bySource.has(key)) bySource.set(key, []);
+      bySource.get(key).push(article);
     });
-  }
-  // Si alguna región aporta menos de 20 noticias, completar con las siguientes disponibles.
-  sorted.forEach(article => {
-    const key = article.url.split("?")[0];
-    if (articles.length < 60 && !selected.has(key)) {
-      articles.push(article);
-      selected.add(key);
+    const sources = [...bySource.keys()];
+    const counts = new Map();
+    let added = 0;
+    while (added < 20) {
+      let progressed = false;
+      for (const source of sources) {
+        const count = counts.get(source) || 0;
+        if (count >= 4 || !bySource.get(source).length) continue;
+        const article = bySource.get(source).shift();
+        articles.push(article);
+        counts.set(source, count + 1);
+        added++;
+        progressed = true;
+        if (added >= 20) break;
+      }
+      if (!progressed) break;
     }
-  });
-  articles.sort((a, b) =>
-    (priority[a.category] ?? 9) - (priority[b.category] ?? 9) ||
-    new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0)
-  );
+  }
   res.status(200).json({ articles, updatedAt: new Date().toISOString(), sources: FEEDS.map(f => f.source), count: articles.length });
 };
