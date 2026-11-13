@@ -5837,7 +5837,8 @@ html body .govi-post-collage{width:100%!important}
   const v=document.getElementById('goviMediaViewer');if(!v)return;
   const vv=window.visualViewport;
   const top=vv?vv.offsetTop:0,height=vv?vv.height:window.innerHeight;
-  const layoutHeight=document.documentElement.clientHeight||window.innerHeight;
+  /* Android WebView: clientHeight can shrink with the visual viewport; innerHeight retains the layout viewport. */
+  const layoutHeight=window.innerHeight;
   const keyboardGap=vv?Math.max(0,layoutHeight-(vv.height+vv.offsetTop)):0;
   document.documentElement.style.setProperty('--govi-viewer-vv-top',top+'px');
   document.documentElement.style.setProperty('--govi-viewer-vv-height',height+'px');
