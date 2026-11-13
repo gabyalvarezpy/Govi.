@@ -123,5 +123,13 @@ module.exports = async function handler(req, res) {
       if (!progressed) break;
     }
   }
+  // Evitar que una imagen genérica repetida de una sección se replique en muchas tarjetas.
+  const seenImages = new Set();
+  articles.forEach(article => {
+    if (!article.image) return;
+    const imageKey = article.image.split("?")[0];
+    if (seenImages.has(imageKey)) article.image = "";
+    else seenImages.add(imageKey);
+  });
   res.status(200).json({ articles, updatedAt: new Date().toISOString(), sources: FEEDS.map(f => f.source), count: articles.length });
 };
