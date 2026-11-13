@@ -1776,9 +1776,12 @@ async function addComment(postId,button,parentCommentId=null){
   await loadFeed();$('comments-'+postId)?.classList.add('open');toast('Comentario publicado');    
 }    
 async function editComment(commentId,postId){    
-  if(!currentUser){toast('Inicia sesión para editar comentarios');return}    
-  const {data:comment,error}=await supabaseClient.from('post_comments').select('id,content').eq('id',commentId).eq('user_id',currentUser.id).single();    
-  if(error||!comment){toast('No se encontró tu comentario');return}    
+  let editUser=currentUser||null;
+  try{const authResult=await supabaseClient.auth.getUser();if(authResult.data?.user)editUser=authResult.data.user;}catch(authError){console.warn('GOVI: no se pudo verificar la sesión para editar',authError)}
+  if(!editUser){toast('Inicia sesión para editar comentarios');return}
+  currentUser=editUser;
+  const {data:comment,error}=await supabaseClient.from('post_comments').select('id,content,user_id').eq('id',commentId).eq('post_id',postId).maybeSingle();
+  if(error||!comment||String(comment.user_id)!==String(editUser.id)){toast('No se pudo identificar tu comentario. Actualiza el visor e inténtalo otra vez.');return}    
   const content=await new Promise(resolve=>{
     const modal=document.createElement('div');modal.className='govi-comment-dialog';modal.style.cssText='position:fixed;inset:0;z-index:41000;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px';
     modal.innerHTML='<div role="dialog" aria-modal="true" style="width:min(100%,390px);background:#171717;border:1px solid #b99345;border-radius:20px;padding:22px;color:#f4eee2;box-shadow:0 18px 60px #000b"><h3 style="margin:0 0 14px;color:#f2d58d;font-size:20px">Editar comentario</h3><textarea maxlength="1000" aria-label="Editar comentario" style="width:100%;min-height:110px;box-sizing:border-box;resize:vertical;background:#242424;border:1px solid #51452d;border-radius:13px;padding:12px;color:#fff;font:inherit"></textarea><div style="display:flex;gap:10px;margin-top:16px"><button type="button" data-cancel style="flex:1;min-height:46px;border:1px solid #555;border-radius:12px;background:#262626;color:#eee;font-weight:750">Cancelar</button><button type="button" data-save style="flex:1;min-height:46px;border:0;border-radius:12px;background:linear-gradient(135deg,#e7c77f,#b98939);color:#17130b;font-weight:850">Guardar</button></div></div>';
