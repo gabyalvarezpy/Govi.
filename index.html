@@ -619,6 +619,7 @@ body{background:radial-gradient(ellipse at 48% -15%,rgba(166,119,42,.14),transpa
 /* GOVI · nueva experiencia social: negro y dorado, sin tocar Supabase ni sus funciones */
 :root{--govi-gold:#e6c875;--govi-gold-deep:#c59b3f;--govi-card:#101115;--govi-stroke:rgba(230,200,117,.19)}
 html{scroll-behavior:smooth}
+html.govi-profile-nav-lock{scroll-behavior:auto!important;overflow-anchor:none!important}
 body{background:#050506!important}
 .govi-topbar{background:rgba(5,5,6,.94)!important;border-bottom:1px solid var(--govi-stroke)!important}
 .govi-brand .brand-mark{border-radius:50%!important;background:linear-gradient(140deg,#fff0b5,#c59b3f)!important;box-shadow:0 0 22px rgba(230,200,117,.17)!important}
@@ -5102,6 +5103,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
 
   // Restaurar de forma explícita la portada de Inicio en móvil y escritorio.
   function goviShowHomeView(button){
+    document.documentElement.classList.remove('govi-profile-nav-lock');
     goviProfileId=null;
     history.replaceState({goviHome:true},'',location.pathname);
     const home=document.getElementById('goviHomeProfile');
@@ -7737,6 +7739,8 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   }
   function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   async function openMine(button){
+    const profileNavScrollY=window.scrollY;
+    document.documentElement.classList.add('govi-profile-nav-lock');
     const client=(typeof supabaseClient!=='undefined'&&supabaseClient)||window.supabaseClient;
     let user=(typeof currentUser!=='undefined'&&currentUser)||null;
     if(!user&&client){const session=await client.auth.getSession();if(session.error)throw session.error;user=session.data?.session?.user||null}
@@ -7812,8 +7816,9 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     };
     window.goviProfileViewingUserId=user.id;
     if(!tabs.dataset.ownTabsV4){tabs.dataset.ownTabsV4='1';tabs.addEventListener('click',e=>{const b=e.target.closest('[data-profile-filter]');if(b)render(b.dataset.profileFilter)})}
-    // No forzar scroll al abrir el perfil: el desplazamiento global suave de la página provocaba el salto visual.
+    // Mantener fija la posición visual mientras el contenido del perfil reemplaza Inicio.
     render('all');
+    window.scrollTo({top:profileNavScrollY,left:0,behavior:'instant'});
   }
   window.goviGoToMyProfile=async function(button){try{await openMine(button)}catch(e){console.error('GOVI perfil final:',e);if(typeof toast==='function')toast('No se pudo cargar tu perfil: '+(e.message||'Error'))}};
   window.goviReturnToOwnProfile=function(){const viewer=document.getElementById('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
