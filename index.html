@@ -7753,8 +7753,8 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
     const heading=document.querySelector('.govi-feed-block .govi-section-heading');
     const composer=document.querySelector('.govi-feed-block .composer');
-    [home,stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
-    view.hidden=false;view.style.setProperty('display','block','important');feed.style.display='block';
+    // Preparar el perfil oculto y completar sus datos antes de cambiar la vista visible.
+    view.hidden=true;view.style.setProperty('display','none','important');
     document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));
     if(button)button.classList.add('active');
     try{history.replaceState({goviProfile:true},'','#profile-'+user.id)}catch(_){}
@@ -7778,6 +7778,9 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     controls.innerHTML='<button type="button" data-own-avatar>📷 Foto de perfil</button><button type="button" data-own-cover>🖼️ Editar portada</button>';
     controls.querySelector('[data-own-avatar]').onclick=()=>document.getElementById('goviAvatarInput')?.click();
     controls.querySelector('[data-own-cover]').onclick=()=>document.getElementById('goviCoverInput')?.click();
+    // Cambiar de Inicio a Perfil solo cuando la cabecera ya está lista, evitando el reacomodo visible.
+    [home,stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
+    view.hidden=false;view.style.setProperty('display','block','important');feed.style.display='block';
     // Mostrar iconos y contadores mientras se cargan las publicaciones del perfil.
     if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
     const {data:posts,error:postError}=await client.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
