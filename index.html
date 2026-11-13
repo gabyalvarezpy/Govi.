@@ -8821,7 +8821,7 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   const close=e.target.closest('#goviMediaViewer [data-viewer-close]');
   if(!close)return;
   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-  const closedViewer=document.getElementById('goviMediaViewer');closedViewer?.classList.remove('open');window.__goviViewerCurrent=null;if(closedViewer){const commentList=closedViewer.querySelector('[data-viewer-comment-list]');if(commentList)commentList.textContent='';}
+  const closedViewer=document.getElementById('goviMediaViewer');window.__goviViewerCurrent=null;if(closedViewer){closedViewer.classList.remove('open');closedViewer.querySelector('[data-viewer-comment-list]')?.replaceChildren();closedViewer.remove();}
  },true);
  document.addEventListener('click',async function(e){
   const btn=e.target.closest('#goviMediaViewer button[data-viewer-comment-action]');
