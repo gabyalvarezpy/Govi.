@@ -5940,7 +5940,7 @@ html body .govi-post-collage{width:100%!important}
 }
 @media(min-width:761px){.govi-news-head{min-height:125px}.govi-news-card:first-child{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}.govi-news-card:first-child img,.govi-news-card:first-child .govi-news-noimage{height:100%;min-height:250px}.govi-news-card:first-child h2{font-size:22px}}
 </style>
-<style id="govi-news-only-layout">.govi-shell.govi-news-mode{grid-template-columns:minmax(0,1fr)!important;width:min(1200px,96%)!important}.govi-shell.govi-news-mode>.govi-sidebar,.govi-shell.govi-news-mode>.govi-rightcol{display:none!important}.govi-shell.govi-news-mode>.govi-content{grid-column:1/-1;width:100%;max-width:none}</style>
+<style id="govi-news-only-layout">.govi-shell.govi-news-mode{grid-template-columns:minmax(0,1fr)!important;width:min(1200px,96%)!important}.govi-shell.govi-news-mode>.govi-sidebar,.govi-shell.govi-news-mode>.govi-rightcol{display:none!important}.govi-shell.govi-news-mode>.govi-content{grid-column:1/-1;width:100%;max-width:none}body.govi-news-mode .govi-content>:not(#goviNewsView),body.govi-news-mode #goviProfileView,body.govi-news-mode #goviProfileMediaLightbox,body.govi-news-mode #goviProfileActionMenu{display:none!important}body.govi-news-mode .govi-content>#goviNewsView{display:block!important}body.govi-news-mode .govi-shell>.govi-sidebar,body.govi-news-mode .govi-shell>.govi-rightcol{display:none!important}</style>
 <script id="govi-news-responsive-v1">
 (function(){
  let newsItems=[],newsCategory='Todo',newsLoaded=false,newsLoading=false,lastUpdated=null;
@@ -5984,7 +5984,7 @@ html body .govi-post-collage{width:100%!important}
   const main=document.querySelector('.govi-content');
   const news=$('goviNewsView');
   if(!main||!news){console.error('GOVI Noticias: no se encontró la vista de noticias');return}
-  document.querySelector('.govi-shell')?.classList.add('govi-news-mode');
+  document.querySelector('.govi-shell')?.classList.add('govi-news-mode');document.body.classList.add('govi-news-mode');
   Array.from(main.children).filter(node=>node.tagName==='SECTION').forEach(section=>{
    section.style.display=section===news?'block':'none';
   });
@@ -5995,7 +5995,7 @@ html body .govi-post-collage{width:100%!important}
   window.scrollTo({top:0,behavior:'smooth'});
  };
  window.goviShowHomeView=function(el){
-  document.querySelector('.govi-shell')?.classList.remove('govi-news-mode');
+  document.querySelector('.govi-shell')?.classList.remove('govi-news-mode');document.body.classList.remove('govi-news-mode');
   const main=document.querySelector('.govi-content');if(!main)return;
   main.querySelectorAll(':scope > section').forEach(section=>{section.style.display=section.id==='goviNewsView'?'none':''});
   document.querySelectorAll('.govi-sidebar .nav-item').forEach(x=>x.classList.remove('active'));
