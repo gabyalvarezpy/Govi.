@@ -2609,7 +2609,7 @@ window.goviGoToMyProfile=async function(button){
     await openGoviProfile(user.id);
     view.hidden=false;view.style.setProperty('display','block','important');
     if(home)home.style.setProperty('display','none','important');
-    window.scrollTo(0,0);
+    // Conservar la posición de pantalla: no forzar scroll al terminar de cargar el perfil.
   }catch(error){console.error('GOVI perfil desde botón:',error);toast('Error al abrir perfil: '+(error?.message||'Error desconocido'))}
 };
 
