@@ -1,14 +1,17 @@
 const FEEDS = [
   { source: "ABC Color", category: "Paraguay", url: "https://www.abc.com.py/arc/outboundfeeds/rss/nacionales/" },
   { source: "ABC Color · Política", category: "Paraguay", url: "https://www.abc.com.py/arc/outboundfeeds/rss/politica/" },
-  { source: "ABC Color · Mundo", category: "Mundo", url: "https://www.abc.com.py/arc/outboundfeeds/rss/mundo/" },
+  { source: "ABC Color · Internacional", category: "Paraguay", url: "https://www.abc.com.py/arc/outboundfeeds/rss/mundo/" },
   { source: "Última Hora", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:ultimahora.com&hl=es&gl=PY&ceid=PY:es" },
   { source: "La Nación", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:lanacion.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "IP Paraguay", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:ip.gov.py&hl=es&gl=PY&ceid=PY:es" },
-  { source: "RTVE", category: "España", url: "https://news.google.com/rss/search?q=when:1d+site:rtve.es&hl=es&gl=ES&ceid=ES:es" },
-  { source: "El País", category: "España", url: "https://news.google.com/rss/search?q=when:1d+site:elpais.com&hl=es&gl=ES&ceid=ES:es" },
-  { source: "Agencia EFE", category: "España", url: "https://news.google.com/rss/search?q=when:1d+site:efe.com&hl=es&gl=ES&ceid=ES:es" },
-  { source: "La Vanguardia", category: "España", url: "https://news.google.com/rss/search?q=when:1d+site:lavanguardia.com&hl=es&gl=ES&ceid=ES:es" },
+  { source: "RTVE", category: "España", url: "https://www.rtve.es/rss/temas_noticias.xml" },
+  { source: "El País", category: "España", url: "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada" },
+  { source: "La Vanguardia", category: "España", url: "https://www.lavanguardia.com/rss/home.xml" },
+  { source: "El Mundo", category: "España", url: "https://e00-elmundo.uecdn.es/elmundo/rss/portada.xml" },
+  { source: "Europa Press", category: "España", url: "https://www.europapress.es/rss/rss.aspx" },
+  { source: "20 Minutos", category: "España", url: "https://www.20minutos.es/rss/" },
+  { source: "Agencia EFE", category: "España", url: "https://news.google.com/rss/search?q=when:1d+site:efe.com+España&hl=es&gl=ES&ceid=ES:es" },
   { source: "Telefuturo", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:telefuturo.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "C9N", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:c9n.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "SNT", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:snt.com.py&hl=es&gl=PY&ceid=PY:es" },
@@ -17,11 +20,17 @@ const FEEDS = [
   { source: "GEN", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:gen.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "Unicanal", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:unicanal.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "BBC Mundo", category: "Mundo", url: "https://feeds.bbci.co.uk/mundo/rss.xml" },
+  { source: "BBC World", category: "Mundo", url: "https://feeds.bbci.co.uk/news/world/rss.xml" },
   { source: "DW Español", category: "Mundo", url: "https://rss.dw.com/xml/rss-es-all" },
-  { source: "Reuters", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+site:reuters.com&hl=es&gl=ES&ceid=ES:es" },
-  { source: "Associated Press", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+site:apnews.com&hl=es-419&gl=US&ceid=US:es-419" },
-  { source: "CNN en Español", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+site:cnnespanol.cnn.com&hl=es-419&gl=US&ceid=US:es-419" },
-  { source: "Actualidad mundial", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+noticias+internacionales&hl=es&gl=ES&ceid=ES:es" }
+  { source: "CNN Internacional", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+site:cnn.com+world&hl=es&gl=US&ceid=US:es" },
+  { source: "Reuters", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+site:reuters.com+world&hl=es&gl=US&ceid=US:es" },
+  { source: "Associated Press", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+site:apnews.com+world&hl=es&gl=US&ceid=US:es" },
+  { source: "The Guardian", category: "Mundo", url: "https://www.theguardian.com/world/rss" },
+  { source: "Al Jazeera", category: "Mundo", url: "https://www.aljazeera.com/xml/rss/all.xml" },
+  { source: "France 24", category: "Mundo", url: "https://www.france24.com/en/rss" },
+  { source: "NASA", category: "Mundo", url: "https://www.nasa.gov/news-release/feed/" },
+  { source: "NHK World", category: "Mundo", url: "https://www3.nhk.or.jp/rss/news/cat6.xml" },
+  { source: "Actualidad mundial", category: "Mundo", url: "https://news.google.com/rss/search?q=when:1d+noticias+internacionales+China+Japón+Europa+Estados+Unidos&hl=es&gl=ES&ceid=ES:es" }
 ];
 
 function decode(value) {
@@ -67,7 +76,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== "GET") { res.status(405).json({ error: "Método no permitido" }); return; }
   const results = await Promise.all(FEEDS.map(async feed => {
     try {
-      const response = await fetch(feed.url, { cache: "no-store", headers: { "User-Agent": "GOVI-News/1.0 (+https://govi-97ft.vercel.app)", "Cache-Control": "no-cache" }, signal: AbortSignal.timeout(4500) });
+      const response = await fetch(feed.url, { cache: "no-store", headers: { "User-Agent": "GOVI-News/1.0 (+https://govi-97ft.vercel.app)", "Cache-Control": "no-cache" }, signal: AbortSignal.timeout(7000) });
       if (!response.ok) throw new Error("HTTP " + response.status);
       const xml = await response.text();
       return parseFeed(xml, feed);
@@ -78,8 +87,8 @@ module.exports = async function handler(req, res) {
   }));
   const unique = new Map();
   results.flat().forEach(article => {
-    const key = article.url.split("?")[0];
-    if (!unique.has(key)) unique.set(key, article);
+    const key = article.title.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+    if (key && !unique.has(key)) unique.set(key, article);
   });
   const priority = { Paraguay: 0, España: 1, Mundo: 2 };
   const sorted = [...unique.values()].sort((a, b) =>
