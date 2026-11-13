@@ -7739,7 +7739,6 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
   }
   function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   async function openMine(button){
-    const profileNavScrollY=window.scrollY;
     document.documentElement.classList.add('govi-profile-nav-lock');
     const client=(typeof supabaseClient!=='undefined'&&supabaseClient)||window.supabaseClient;
     let user=(typeof currentUser!=='undefined'&&currentUser)||null;
@@ -7755,11 +7754,15 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
     const heading=document.querySelector('.govi-feed-block .govi-section-heading');
     const composer=document.querySelector('.govi-feed-block .composer');
-    // Preparar el perfil oculto y completar sus datos antes de cambiar la vista visible.
-    view.hidden=true;view.style.setProperty('display','none','important');
+    // Cambiar a Perfil antes de cualquier consulta: el navegador no debe pintar
+    // Inicio durante el reajuste de altura cuando se ocultan sus secciones.
+    view.hidden=false;view.style.setProperty('display','block','important');
+    feed.style.setProperty('display','block','important');
+    [home,stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
     document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));
     if(button)button.classList.add('active');
     try{history.replaceState({goviProfile:true},'','#profile-'+user.id)}catch(_){}
+    window.scrollTo({top:0,left:0,behavior:'instant'});
     const {data:p,error:pe}=await client.from('profiles').select('id,full_name,display_name,avatar_url,cover_url,bio').eq('id',user.id).maybeSingle();
     if(pe)throw pe;
     const profile=p||{};
@@ -7780,9 +7783,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     controls.innerHTML='<button type="button" data-own-avatar>📷 Foto de perfil</button><button type="button" data-own-cover>🖼️ Editar portada</button>';
     controls.querySelector('[data-own-avatar]').onclick=()=>document.getElementById('goviAvatarInput')?.click();
     controls.querySelector('[data-own-cover]').onclick=()=>document.getElementById('goviCoverInput')?.click();
-    // Cambiar de Inicio a Perfil solo cuando la cabecera ya está lista, evitando el reacomodo visible.
-    [home,stories,heading,composer].forEach(el=>{if(el)el.style.setProperty('display','none','important')});
-    view.hidden=false;view.style.setProperty('display','block','important');feed.style.display='block';
+    // La vista ya está abierta; completar ahora la cabecera y sus controles.
     // Mostrar iconos y contadores mientras se cargan las publicaciones del perfil.
     if(typeof window.goviRefreshSocialProfile==='function')window.goviRefreshSocialProfile();
     const {data:posts,error:postError}=await client.from('posts').select('id,user_id,content,media_url,media_type,media_path,created_at,updated_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
@@ -7816,9 +7817,8 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     };
     window.goviProfileViewingUserId=user.id;
     if(!tabs.dataset.ownTabsV4){tabs.dataset.ownTabsV4='1';tabs.addEventListener('click',e=>{const b=e.target.closest('[data-profile-filter]');if(b)render(b.dataset.profileFilter)})}
-    // Mantener fija la posición visual mientras el contenido del perfil reemplaza Inicio.
+    // Renderizar las publicaciones sin volver a cambiar el desplazamiento.
     render('all');
-    window.scrollTo({top:profileNavScrollY,left:0,behavior:'instant'});
   }
   window.goviGoToMyProfile=async function(button){try{await openMine(button)}catch(e){console.error('GOVI perfil final:',e);if(typeof toast==='function')toast('No se pudo cargar tu perfil: '+(e.message||'Error'))}};
   window.goviReturnToOwnProfile=function(){const viewer=document.getElementById('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
