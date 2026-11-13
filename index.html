@@ -5812,8 +5812,8 @@ html body .govi-post-collage{width:100%!important}
   overflow:auto!important;padding-bottom:8px!important;
  }
  #goviMediaViewer.govi-viewer-commenting [data-viewer-comment-form]{
-  position:absolute!important;left:14px!important;right:14px!important;
-  bottom:calc(8px + env(safe-area-inset-bottom))!important;
+  position:fixed!important;left:14px!important;right:14px!important;
+  bottom:calc(var(--govi-viewer-keyboard-gap,0px) + 8px + env(safe-area-inset-bottom))!important;
   z-index:2147483002!important;width:auto!important;box-sizing:border-box!important;
   display:flex!important;align-items:stretch!important;gap:8px!important;
   margin:0!important;padding:8px!important;
@@ -5837,7 +5837,8 @@ html body .govi-post-collage{width:100%!important}
   const v=document.getElementById('goviMediaViewer');if(!v)return;
   const vv=window.visualViewport;
   const top=vv?vv.offsetTop:0,height=vv?vv.height:window.innerHeight;
-  const keyboardGap=vv?Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)):0;
+  const layoutHeight=document.documentElement.clientHeight||window.innerHeight;
+  const keyboardGap=vv?Math.max(0,layoutHeight-(vv.height+vv.offsetTop)):0;
   document.documentElement.style.setProperty('--govi-viewer-vv-top',top+'px');
   document.documentElement.style.setProperty('--govi-viewer-vv-height',height+'px');
   document.documentElement.style.setProperty('--govi-viewer-keyboard-gap',keyboardGap+'px');
