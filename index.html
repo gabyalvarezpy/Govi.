@@ -1151,7 +1151,7 @@ html body .govi-post-collage{
     </section>
     <section id="goviNewsView" class="govi-news-view" style="display:none" aria-label="GOVI Noticias">
       <div class="govi-news-head">
-        <div><span class="govi-kicker">EL MUNDO EN UN SOLO LUGAR</span><h1>📰 GOVI Noticias</h1><p>Las noticias principales de Paraguay, España y el mundo, en ese orden.</p></div>
+        <div><span class="govi-kicker">EL MUNDO EN UN SOLO LUGAR</span><h1>📰 GOVI Noticias</h1><p>Las noticias principales de Paraguay, España y el mundo, en ese orden.</p><button type="button" class="govi-news-back-home" onclick="window.goviShowHomeView(document.querySelector('.govi-mobile-nav button:first-child'))">← Volver a GOVI</button></div>
         <button type="button" id="goviNewsRefresh" class="govi-news-refresh" onclick="goviLoadNews(true)">↻ Actualizar</button>
       </div>
       <div class="govi-news-sourcebar"><span>Fuentes:</span> BBC Mundo · CNN en Español · DW · El País · Europa Press · Reuters · AP</div>
@@ -5904,7 +5904,7 @@ html body .govi-post-collage{width:100%!important}
 .govi-news-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:25px 26px;border:1px solid #44371f;border-radius:22px;background:radial-gradient(circle at 85% 10%,#57401c55,transparent 40%),linear-gradient(135deg,#191a1e,#101115);margin-bottom:16px}
 .govi-news-head h1{font-size:clamp(25px,3vw,34px);margin:8px 0;color:#f2d58e}
 .govi-news-head p{margin:0;color:#aaa397;font-size:14px}
-.govi-news-refresh{border:1px solid #b99345;border-radius:13px;padding:12px 18px;background:#2b2417;color:#f3d98f;font-weight:800;white-space:nowrap;cursor:pointer}
+.govi-news-back-home{display:inline-flex;align-items:center;margin-top:14px;min-height:42px;padding:9px 14px;border:1px solid #b99345;border-radius:12px;background:#17181c;color:#f3d98f;font-weight:800;cursor:pointer}.govi-news-back-home:active{transform:scale(.98)}.govi-news-refresh{border:1px solid #b99345;border-radius:13px;padding:12px 18px;background:#2b2417;color:#f3d98f;font-weight:800;white-space:nowrap;cursor:pointer}
 .govi-news-sourcebar{font-size:12px;color:#a9a397;padding:12px 16px;border:1px solid #292a2f;border-radius:13px;margin-bottom:16px}
 .govi-news-sourcebar span{color:#f0d58f;font-weight:800}
 .govi-news-tools{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
