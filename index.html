@@ -3256,7 +3256,8 @@ window.goviGoToMyProfile = async function(el) {
     $('feed').innerHTML='<p class="demo-note">Cargando tu perfil…</p>';
     history.replaceState(null,'','#profile-'+currentUser.id);
     await openGoviProfile(currentUser.id);
-    window.scrollTo({top:0,behavior:'smooth'});
+    // Abrir el perfil sin desplazamiento animado para evitar el salto visual.
+    window.scrollTo(0,0);
   } catch(error) { console.error('GOVI perfil móvil:',error); toast('No se pudo abrir tu perfil: '+(error.message||'Error desconocido')); }
 };
 
@@ -5006,7 +5007,8 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(b=>b.classList.remove('active'));
     document.querySelector('.govi-mobile-nav button:last-child')?.classList.add('active');
     await openProfile(user.id);
-    window.scrollTo({top:0,behavior:'smooth'});
+    // Abrir el perfil sin desplazamiento animado para evitar el salto visual.
+    window.scrollTo(0,0);
   }
   // La selección de avatar/portada se gestiona en un único listener global
   // al final del documento (#govi-crop-input-capture-v1). No añadir puentes
