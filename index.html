@@ -8817,18 +8817,6 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   if(btn.dataset.action==='edit-comment')await editComment(commentId,postId);
   else await deleteComment(commentId,postId);
  },true);
- document.addEventListener('pointerdown',function(e){
-  const target=e.target instanceof Element?e.target:null;
-  const close=target?.closest('#goviMediaViewer [data-viewer-close]');
-  if(!close)return;
-  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-  window.__goviViewerCurrent=null;
-  document.querySelectorAll('#goviMediaViewer').forEach(viewer=>{
-   viewer.classList.remove('open');
-   viewer.querySelector('[data-viewer-comment-list]')?.replaceChildren();
-   viewer.remove();
-  });
- },true);
  document.addEventListener('click',function(e){
   const close=e.target.closest('#goviMediaViewer [data-viewer-close]');
   if(!close)return;
