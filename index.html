@@ -7762,7 +7762,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(el=>el.classList.remove('active'));
     if(button)button.classList.add('active');
     try{history.replaceState({goviProfile:true},'','#profile-'+user.id)}catch(_){}
-    window.scrollTo({top:0,left:0,behavior:'instant'});
+    // No forzar scroll al abrir Perfil: conservar la posición actual.
     const {data:p,error:pe}=await client.from('profiles').select('id,full_name,display_name,avatar_url,cover_url,bio').eq('id',user.id).maybeSingle();
     if(pe)throw pe;
     const profile=p||{};
