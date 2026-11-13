@@ -82,9 +82,30 @@ module.exports = async function handler(req, res) {
     if (!unique.has(key)) unique.set(key, article);
   });
   const priority = { Paraguay: 0, España: 1, Mundo: 2 };
-  const articles = [...unique.values()].sort((a, b) =>
+  const sorted = [...unique.values()].sort((a, b) =>
     (priority[a.category] ?? 9) - (priority[b.category] ?? 9) ||
     new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0)
-  ).slice(0, 60);
+  );
+  // Reservar espacio para las tres regiones evita que Paraguay ocupe los 60 resultados.
+  const articles = [];
+  const selected = new Set();
+  for (const category of ["Paraguay", "España", "Mundo"]) {
+    sorted.filter(article => article.category === category).slice(0, 20).forEach(article => {
+      articles.push(article);
+      selected.add(article.url.split("?")[0]);
+    });
+  }
+  // Si alguna región aporta menos de 20 noticias, completar con las siguientes disponibles.
+  sorted.forEach(article => {
+    const key = article.url.split("?")[0];
+    if (articles.length < 60 && !selected.has(key)) {
+      articles.push(article);
+      selected.add(key);
+    }
+  });
+  articles.sort((a, b) =>
+    (priority[a.category] ?? 9) - (priority[b.category] ?? 9) ||
+    new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0)
+  );
   res.status(200).json({ articles, updatedAt: new Date().toISOString(), sources: FEEDS.map(f => f.source), count: articles.length });
 };
