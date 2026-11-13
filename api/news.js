@@ -62,12 +62,12 @@ function parseFeed(xml, feed) {
 }
 module.exports = async function handler(req, res) {
   const forceRefresh = Boolean(req.query && req.query.refresh);
-  res.setHeader("Cache-Control", forceRefresh ? "no-store, no-cache, must-revalidate, proxy-revalidate" : "s-maxage=600, stale-while-revalidate=1800");
+  res.setHeader("Cache-Control", forceRefresh ? "no-store, no-cache, must-revalidate, proxy-revalidate" : "s-maxage=60, stale-while-revalidate=300");
   res.setHeader("Access-Control-Allow-Origin", "*");
   if (req.method !== "GET") { res.status(405).json({ error: "Método no permitido" }); return; }
   const results = await Promise.all(FEEDS.map(async feed => {
     try {
-      const response = await fetch(feed.url, { cache: "no-store", headers: { "User-Agent": "GOVI-News/1.0 (+https://govi-97ft.vercel.app)", "Cache-Control": "no-cache" }, signal: AbortSignal.timeout(9000) });
+      const response = await fetch(feed.url, { cache: "no-store", headers: { "User-Agent": "GOVI-News/1.0 (+https://govi-97ft.vercel.app)", "Cache-Control": "no-cache" }, signal: AbortSignal.timeout(4500) });
       if (!response.ok) throw new Error("HTTP " + response.status);
       const xml = await response.text();
       return parseFeed(xml, feed);
