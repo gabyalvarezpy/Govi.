@@ -3260,7 +3260,7 @@ window.goviGoToMyProfile = async function(el) {
     history.replaceState(null,'','#profile-'+currentUser.id);
     await openGoviProfile(currentUser.id);
     // Abrir el perfil sin desplazamiento animado para evitar el salto visual.
-    window.scrollTo(0,0);
+    /* Se conserva la posición de scroll al abrir Mi perfil. */
   } catch(error) { console.error('GOVI perfil móvil:',error); toast('No se pudo abrir tu perfil: '+(error.message||'Error desconocido')); }
 };
 
@@ -5011,7 +5011,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     document.querySelector('.govi-mobile-nav button:last-child')?.classList.add('active');
     await openProfile(user.id);
     // Abrir el perfil sin desplazamiento animado para evitar el salto visual.
-    window.scrollTo(0,0);
+    /* Se conserva la posición de scroll al abrir Mi perfil. */
   }
   // La selección de avatar/portada se gestiona en un único listener global
   // al final del documento (#govi-crop-input-capture-v1). No añadir puentes
@@ -5093,7 +5093,7 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
       // Reafirmar visibilidad por si un controlador antiguo restauró Inicio.
       if(home)home.style.setProperty('display','none','important');
       view.hidden=false;view.style.setProperty('display','block','important');
-      window.scrollTo(0,0);
+      /* Se conserva la posición de scroll al abrir Mi perfil. */
     }catch(error){
       console.error('GOVI: error al abrir perfil propio',error);
       if(typeof toast==='function')toast('Error al abrir el perfil: '+(error?.message||String(error)||'Revisá la consola'));
@@ -7713,7 +7713,7 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
       try{history.replaceState({goviProfile:true},'','#profile-'+user.id)}catch(_){}
       await loadOwnProfile(user);
       view.hidden=false;view.style.setProperty('display','block','important');
-      window.scrollTo(0,0);
+      /* Se conserva la posición de scroll al abrir Mi perfil. */
     }catch(error){console.error('GOVI carga de perfil y álbumes:',error);if(typeof toast==='function')toast('No se pudo cargar tu perfil: '+(error.message||'Error'))}
   };
   window.goviReturnToOwnProfile=function(){const viewer=$id('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
