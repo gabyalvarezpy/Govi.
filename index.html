@@ -5113,9 +5113,11 @@ const goviOriginalOpenProfileWithStories=window.openGoviProfile;
     if(feed)feed.style.display='block';
     document.querySelectorAll('.govi-mobile-nav button,.nav-item').forEach(x=>x.classList.remove('active'));
     if(button)button.classList.add('active');
-    if(typeof window.goviSyncHomeProfile==='function')window.goviSyncHomeProfile();
+    // filterSection('Inicio') ya sincroniza la portada; evitar una segunda
+    // consulta que pueda cambiar la altura de la descripción durante la transición.
     if(typeof window.filterSection==='function')window.filterSection('Inicio',button||null);
-    window.scrollTo({top:0,behavior:'smooth'});
+    // Volver al inicio sin animación para evitar el pequeño salto visual.
+    window.scrollTo(0,0);
   }
   window.goviShowHomeView=goviShowHomeView;
   document.addEventListener('click',function(event){
