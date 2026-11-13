@@ -1940,7 +1940,7 @@ function goviResetAccountView(){
   if(home){home.hidden=false;home.style.setProperty('display','block','important')}
   [stories,heading,composer].forEach(el=>{if(el)el.style.removeProperty('display')});
   if(typeof window.goviSyncHomeProfile==='function')window.goviSyncHomeProfile();
-  window.scrollTo(0,0);
+  // No alterar la posición de pantalla durante una actualización de sesión.
 }
 async function refreshSession(){
   try{
