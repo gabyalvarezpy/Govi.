@@ -9350,3 +9350,54 @@ window.goviOpenCropEditor = goviOpenCropEditor;
  });
 })();
 </script>
+
+
+<!-- GOVI: move only the gold comment composer above the live keyboard boundary; preserve photo sizing. -->
+<style id="govi-comment-composer-keyboard-dock-v4">
+@media(max-width:700px){
+ #goviMediaViewer.govi-keyboard-layout-v3 > [data-viewer-comment-form]{
+  position:fixed!important;left:12px!important;right:12px!important;
+  bottom:auto!important;z-index:2147483647!important;
+  margin:0!important;transform:none!important;
+ }
+}
+</style>
+<script id="govi-comment-composer-keyboard-dock-v4-script">
+(function(){
+ if(window.__goviCommentComposerKeyboardDockV4)return;
+ window.__goviCommentComposerKeyboardDockV4=true;
+ const inputSel='#goviMediaViewer [data-viewer-comment-input]';
+ const formSel='#goviMediaViewer > [data-viewer-comment-form]';
+ function place(){
+  const viewer=document.getElementById('goviMediaViewer');
+  const input=document.querySelector(inputSel);
+  const form=document.querySelector(formSel);
+  if(!viewer||!form||!input)return;
+  if(document.activeElement!==input||!viewer.classList.contains('open')){
+   form.style.removeProperty('top');
+   form.style.removeProperty('bottom');
+   return;
+  }
+  const vv=window.visualViewport;
+  const visibleBottom=vv?(vv.offsetTop+vv.height):(window.innerHeight||document.documentElement.clientHeight);
+  const formHeight=form.getBoundingClientRect().height||62;
+  const top=Math.max(8,visibleBottom-formHeight-12);
+  form.style.setProperty('position','fixed','important');
+  form.style.setProperty('top',top+'px','important');
+  form.style.setProperty('bottom','auto','important');
+  form.style.setProperty('left','12px','important');
+  form.style.setProperty('right','12px','important');
+  form.style.setProperty('z-index','2147483647','important');
+ }
+ function settle(){setTimeout(place,30);setTimeout(place,120);setTimeout(place,260)}
+ document.addEventListener('focusin',e=>{if(e.target&&e.target.matches(inputSel))settle()},true);
+ document.addEventListener('focusout',e=>{if(e.target&&e.target.matches(inputSel))setTimeout(place,180)},true);
+ document.addEventListener('input',e=>{if(e.target&&e.target.matches(inputSel))settle()},true);
+ if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',place);
+  window.visualViewport.addEventListener('scroll',place);
+ }
+ window.addEventListener('resize',place);
+ document.addEventListener('click',e=>{if(e.target.closest('#goviMediaViewer [data-viewer-close]'))setTimeout(place,0)});
+})();
+</script>
