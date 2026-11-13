@@ -1,9 +1,14 @@
 const FEEDS = [
   { source: "ABC Color", category: "Paraguay", url: "https://www.abc.com.py/arc/outboundfeeds/rss/nacionales/" },
+  { source: "ABC Color · Política", category: "Paraguay", url: "https://www.abc.com.py/arc/outboundfeeds/rss/politica/" },
   { source: "ABC Color · Mundo", category: "Mundo", url: "https://www.abc.com.py/arc/outboundfeeds/rss/mundo/" },
   { source: "Última Hora", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:ultimahora.com&hl=es&gl=PY&ceid=PY:es" },
   { source: "La Nación", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:lanacion.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "IP Paraguay", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:ip.gov.py&hl=es&gl=PY&ceid=PY:es" },
+  { source: "RTVE", category: "España", url: "https://news.google.com/rss/search?q=when:1d+site:rtve.es&hl=es&gl=ES&ceid=ES:es" },
+  { source: "El País", category: "España", url: "https://news.google.com/rss/search?q=when:1d+site:elpais.com&hl=es&gl=ES&ceid=ES:es" },
+  { source: "Agencia EFE", category: "España", url: "https://news.google.com/rss/search?q=when:1d+site:efe.com&hl=es&gl=ES&ceid=ES:es" },
+  { source: "La Vanguardia", category: "España", url: "https://news.google.com/rss/search?q=when:1d+site:lavanguardia.com&hl=es&gl=ES&ceid=ES:es" },
   { source: "Telefuturo", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:telefuturo.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "C9N", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:c9n.com.py&hl=es&gl=PY&ceid=PY:es" },
   { source: "SNT", category: "Paraguay", url: "https://news.google.com/rss/search?q=when:1d+site:snt.com.py&hl=es&gl=PY&ceid=PY:es" },
@@ -76,6 +81,10 @@ module.exports = async function handler(req, res) {
     const key = article.url.split("?")[0];
     if (!unique.has(key)) unique.set(key, article);
   });
-  const articles = [...unique.values()].sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0)).slice(0, 80);
+  const priority = { Paraguay: 0, España: 1, Mundo: 2 };
+  const articles = [...unique.values()].sort((a, b) =>
+    (priority[a.category] ?? 9) - (priority[b.category] ?? 9) ||
+    new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0)
+  ).slice(0, 60);
   res.status(200).json({ articles, updatedAt: new Date().toISOString(), sources: FEEDS.map(f => f.source), count: articles.length });
 };
