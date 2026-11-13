@@ -7808,7 +7808,8 @@ html body #goviStoryComposer{background:radial-gradient(ellipse at 50% 22%,#3021
     };
     window.goviProfileViewingUserId=user.id;
     if(!tabs.dataset.ownTabsV4){tabs.dataset.ownTabsV4='1';tabs.addEventListener('click',e=>{const b=e.target.closest('[data-profile-filter]');if(b)render(b.dataset.profileFilter)})}
-    render('all');window.scrollTo(0,0);
+    // No forzar scroll al abrir el perfil: el desplazamiento global suave de la página provocaba el salto visual.
+    render('all');
   }
   window.goviGoToMyProfile=async function(button){try{await openMine(button)}catch(e){console.error('GOVI perfil final:',e);if(typeof toast==='function')toast('No se pudo cargar tu perfil: '+(e.message||'Error'))}};
   window.goviReturnToOwnProfile=function(){const viewer=document.getElementById('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
