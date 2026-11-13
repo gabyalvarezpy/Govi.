@@ -9401,3 +9401,65 @@ window.goviOpenCropEditor = goviOpenCropEditor;
  document.addEventListener('click',e=>{if(e.target.closest('#goviMediaViewer [data-viewer-close]'))setTimeout(place,0)});
 })();
 </script>
+
+
+<!-- GOVI mobile album viewer: final tuning based on the actual viewer DOM. Enlarge photo stage and lift composer. -->
+<style id="govi-album-photo-and-composer-tune-v5">
+@media(max-width:700px){
+ #goviMediaViewer.open.govi-keyboard-layout-v3 .govi-viewer-stage,
+ #goviMediaViewer.open.govi-viewer-input-focused .govi-viewer-stage{
+  flex:0 0 min(40vh,360px)!important;
+  height:min(40vh,360px)!important;
+  min-height:min(40vh,360px)!important;
+  max-height:min(40vh,360px)!important;
+  padding:2px 4px!important;
+  overflow:hidden!important;
+ }
+ #goviMediaViewer.open.govi-keyboard-layout-v3 .govi-viewer-stage img,
+ #goviMediaViewer.open.govi-keyboard-layout-v3 .govi-viewer-stage video,
+ #goviMediaViewer.open.govi-viewer-input-focused .govi-viewer-stage img,
+ #goviMediaViewer.open.govi-viewer-input-focused .govi-viewer-stage video{
+  max-width:100%!important;max-height:100%!important;
+  width:auto!important;height:auto!important;
+  object-fit:contain!important;object-position:center!important;
+ }
+ #goviMediaViewer.open.govi-keyboard-layout-v3 > [data-viewer-comment-form],
+ #goviMediaViewer.open.govi-viewer-input-focused > [data-viewer-comment-form]{
+  left:12px!important;right:12px!important;
+  z-index:2147483647!important;
+ }
+}
+</style>
+<script id="govi-album-photo-and-composer-tune-v5-script">
+(function(){
+ if(window.__goviAlbumPhotoComposerTuneV5)return;
+ window.__goviAlbumPhotoComposerTuneV5=true;
+ const inputSel='#goviMediaViewer [data-viewer-comment-input]';
+ const formSel='#goviMediaViewer > [data-viewer-comment-form]';
+ function liftComposer(){
+  const viewer=document.getElementById('goviMediaViewer');
+  const input=document.querySelector(inputSel);
+  const form=document.querySelector(formSel);
+  if(!viewer||!input||!form||document.activeElement!==input||!viewer.classList.contains('open'))return;
+  const vv=window.visualViewport;
+  let visibleBottom=vv?(vv.offsetTop+vv.height):(window.innerHeight||document.documentElement.clientHeight);
+  // Leave a clear 52px breathing gap above the keyboard, rather than sitting on its edge.
+  const formHeight=form.getBoundingClientRect().height||66;
+  const top=Math.max(8,visibleBottom-formHeight-52);
+  form.style.setProperty('position','fixed','important');
+  form.style.setProperty('top',top+'px','important');
+  form.style.setProperty('bottom','auto','important');
+  form.style.setProperty('left','12px','important');
+  form.style.setProperty('right','12px','important');
+  form.style.setProperty('z-index','2147483647','important');
+ }
+ function settle(){setTimeout(liftComposer,30);setTimeout(liftComposer,120);setTimeout(liftComposer,260);setTimeout(liftComposer,500)}
+ document.addEventListener('focusin',e=>{if(e.target&&e.target.matches(inputSel))settle()},true);
+ document.addEventListener('input',e=>{if(e.target&&e.target.matches(inputSel))settle()},true);
+ if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',liftComposer);
+  window.visualViewport.addEventListener('scroll',liftComposer);
+ }
+ window.addEventListener('resize',liftComposer);
+})();
+</script>
