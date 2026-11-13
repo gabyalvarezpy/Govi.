@@ -6075,6 +6075,9 @@ html body .govi-post-collage{width:100%!important}
   window.scrollTo({top:0,behavior:'smooth'});
  };
  window.goviShowHomeView=function(el){
+  // Evitar que un callback antiguo de Inicio sobrescriba la navegación recién hecha a Perfil.
+  // El listener explícito del botón Inicio libera este bloqueo al volver a Inicio.
+  if(document.documentElement.classList.contains('govi-profile-nav-lock')&&location.hash.startsWith('#profile-'))return;
   document.querySelector('.govi-shell')?.classList.remove('govi-news-mode');document.body.classList.remove('govi-news-mode');
   const main=document.querySelector('.govi-content');if(!main)return;
   main.querySelectorAll(':scope > section').forEach(section=>{section.style.display=section.id==='goviNewsView'?'none':''});
