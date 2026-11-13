@@ -7807,6 +7807,9 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   document.addEventListener('click',function(e){
     const target=e.target instanceof Element?e.target:null;
     if(!target)return;
+    // Las fotos y vídeos del feed los gestiona el visor nuevo (goviMediaViewer).
+    // Evitar que este visor antiguo abra una segunda capa al mismo clic.
+    if(target.closest('.govi-feed-block .post-media,[data-open-media]'))return;
     // Los controles de cámara siguen abriendo el selector para editar.
     if(target.closest('#goviProfileCoverEdit,#goviProfileAvatarEdit,#goviHomeEditProfile,#goviHomeEditAvatar'))return;
     const postMedia=target.closest('.govi-feed-block .post-media');
