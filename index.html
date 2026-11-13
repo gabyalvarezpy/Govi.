@@ -5799,6 +5799,61 @@ html body .govi-post-collage{width:100%!important}
 }
 </style>
 
+<style id="govi-media-viewer-keyboard-fix-v1">
+@media(max-width:700px){
+ #goviMediaViewer.open.govi-viewer-commenting{
+  top:var(--govi-viewer-vv-top,0px)!important;
+  bottom:auto!important;
+  height:var(--govi-viewer-vv-height,100dvh)!important;
+  max-height:var(--govi-viewer-vv-height,100dvh)!important;
+ }
+ #goviMediaViewer.govi-viewer-commenting .govi-viewer-comments{
+  flex:0 1 auto!important;min-height:0!important;max-height:32vh!important;
+  overflow:auto!important;padding-bottom:8px!important;
+ }
+ #goviMediaViewer.govi-viewer-commenting [data-viewer-comment-form]{
+  position:sticky!important;bottom:0!important;z-index:5!important;
+  padding:8px 0 max(8px,env(safe-area-inset-bottom))!important;
+  background:#171717!important;
+ }
+ #goviMediaViewer.govi-viewer-commenting [data-viewer-comment-input]{
+  min-height:46px!important;height:46px!important;box-sizing:border-box!important;
+  font-size:16px!important;min-width:0!important;
+ }
+}
+</style>
+<script id="govi-media-viewer-keyboard-fix-v1-script">
+(function(){
+ if(window.__goviMediaViewerKeyboardFixV1)return;window.__goviMediaViewerKeyboardFixV1=true;
+ const viewerInput='[data-viewer-comment-input]';
+ function sync(){
+  const v=document.getElementById('goviMediaViewer');if(!v)return;
+  const vv=window.visualViewport;
+  const top=vv?vv.offsetTop:0,height=vv?vv.height:window.innerHeight;
+  document.documentElement.style.setProperty('--govi-viewer-vv-top',top+'px');
+  document.documentElement.style.setProperty('--govi-viewer-vv-height',height+'px');
+ }
+ document.addEventListener('focusin',e=>{
+  if(!e.target.matches(viewerInput))return;
+  const v=e.target.closest('#goviMediaViewer');if(!v)return;
+  v.classList.add('govi-viewer-commenting');sync();
+  setTimeout(sync,120);setTimeout(sync,350);setTimeout(sync,650);
+ });
+ document.addEventListener('focusout',e=>{
+  if(!e.target.matches(viewerInput))return;
+  setTimeout(()=>{
+   const v=document.getElementById('goviMediaViewer');
+   if(v&&!v.querySelector(viewerInput+':focus'))v.classList.remove('govi-viewer-commenting');
+  },180);
+ });
+ if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',sync);
+  window.visualViewport.addEventListener('scroll',sync);
+ }
+ window.addEventListener('resize',sync);
+})();
+</script>
+
 <style id="govi-comment-keyboard-visible-v1">
 @media(max-width:700px){
  body.govi-commenting .comment-form.govi-comment-docked{
