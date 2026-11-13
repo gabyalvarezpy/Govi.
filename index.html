@@ -9463,3 +9463,34 @@ window.goviOpenCropEditor = goviOpenCropEditor;
  window.addEventListener('resize',liftComposer);
 })();
 </script>
+
+<!-- GOVI: keep each comment's Editar/Eliminar controls clear of the fixed gold composer. -->
+<style id="govi-viewer-comment-actions-clearance-v1">
+@media(max-width:700px){
+  /* The comment list scrolls independently; reserve room for the fixed composer. */
+  #goviMediaViewer.open [data-viewer-comment-list]{
+    padding-bottom:130px!important;
+    scroll-padding-bottom:130px!important;
+    box-sizing:border-box!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  #goviMediaViewer.open [data-viewer-comment-list] [data-comment-id]{
+    scroll-margin-bottom:130px!important;
+  }
+  #goviMediaViewer.open .govi-viewer-comment-actions{
+    position:relative!important;
+    z-index:1!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:8px!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+  #goviMediaViewer.open .govi-viewer-comment-actions button{
+    flex:0 0 auto!important;
+    min-height:32px!important;
+    visibility:visible!important;
+    opacity:1!important;
+  }
+}
+</style>
