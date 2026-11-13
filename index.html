@@ -5812,9 +5812,12 @@ html body .govi-post-collage{width:100%!important}
   overflow:auto!important;padding-bottom:8px!important;
  }
  #goviMediaViewer.govi-viewer-commenting [data-viewer-comment-form]{
-  position:sticky!important;bottom:0!important;z-index:5!important;
+  position:fixed!important;left:14px!important;right:14px!important;
+  bottom:calc(var(--govi-viewer-keyboard-gap,0px) + 8px)!important;
+  z-index:2147483002!important;width:auto!important;box-sizing:border-box!important;
   padding:8px 0 max(8px,env(safe-area-inset-bottom))!important;
-  background:#171717!important;
+  background:#171717!important;border-radius:14px!important;
+  box-shadow:0 0 0 8px #171717!important;
  }
  #goviMediaViewer.govi-viewer-commenting [data-viewer-comment-input]{
   min-height:46px!important;height:46px!important;box-sizing:border-box!important;
@@ -5830,8 +5833,10 @@ html body .govi-post-collage{width:100%!important}
   const v=document.getElementById('goviMediaViewer');if(!v)return;
   const vv=window.visualViewport;
   const top=vv?vv.offsetTop:0,height=vv?vv.height:window.innerHeight;
+  const keyboardGap=vv?Math.max(0,window.innerHeight-(vv.height+vv.offsetTop)):0;
   document.documentElement.style.setProperty('--govi-viewer-vv-top',top+'px');
   document.documentElement.style.setProperty('--govi-viewer-vv-height',height+'px');
+  document.documentElement.style.setProperty('--govi-viewer-keyboard-gap',keyboardGap+'px');
  }
  document.addEventListener('focusin',e=>{
   if(!e.target.matches(viewerInput))return;
