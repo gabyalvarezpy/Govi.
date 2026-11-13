@@ -9211,3 +9211,142 @@ window.goviOpenCropEditor = goviOpenCropEditor;
 })();
 </script>
 
+
+
+<!-- GOVI MOBILE ALBUM VIEWER V3: one layout owner; keep photo large and dock composer above Android keyboard. -->
+<style id="govi-mobile-album-viewer-v3">
+@media(max-width:700px){
+ #goviMediaViewer.govi-keyboard-layout-v3{
+  position:fixed!important;inset:0 0 auto 0!important;
+  height:var(--govi-keyboard-layout-height,100dvh)!important;
+  max-height:none!important;bottom:auto!important;
+  display:flex!important;flex-direction:column!important;
+  overflow:hidden!important;box-sizing:border-box!important;
+  transform:none!important;contain:none!important;filter:none!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 .govi-viewer-head{
+  flex:0 0 48px!important;height:48px!important;min-height:48px!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 .govi-viewer-stage{
+  flex:0 0 clamp(220px,34vh,330px)!important;
+  height:clamp(220px,34vh,330px)!important;
+  min-height:220px!important;max-height:330px!important;
+  width:100%!important;min-width:0!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  overflow:hidden!important;padding:4px 8px!important;box-sizing:border-box!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 .govi-viewer-stage img,
+ #goviMediaViewer.govi-keyboard-layout-v3 .govi-viewer-stage video{
+  display:block!important;flex:0 1 auto!important;
+  width:auto!important;height:auto!important;
+  max-width:100%!important;max-height:100%!important;
+  object-fit:contain!important;object-position:center!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 .govi-viewer-actions{
+  flex:0 0 auto!important;display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;padding:7px 10px!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 .govi-viewer-actions button{
+  min-width:0!important;min-height:46px!important;height:auto!important;
+  padding:8px 3px!important;white-space:nowrap!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 .govi-viewer-comments{
+  flex:1 1 auto!important;min-height:72px!important;max-height:none!important;
+  width:100%!important;overflow:hidden!important;
+  padding:8px 12px 76px!important;box-sizing:border-box!important;
+  background:#171717!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 [data-viewer-comment-list]{
+  max-height:100%!important;min-height:0!important;overflow-y:auto!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 > [data-viewer-comment-form]{
+  position:fixed!important;left:12px!important;right:12px!important;
+  bottom:calc(var(--govi-keyboard-gap-v3,0px) + 8px + env(safe-area-inset-bottom))!important;
+  top:auto!important;z-index:2147483647!important;
+  display:flex!important;align-items:flex-end!important;gap:8px!important;
+  width:auto!important;margin:0!important;padding:8px!important;
+  box-sizing:border-box!important;background:#202020!important;
+  border:1px solid #c5a24e!important;border-radius:16px!important;
+  box-shadow:0 8px 24px #000b!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 [data-viewer-comment-input]{
+  display:block!important;flex:1 1 auto!important;width:0!important;min-width:0!important;
+  height:auto!important;min-height:46px!important;max-height:108px!important;
+  margin:0!important;padding:10px 12px!important;box-sizing:border-box!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important;caret-color:#fff!important;
+  background:#101010!important;border:1px solid #66552f!important;border-radius:11px!important;
+  font:16px/1.35 system-ui,sans-serif!important;opacity:1!important;
+  resize:none!important;overflow-y:auto!important;white-space:pre-wrap!important;
+ }
+ #goviMediaViewer.govi-keyboard-layout-v3 [data-viewer-comment-form] button{
+  flex:0 0 auto!important;min-height:46px!important;height:46px!important;
+  padding:0 14px!important;white-space:nowrap!important;
+ }
+}
+</style>
+<script id="govi-mobile-album-viewer-v3-script">
+(function(){
+ if(window.__goviMobileAlbumViewerV3)return;
+ window.__goviMobileAlbumViewerV3=true;
+ const selector='#goviMediaViewer [data-viewer-comment-input]';
+ let layoutHeight=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0);
+ function sync(){
+  const viewer=document.getElementById('goviMediaViewer');
+  if(!viewer)return;
+  const focused=!!(document.activeElement&&document.activeElement.matches(selector));
+  if(!focused){
+   viewer.classList.remove('govi-keyboard-layout-v3');
+   if(!viewer.classList.contains('open'))return;
+   viewer.style.removeProperty('--govi-keyboard-layout-height');
+   viewer.style.removeProperty('--govi-keyboard-gap-v3');
+   return;
+  }
+  const currentHeight=window.innerHeight||layoutHeight;
+  const vv=window.visualViewport;
+  const visibleBottom=vv?(vv.offsetTop+vv.height):currentHeight;
+  // If Android already resized the layout viewport, the fixed composer belongs at its bottom.
+  // If it only resized the visual viewport, compensate for the keyboard height.
+  const keyboardGap=currentHeight>visibleBottom+80?currentHeight-visibleBottom:0;
+  viewer.classList.add('govi-keyboard-layout-v3');
+  viewer.style.setProperty('--govi-keyboard-layout-height',layoutHeight+'px');
+  viewer.style.setProperty('--govi-keyboard-gap-v3',Math.max(0,keyboardGap)+'px');
+  viewer.style.setProperty('top','0px','important');
+  viewer.style.setProperty('height',layoutHeight+'px','important');
+  viewer.style.setProperty('bottom','auto','important');
+ }
+ function resizeInput(el){
+  if(!el||el.tagName!=='TEXTAREA')return;
+  el.style.setProperty('height','auto');
+  el.style.setProperty('height',Math.min(Math.max(el.scrollHeight,46),108)+'px');
+  el.style.setProperty('overflow-y',el.scrollHeight>108?'auto':'hidden');
+ }
+ document.addEventListener('focusin',e=>{
+  if(!e.target||!e.target.matches(selector))return;
+  setTimeout(sync,40);setTimeout(sync,160);setTimeout(sync,380);
+ },true);
+ document.addEventListener('focusout',e=>{
+  if(!e.target||!e.target.matches(selector))return;
+  setTimeout(sync,220);
+ },true);
+ document.addEventListener('input',e=>{
+  if(e.target&&e.target.matches(selector))resizeInput(e.target);
+ },true);
+ if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',sync);
+  window.visualViewport.addEventListener('scroll',sync);
+ }
+ window.addEventListener('resize',()=>{
+  if(!document.activeElement?.matches(selector)){
+   layoutHeight=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0);
+  }
+  sync();
+ });
+ document.addEventListener('click',e=>{
+  if(e.target.closest('#goviMediaViewer [data-viewer-close]')){
+   const viewer=document.getElementById('goviMediaViewer');
+   viewer?.classList.remove('govi-keyboard-layout-v3');
+  }
+ });
+})();
+</script>
