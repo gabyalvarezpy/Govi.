@@ -6329,6 +6329,100 @@ html body .govi-post-collage{width:100%!important}
 #goviMediaViewer .govi-viewer-comment-actions button:hover{background:#393020!important}
 @media(max-width:700px){#goviMediaViewer .govi-viewer-comment-item{font-size:14px!important}}
 </style>
+
+<!-- GOVI mobile viewer: keep the full photo contained and dock the comment composer inside the visible viewport. -->
+<style id="govi-mobile-viewer-visual-viewport-final-v1">
+@media(max-width:700px){
+  #goviMediaViewer.open{
+    position:fixed!important;left:0!important;right:0!important;
+    display:flex!important;flex-direction:column!important;
+    overflow:hidden!important;box-sizing:border-box!important;
+  }
+  #goviMediaViewer .govi-viewer-head{flex:0 0 54px!important;min-height:54px!important}
+  #goviMediaViewer .govi-viewer-stage{
+    flex:1 1 0!important;min-height:0!important;min-width:0!important;
+    width:100%!important;overflow:hidden!important;
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    padding:4px 10px!important;box-sizing:border-box!important;
+  }
+  #goviMediaViewer .govi-viewer-stage img,
+  #goviMediaViewer .govi-viewer-stage video{
+    display:block!important;flex:0 1 auto!important;
+    width:auto!important;height:auto!important;
+    max-width:100%!important;max-height:100%!important;
+    object-fit:contain!important;object-position:center!important;
+  }
+  #goviMediaViewer .govi-viewer-actions{
+    flex:0 0 auto!important;display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    padding:7px 10px!important;gap:7px!important;
+  }
+  #goviMediaViewer .govi-viewer-actions button{min-height:46px!important}
+  #goviMediaViewer.govi-viewer-commenting .govi-viewer-comments{
+    flex:0 0 auto!important;min-height:64px!important;max-height:76px!important;
+    overflow:hidden!important;padding:4px 10px 62px!important;
+    box-sizing:border-box!important;
+  }
+  #goviMediaViewer.govi-viewer-commenting [data-viewer-comment-list]{
+    max-height:42px!important;min-height:0!important;overflow-y:auto!important;
+  }
+  /* The form is a child of the viewer root; docking it here avoids keyboard/layout-viewport coordinate conflicts. */
+  #goviMediaViewer.govi-viewer-commenting > [data-viewer-comment-form]{
+    position:absolute!important;left:12px!important;right:12px!important;
+    bottom:8px!important;top:auto!important;z-index:2147483647!important;
+    display:flex!important;gap:8px!important;margin:0!important;padding:7px!important;
+    box-sizing:border-box!important;background:#171717!important;
+    border:1px solid #b99345!important;border-radius:14px!important;
+    box-shadow:0 8px 24px #000b!important;
+  }
+  #goviMediaViewer.govi-viewer-commenting > [data-viewer-comment-form] input{
+    flex:1 1 auto!important;width:0!important;min-width:0!important;
+    height:46px!important;min-height:46px!important;max-height:46px!important;
+    font-size:16px!important;box-sizing:border-box!important;
+  }
+  #goviMediaViewer.govi-viewer-commenting > [data-viewer-comment-form] button{
+    flex:0 0 auto!important;height:46px!important;min-height:46px!important;
+    white-space:nowrap!important;
+  }
+}
+</style>
+<script id="govi-mobile-viewer-visual-viewport-final-v1-script">
+(function(){
+  if(window.__goviMobileViewerVisualViewportFinalV1)return;
+  window.__goviMobileViewerVisualViewportFinalV1=true;
+  const inputSelector='#goviMediaViewer [data-viewer-comment-input]';
+  function sync(){
+    const viewer=document.getElementById('goviMediaViewer');
+    if(!viewer)return;
+    const focused=!!(document.activeElement&&document.activeElement.matches(inputSelector));
+    if(focused){
+      viewer.classList.add('govi-viewer-commenting');
+      const vv=window.visualViewport;
+      const top=vv?vv.offsetTop:0;
+      const height=vv?vv.height:window.innerHeight;
+      viewer.style.top=top+'px';
+      viewer.style.height=height+'px';
+      viewer.style.bottom='auto';
+    }else{
+      viewer.classList.remove('govi-viewer-commenting');
+      viewer.style.top='0px';
+      viewer.style.height='100dvh';
+      viewer.style.bottom='0px';
+    }
+  }
+  document.addEventListener('focusin',e=>{
+    if(e.target&&e.target.matches(inputSelector))setTimeout(sync,60);
+  },true);
+  document.addEventListener('focusout',e=>{
+    if(e.target&&e.target.matches(inputSelector))setTimeout(sync,180);
+  },true);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',sync);
+    window.visualViewport.addEventListener('scroll',sync);
+  }
+  window.addEventListener('resize',sync);
+})();
+</script>
 </body>
 </html>
 
