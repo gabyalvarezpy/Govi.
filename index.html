@@ -1928,6 +1928,9 @@ supabaseClient.auth.onAuthStateChange((event)=>{
 
 let goviLastSessionUserId=null;
 function goviResetAccountView(){
+  // No permitir que una actualización de sesión tardía cierre el perfil que el usuario acaba de abrir.
+  const activeProfileRoute=location.hash||'';
+  if(currentUser?.id && activeProfileRoute==='#profile-'+currentUser.id)return;
   goviProfileId=null;window.goviProfileViewingUserId=null;window.goviProfileId=null;
   const view=document.getElementById('goviProfileView'),home=document.getElementById('goviHomeProfile');
   const stories=document.getElementById('goviStories')?.closest('.govi-section-block');
