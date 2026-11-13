@@ -8827,6 +8827,7 @@ window.goviOpenCropEditor = goviOpenCropEditor;
   if(btn.dataset.busy==='1')return;
   const action=btn.dataset.viewerCommentAction,commentId=btn.dataset.id,postId=btn.dataset.postId;
   if(!commentId||!postId){toast('No se pudo identificar el comentario');return}
+  if(!currentUser){toast('Inicia sesión para gestionar tus comentarios');openModal('authModal');return}
   const viewer=document.getElementById('goviMediaViewer');
   const commentNode=viewer?.querySelector('[data-comment-id="'+CSS.escape(String(commentId))+'"] .govi-viewer-comment-content');
   const existingText=commentNode?.textContent||'';
