@@ -5975,7 +5975,7 @@ html body .govi-post-collage{width:100%!important}
    const response=await fetch(refreshUrl,{cache:'no-store',headers:{Accept:'application/json','Cache-Control':'no-cache'}});
    if(!response.ok)throw new Error('No se pudo conectar con el servicio de noticias ('+response.status+').');
    const data=await response.json();newsItems=Array.isArray(data.articles)?data.articles:[];lastUpdated=data.updatedAt;newsLoaded=true;render();
-   if(status)status.textContent=newsItems.length+' noticias disponibles · Actualizado '+new Date(lastUpdated||Date.now()).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})+' · Se renueva automáticamente cada 15 minutos.';
+   if(status)status.textContent=newsItems.length+' noticias disponibles · Actualizado '+new Date(lastUpdated||Date.now()).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})+' · Actualización automática cada 2 minutos mientras estés en Noticias.';
    if(!newsItems.length&&status)status.textContent='Las fuentes no respondieron en este momento. Podés volver a intentar.';
   }catch(error){if(status)status.textContent=error.message+' Probá nuevamente en unos minutos.';if(!newsLoaded)$('goviNewsGrid').innerHTML='<div class="govi-news-empty">No se pudieron cargar las noticias. Tocá Actualizar para volver a intentar.</div>'}
   finally{newsLoading=false;if(button){button.disabled=false;button.textContent='↻ Actualizar'}}
@@ -6006,7 +6006,7 @@ html body .govi-post-collage{width:100%!important}
  };
  document.addEventListener('click',e=>{const tab=e.target.closest('[data-news-category]');if(!tab)return;newsCategory=tab.dataset.newsCategory;document.querySelectorAll('[data-news-category]').forEach(b=>b.classList.toggle('active',b===tab));render()});
  $('goviNewsSearch')?.addEventListener('input',render);
- setInterval(()=>{if(newsLoaded)window.goviLoadNews(true)},15*60*1000);
+ setInterval(()=>{if(document.body.classList.contains('govi-news-mode')&&!newsLoading)window.goviLoadNews(false)},2*60*1000);
 })();
 </script>
 
