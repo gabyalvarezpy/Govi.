@@ -7823,14 +7823,11 @@ html.govi-profile-view-settling,html.govi-profile-view-settling body,html.govi-p
     };
     window.goviProfileViewingUserId=user.id;
     if(!tabs.dataset.ownTabsV4){tabs.dataset.ownTabsV4='1';tabs.addEventListener('click',e=>{const b=e.target.closest('[data-profile-filter]');if(b)render(b.dataset.profileFilter)})}
-    // Renderizar el perfil completo antes de corregir el scroll; Android no debe conservar
-    // el ancla de las secciones de Inicio que desaparecen durante el cambio de vista.
+    // Mantener la posición de desplazamiento al terminar de renderizar.
+    // No ejecutar scrollTo ni una corrección diferida: provocan el salto visible
+    // después de que el perfil ya se ha abierto.
     render('all');
-    document.documentElement.classList.add('govi-profile-view-settling');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      window.scrollTo({top:0,left:0,behavior:'instant'});
-      document.documentElement.classList.remove('govi-profile-view-settling');
-    }));
+    document.documentElement.classList.remove('govi-profile-view-settling');
   }
   window.goviGoToMyProfile=async function(button){try{await openMine(button)}catch(e){console.error('GOVI perfil final:',e);if(typeof toast==='function')toast('No se pudo cargar tu perfil: '+(e.message||'Error'))}};
   window.goviReturnToOwnProfile=function(){const viewer=document.getElementById('goviStoryViewer');if(viewer)viewer.style.display='none';window.goviGoToMyProfile(null)};
